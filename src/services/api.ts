@@ -5,6 +5,12 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
+export interface DeviceConflictError extends ApiError {
+  device_owner?: string;
+  device_id?: number;
+  suggestions?: string[];
+}
+
 class ApiService {
   private getHeaders(includeAuth = true): HeadersInit {
     const headers: HeadersInit = {
@@ -29,6 +35,27 @@ class ApiService {
         localStorage.removeItem('access_token');
         window.location.href = '/login';
         throw new Error('Unauthenticated');
+      }
+      
+      if (response.status === 409) {
+        // Device conflict - already assigned to another account
+        try {
+          const error: DeviceConflictError = await response.json();
+          const conflictError = new Error(error.message || 'Dit apparaat is al gekoppeld aan een ander account');
+          (conflictError as any).isDeviceConflict = true;
+          (conflictError as any).deviceOwner = error.device_owner;
+          (conflictError as any).deviceId = error.device_id;
+          (conflictError as any).suggestions = error.suggestions || [
+            'Vraag de huidige eigenaar om u uit te nodigen als zorgverlener',
+            'Controleer of u het juiste telefoonnummer heeft ingevoerd',
+            'Neem contact op met de beheerder voor toegang'
+          ];
+          throw conflictError;
+        } catch (parseError) {
+          const conflictError = new Error('Dit apparaat is al gekoppeld aan een ander account');
+          (conflictError as any).isDeviceConflict = true;
+          throw conflictError;
+        }
       }
       
       try {
@@ -239,6 +266,15 @@ class ApiService {
   async getDeviceAlarm(id: number) {
     const response = await fetch(`${BASE_URL}/device-alarms/${id}`, {
       headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async requestDeviceAccess(phone_number: string, message?: string) {
+    const response = await fetch(`${BASE_URL}/devices/request-access`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ phone_number, message }),
     });
     return this.handleResponse(response);
   }

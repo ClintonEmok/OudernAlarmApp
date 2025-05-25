@@ -7,13 +7,44 @@ import { Label } from '../ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../../store/useStore';
 import { Smartphone, Plus, TestTube } from 'lucide-react';
+import DeviceConflictDialog from '../DeviceConflict/DeviceConflictDialog';
 
 const DeviceAssignment = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [nickname, setNickname] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [conflictDialog, setConflictDialog] = useState<{
+    isOpen: boolean;
+    phoneNumber: string;
+    errorDetails?: any;
+  }>({
+    isOpen: false,
+    phoneNumber: '',
+    errorDetails: undefined
+  });
+  
   const { assignDevice } = useStore();
   const { toast } = useToast();
+
+  const handleDeviceConflictError = (error: any, phoneNumber: string) => {
+    if ((error as any).isDeviceConflict) {
+      setConflictDialog({
+        isOpen: true,
+        phoneNumber,
+        errorDetails: {
+          deviceOwner: (error as any).deviceOwner,
+          deviceId: (error as any).deviceId,
+          suggestions: (error as any).suggestions
+        }
+      });
+    } else {
+      toast({
+        title: "Koppeling Mislukt",
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het koppelen van het apparaat.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleAssignDevice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +74,7 @@ const DeviceAssignment = () => {
       
     } catch (error) {
       console.error('Failed to assign device:', error);
-      toast({
-        title: "Koppeling Mislukt",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het koppelen van het apparaat.",
-        variant: "destructive"
-      });
+      handleDeviceConflictError(error, phoneNumber.trim());
     } finally {
       setIsAssigning(false);
     }
@@ -65,93 +92,98 @@ const DeviceAssignment = () => {
       
     } catch (error) {
       console.error('Failed to assign test device:', error);
-      toast({
-        title: "Koppeling Test Apparaat Mislukt",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het koppelen van het test apparaat.",
-        variant: "destructive"
-      });
+      handleDeviceConflictError(error, '+3197052655266');
     } finally {
       setIsAssigning(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Plus size={20} className="text-purple-600" />
-          <span>Apparaat Koppelen</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Quick Test Device Button */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium text-blue-900 mb-1">Test Apparaat</h4>
-              <p className="text-sm text-blue-700">Koppel snel het test apparaat voor demo doeleinden</p>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Plus size={20} className="text-purple-600" />
+            <span>Apparaat Koppelen</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Quick Test Device Button */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-blue-900 mb-1">Test Apparaat</h4>
+                <p className="text-sm text-blue-700">Koppel snel het test apparaat voor demo doeleinden</p>
+              </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleAddTestDevice}
+                disabled={isAssigning}
+                className="border-blue-300 text-blue-700 hover:bg-blue-100"
+              >
+                <TestTube size={16} className="mr-2" />
+                Test Koppelen
+              </Button>
             </div>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={handleAddTestDevice}
-              disabled={isAssigning}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <TestTube size={16} className="mr-2" />
-              Test Koppelen
-            </Button>
           </div>
-        </div>
 
-        <form onSubmit={handleAssignDevice} className="space-y-4">
-          <div>
-            <Label htmlFor="phoneNumber">Telefoonnummer Apparaat *</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              placeholder="+31612345678"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Voer het telefoonnummer in zoals vermeld op het apparaat
-            </p>
-          </div>
-          
-          <div>
-            <Label htmlFor="nickname">Bijnaam (optioneel)</Label>
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="Bijvoorbeeld: Oma's Alarm"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isAssigning}
-          >
-            {isAssigning ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                Koppelen...
-              </>
-            ) : (
-              <>
-                <Smartphone size={16} className="mr-2" />
-                Apparaat Koppelen
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          <form onSubmit={handleAssignDevice} className="space-y-4">
+            <div>
+              <Label htmlFor="phoneNumber">Telefoonnummer Apparaat *</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="+31612345678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Voer het telefoonnummer in zoals vermeld op het apparaat
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="nickname">Bijnaam (optioneel)</Label>
+              <Input
+                id="nickname"
+                type="text"
+                placeholder="Bijvoorbeeld: Oma's Alarm"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isAssigning}
+            >
+              {isAssigning ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  Koppelen...
+                </>
+              ) : (
+                <>
+                  <Smartphone size={16} className="mr-2" />
+                  Apparaat Koppelen
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <DeviceConflictDialog
+        isOpen={conflictDialog.isOpen}
+        onClose={() => setConflictDialog({ isOpen: false, phoneNumber: '', errorDetails: undefined })}
+        phoneNumber={conflictDialog.phoneNumber}
+        errorDetails={conflictDialog.errorDetails}
+      />
+    </>
   );
 };
 

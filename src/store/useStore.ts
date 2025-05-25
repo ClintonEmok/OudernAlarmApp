@@ -79,6 +79,7 @@ interface AppState {
   assignDevice: (phone_number: string, nickname?: string) => Promise<void>;
   unassignDevice: (id: number) => Promise<void>;
   getDevice: (id: number) => Promise<Device>;
+  requestDeviceAccess: (phone_number: string, message?: string) => Promise<void>;
   
   // Invite validation
   validateInvite: (token: string) => Promise<any>;
@@ -367,6 +368,15 @@ export const useStore = create<AppState>((set, get) => ({
       return transformApiDevice(apiDevice);
     } catch (error) {
       console.error('Failed to get device:', error);
+      throw error;
+    }
+  },
+  
+  requestDeviceAccess: async (phone_number: string, message?: string) => {
+    try {
+      await apiService.requestDeviceAccess(phone_number, message);
+    } catch (error) {
+      console.error('Failed to request device access:', error);
       throw error;
     }
   },
