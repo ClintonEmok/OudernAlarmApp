@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import BottomNavigation from "./components/Layout/BottomNavigation";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Alerts from "./pages/Alerts";
 import Contacts from "./pages/Contacts";
@@ -43,11 +44,31 @@ const App = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/" element={<Home />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/device" element={<Device />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } />
+              <Route path="/alerts" element={
+                <ProtectedRoute>
+                  <Alerts />
+                </ProtectedRoute>
+              } />
+              <Route path="/contacts" element={
+                <ProtectedRoute>
+                  <Contacts />
+                </ProtectedRoute>
+              } />
+              <Route path="/device" element={
+                <ProtectedRoute>
+                  <Device />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNavigation />

@@ -1,14 +1,11 @@
-
 import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store/useStore';
-import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 
 const Settings = () => {
-  useAuth();
   const { user, logout } = useStore();
   const navigate = useNavigate();
 
