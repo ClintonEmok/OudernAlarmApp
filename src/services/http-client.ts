@@ -1,148 +1,17 @@
 
+import { CsrfManager } from './csrf-manager';
+import { ResponseHandler } from './response-handler';
+import { RequestBuilder } from './request-builder';
+
+// Re-export types for backward compatibility
+export type { ApiError, DeviceConflictError } from './response-handler';
+
 const BASE_URL = 'https://api.ouderen-alarmering.nl/api';
 
-export interface ApiError {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-
-export interface DeviceConflictError extends ApiError {
-  device_owner?: string;
-  device_id?: number;
-  suggestions?: string[];
-}
-
 class HttpClient {
-  private csrfToken: string | null = null;
-
-  private getCsrfTokenFromCookie(): string | null {
-    const cookies = document.cookie.split(';');
-    console.log('Available cookies:', cookies);
-    
-    // Laravel Sanctum sets XSRF-TOKEN cookie
-    for (let cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'XSRF-TOKEN' && value) {
-        console.log('Found XSRF-TOKEN cookie');
-        // URL decode the token value as per Laravel Sanctum docs
-        return decodeURIComponent(value);
-      }
-    }
-    
-    console.log('No XSRF-TOKEN cookie found');
-    return null;
-  }
-
-  private async waitForCookie(maxAttempts = 10): Promise<string | null> {
-    for (let i = 0; i < maxAttempts; i++) {
-      const token = this.getCsrfTokenFromCookie();
-      if (token) {
-        return token;
-      }
-      // Wait 100ms before trying again
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    return null;
-  }
-
-  private async getCsrfToken(): Promise<void> {
-    try {
-      console.log('Fetching CSRF token from /sanctum/csrf-cookie...');
-      const response = await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        console.error('Failed to fetch CSRF cookie:', response.status);
-        this.csrfToken = null;
-        return;
-      }
-      
-      console.log('CSRF cookie request successful, waiting for XSRF-TOKEN cookie...');
-      
-      // Wait for XSRF-TOKEN cookie to be available in document.cookie
-      this.csrfToken = await this.waitForCookie();
-      console.log('CSRF token obtained:', this.csrfToken ? 'Yes' : 'No');
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
-      this.csrfToken = null;
-    }
-  }
-
-  private getHeaders(includeAuth = true, includeCsrf = false): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-
-    // Only include Bearer token for authenticated requests (not login/register)
-    if (includeAuth) {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
-    // Include XSRF token for SPA authentication (Laravel Sanctum)
-    if (includeCsrf && this.csrfToken) {
-      headers['X-XSRF-TOKEN'] = this.csrfToken;
-      console.log('Including X-XSRF-TOKEN in headers');
-    }
-
-    return headers;
-  }
-
-  private async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Unauthenticated - redirect to login
-        localStorage.removeItem('access_token');
-        window.location.href = '/login';
-        throw new Error('Unauthenticated');
-      }
-      
-      if (response.status === 419) {
-        // CSRF token mismatch - clear token for retry
-        console.log('CSRF token mismatch detected');
-        this.csrfToken = null;
-        throw new Error('CSRF token mismatch');
-      }
-      
-      if (response.status === 409) {
-        // Device conflict - already assigned to another account
-        try {
-          const error: DeviceConflictError = await response.json();
-          const conflictError = new Error(error.message || 'Dit apparaat is al gekoppeld aan een ander account');
-          (conflictError as any).isDeviceConflict = true;
-          (conflictError as any).deviceOwner = error.device_owner;
-          (conflictError as any).deviceId = error.device_id;
-          (conflictError as any).suggestions = error.suggestions || [
-            'Vraag de huidige eigenaar om u uit te nodigen als zorgverlener',
-            'Controleer of u het juiste telefoonnummer heeft ingevoerd',
-            'Neem contact op met de beheerder voor toegang'
-          ];
-          throw conflictError;
-        } catch (parseError) {
-          const conflictError = new Error('Dit apparaat is al gekoppeld aan een ander account');
-          (conflictError as any).isDeviceConflict = true;
-          throw conflictError;
-        }
-      }
-      
-      try {
-        const error: ApiError = await response.json();
-        throw new Error(error.message || 'API request failed');
-      } catch {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    }
-    return response.json();
-  }
+  private csrfManager = new CsrfManager();
+  private responseHandler = new ResponseHandler();
+  private requestBuilder = new RequestBuilder();
 
   private async makeRequest<T>(
     method: string, 
@@ -155,39 +24,37 @@ class HttpClient {
     const needsCsrf = ['POST', 'PUT', 'DELETE'].includes(method.toUpperCase());
 
     // Get CSRF token if needed and not already available
-    if (needsCsrf && (!this.csrfToken || retryCount > 0)) {
+    if (needsCsrf && (!this.csrfManager.getToken() || retryCount > 0)) {
       console.log('Getting fresh CSRF token...');
-      await this.getCsrfToken();
+      await this.csrfManager.getCsrfToken();
       
-      if (!this.csrfToken) {
+      if (!this.csrfManager.getToken()) {
         console.warn('Could not obtain CSRF token, proceeding without it');
       }
     }
 
     try {
-      const requestOptions: RequestInit = {
+      const requestOptions = this.requestBuilder.buildRequest(
         method,
-        headers: this.getHeaders(includeAuth, needsCsrf),
-        credentials: 'include', // Essential for Laravel Sanctum SPA auth
-      };
-
-      if (data) {
-        requestOptions.body = JSON.stringify(data);
-      }
+        data,
+        includeAuth,
+        needsCsrf,
+        this.csrfManager.getToken()
+      );
 
       console.log(`Making ${method} request to ${endpoint}`, {
-        hasCsrfToken: !!this.csrfToken,
+        hasCsrfToken: !!this.csrfManager.getToken(),
         retryCount,
         headers: requestOptions.headers
       });
 
       const response = await fetch(`${BASE_URL}${endpoint}`, requestOptions);
-      return this.handleResponse<T>(response);
+      return this.responseHandler.handleResponse<T>(response);
     } catch (error) {
       if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries) {
         console.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
         // Clear token and retry with fresh one
-        this.csrfToken = null;
+        this.csrfManager.clearToken();
         return this.makeRequest<T>(method, endpoint, data, includeAuth, retryCount + 1);
       }
       throw error;
