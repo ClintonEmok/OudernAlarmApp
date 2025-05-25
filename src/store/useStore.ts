@@ -114,7 +114,9 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true });
       const userData = await apiService.getUser();
-      set({ user: userData });
+      if (userData) {
+        set({ user: userData });
+      }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
     } finally {
@@ -144,8 +146,8 @@ export const useStore = create<AppState>((set, get) => ({
   
   fetchDevices: async () => {
     try {
-      const devicesResponse = await apiService.getMyDevices();
-      const devices = devicesResponse?.own || [];
+      const devicesResponse = await apiService.getMyDevices() as any;
+      const devices = devicesResponse?.own || devicesResponse || [];
       set({ devices: Array.isArray(devices) ? devices : [] });
       
       // Update device info if we have devices
