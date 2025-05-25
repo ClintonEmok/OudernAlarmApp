@@ -12,7 +12,6 @@ interface DeviceInfo {
 interface AppState {
   // User authentication
   user: User | null;
-  accessToken: string | null;
   isAuthenticated: boolean;
   
   // Current location (from device)
@@ -45,7 +44,6 @@ interface AppState {
   
   // Actions
   setUser: (user: User) => void;
-  setAccessToken: (token: string) => void;
   setCaregivers: (caregivers: Contact[]) => void;
   setPatients: (patients: Contact[]) => void;
   setDevices: (devices: Device[]) => void;
@@ -85,7 +83,7 @@ interface AppState {
   validateInvite: (token: string) => Promise<any>;
   
   logout: () => void;
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 // Type guard to check if response is a valid User object
@@ -118,7 +116,6 @@ const transformApiDevice = (apiDevice: any): Device => {
 
 export const useStore = create<AppState>((set, get) => ({
   user: null,
-  accessToken: null,
   isAuthenticated: false,
   
   currentLocation: {
@@ -144,7 +141,6 @@ export const useStore = create<AppState>((set, get) => ({
   isLoading: false,
   
   setUser: (user) => set({ user, isAuthenticated: true }),
-  setAccessToken: (token) => set({ accessToken: token }),
   setCaregivers: (caregivers) => set({ caregivers }),
   setPatients: (patients) => set({ patients }),
   setDevices: (devices) => set({ devices }),
@@ -171,12 +167,14 @@ export const useStore = create<AppState>((set, get) => ({
       set({ isLoading: true });
       const userData = await apiService.getUser();
       if (isValidUser(userData)) {
-        set({ user: userData });
+        set({ user: userData, isAuthenticated: true });
       } else {
         console.warn('Invalid user data received from API:', userData);
+        set({ isAuthenticated: false, user: null });
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
+      set({ isAuthenticated: false, user: null });
     } finally {
       set({ isLoading: false });
     }
@@ -391,10 +389,8 @@ export const useStore = create<AppState>((set, get) => ({
   },
   
   logout: () => {
-    localStorage.removeItem('access_token');
     set({ 
       user: null, 
-      accessToken: null,
       isAuthenticated: false,
       caregivers: [],
       patients: [],
@@ -407,10 +403,20 @@ export const useStore = create<AppState>((set, get) => ({
     });
   },
   
-  checkAuth: () => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      set({ accessToken: token, isAuthenticated: true });
+  checkAuth: async () => {
+    try {
+      console.log('Checking authentication status...');
+      const userData = await apiService.getUser();
+      if (isValidUser(userData)) {
+        console.log('User authenticated via session');
+        set({ user: userData, isAuthenticated: true });
+      } else {
+        console.log('No valid session found');
+        set({ isAuthenticated: false, user: null });
+      }
+    } catch (error) {
+      console.log('Authentication check failed - user not authenticated');
+      set({ isAuthenticated: false, user: null });
     }
   }
 }));

@@ -12,7 +12,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { setUser, setAccessToken } = useStore();
+  const { setUser } = useStore();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,10 +24,8 @@ const Login = () => {
       console.log('Starting login process...');
       const response = await apiService.login(email, password) as AuthResponse;
       
-      console.log('Login successful, storing token and user data');
-      // Store token in localStorage and state
-      localStorage.setItem('access_token', response.access_token);
-      setAccessToken(response.access_token);
+      console.log('Login successful, setting user data');
+      // Set user data in store (session-based authentication)
       setUser(response.user);
       
       navigate('/');

@@ -16,7 +16,7 @@ const Register = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { setUser, setAccessToken } = useStore();
+  const { setUser } = useStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,15 +38,16 @@ const Register = () => {
     }
 
     try {
+      console.log('Starting registration process...');
       const response = await apiService.register(formData) as AuthResponse;
       
-      // Store token and user data
-      localStorage.setItem('access_token', response.access_token);
-      setAccessToken(response.access_token);
+      console.log('Registration successful, setting user data');
+      // Set user data in store (session-based authentication)
       setUser(response.user);
       
       navigate('/');
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registratie mislukt');
     } finally {
       setIsLoading(false);
