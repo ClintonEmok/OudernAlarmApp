@@ -1,18 +1,45 @@
 
 import { Phone, Edit, Star, Shield, UserPlus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent, CardHeader } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
+import { useAuth } from '../../hooks/useAuth';
 
 const ContactManager = () => {
-  const { caregivers, patients } = useStore();
+  useAuth();
+  const { caregivers, patients, fetchCaregivers, fetchPatients, inviteCaregiver, removeCaregiver } = useStore();
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
 
-  const handleInviteCaregiver = () => {
-    console.log('Invite caregiver - will use API endpoint /api/caregivers/invite');
+  useEffect(() => {
+    fetchCaregivers();
+    fetchPatients();
+  }, [fetchCaregivers, fetchPatients]);
+
+  const handleInviteCaregiver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+
+    setIsInviting(true);
+    try {
+      await inviteCaregiver(inviteEmail);
+      setInviteEmail('');
+      setShowInviteForm(false);
+    } catch (error) {
+      console.error('Failed to invite caregiver:', error);
+    } finally {
+      setIsInviting(false);
+    }
   };
 
-  const handleRemoveContact = (contactId: string) => {
-    console.log('Remove contact - will use API endpoint /api/caregivers/remove', contactId);
+  const handleRemoveContact = async (contactId: string) => {
+    try {
+      await removeCaregiver(parseInt(contactId));
+    } catch (error) {
+      console.error('Failed to remove contact:', error);
+    }
   };
 
   return (
@@ -29,11 +56,43 @@ const ContactManager = () => {
             <Shield size={20} className="text-purple-600" />
             <h3 className="text-lg font-semibold text-gray-900">Zorgverleners</h3>
           </div>
-          <Button size="sm" onClick={handleInviteCaregiver}>
+          <Button size="sm" onClick={() => setShowInviteForm(!showInviteForm)}>
             <UserPlus size={16} className="mr-1" />
             Uitnodigen
           </Button>
         </div>
+
+        {/* Invite Form */}
+        {showInviteForm && (
+          <Card className="mb-3 border-purple-200">
+            <CardContent className="p-4">
+              <form onSubmit={handleInviteCaregiver} className="space-y-3">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email adres
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="zorgverlener@email.com"
+                    required
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button type="submit" size="sm" disabled={isInviting}>
+                    {isInviting ? 'Uitnodigen...' : 'Verstuur Uitnodiging'}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowInviteForm(false)}>
+                    Annuleren
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="space-y-3">
           {caregivers.map((caregiver) => (

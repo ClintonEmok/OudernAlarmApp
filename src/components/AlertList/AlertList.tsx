@@ -1,18 +1,23 @@
+
 import { AlertTriangle, Clock, User, CheckCircle, XCircle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
+import { useAuth } from '../../hooks/useAuth';
+import { useEffect } from 'react';
 
 const AlertList = () => {
-  const { alerts, markAlertAsResolved, toggleFalseAlarm } = useStore();
+  useAuth();
+  const { alerts, fetchAlerts, isLoading } = useStore();
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
 
   const getAlertIcon = (type: string) => {
     switch (type) {
       case 'SOS': return '🚨';
       case 'Fall': return '⚠️';
-      case 'Medical': return '💊';
-      case 'Geofence': return '📍';
-      case 'Battery': return '🔋';
       default: return '⚠️';
     }
   };
@@ -28,7 +33,8 @@ const AlertList = () => {
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const alertDate = new Date(date);
+    const diffMs = now.getTime() - alertDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -37,6 +43,17 @@ const AlertList = () => {
     if (diffHours < 24) return `${diffHours} uur geleden`;
     return `${diffDays} dag(en) geleden`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-4">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-900">Meldingen</h2>
+          <p className="text-sm text-gray-600">Laden...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -101,27 +118,6 @@ const AlertList = () => {
                     )}
                   </div>
                 </div>
-                
-                {alert.status !== 'Resolved' && (
-                  <div className="mt-3 flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleFalseAlarm(alert.id)}
-                      className="text-xs"
-                    >
-                      {alert.isFalseAlarm ? 'Ongedaan maken' : 'Loos alarm'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => markAlertAsResolved(alert.id)}
-                      className="text-xs"
-                    >
-                      Opgelost
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           ))}

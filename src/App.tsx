@@ -11,31 +11,43 @@ import Contacts from "./pages/Contacts";
 import Device from "./pages/Device";
 import RemindersPage from "./pages/RemindersPage";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import { useStore } from "./store/useStore";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="min-h-screen bg-purple-50 w-full">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/contacts" element={<Contacts />} />
-            <Route path="/device" element={<Device />} />
-            <Route path="/reminders" element={<RemindersPage />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <BottomNavigation />
-        </div>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const { checkAuth } = useStore();
+  
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <div className="min-h-screen bg-purple-50 w-full">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/device" element={<Device />} />
+              <Route path="/reminders" element={<RemindersPage />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <BottomNavigation />
+          </div>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

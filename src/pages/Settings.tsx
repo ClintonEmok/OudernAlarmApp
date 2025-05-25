@@ -1,11 +1,16 @@
 
-import { Settings as SettingsIcon, User, Smartphone, Shield, Users, Key } from 'lucide-react';
+import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useStore } from '../store/useStore';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { apiService } from '../services/api';
 
 const Settings = () => {
+  useAuth();
   const { user, logout } = useStore();
+  const navigate = useNavigate();
 
   const settingsCategories = [
     {
@@ -37,9 +42,15 @@ const Settings = () => {
     }
   ];
 
-  const handleLogout = () => {
-    console.log('Logout - will use API endpoint /api/logout');
-    logout();
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      logout();
+      navigate('/login');
+    }
   };
 
   return (
