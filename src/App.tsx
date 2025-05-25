@@ -25,9 +25,13 @@ const App = () => {
   useEffect(() => {
     // Only check auth once when app loads
     if (!hasCheckedAuth) {
-      checkAuth().finally(() => setHasCheckedAuth(true));
+      console.log('App: Performing initial auth check...');
+      checkAuth().finally(() => {
+        console.log('App: Initial auth check completed');
+        setHasCheckedAuth(true);
+      });
     }
-  }, [checkAuth, hasCheckedAuth]);
+  }, [hasCheckedAuth]); // Remove checkAuth from dependencies to prevent re-runs
 
   return (
     <QueryClientProvider client={queryClient}>

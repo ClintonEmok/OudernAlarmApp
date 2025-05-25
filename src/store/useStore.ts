@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { Alert, Contact, Device, User, ApiDevicesResponse } from '../types';
 import { apiService } from '../services/api';
@@ -113,6 +114,8 @@ const transformApiDevice = (apiDevice: any): Device => {
     updated_at: apiDevice.updated_at
   };
 };
+
+let isAuthChecking = false; // Flag to prevent concurrent auth checks
 
 export const useStore = create<AppState>((set, get) => ({
   user: null,
@@ -404,26 +407,37 @@ export const useStore = create<AppState>((set, get) => ({
   },
   
   checkAuth: async () => {
+    // Prevent concurrent calls
+    if (isAuthChecking) {
+      console.log('checkAuth: Already checking, skipping...');
+      return;
+    }
+
     const { user, isAuthenticated } = get();
     
     // Don't check if we already have a valid user
     if (user && isAuthenticated) {
+      console.log('checkAuth: Already authenticated, skipping...');
       return;
     }
     
+    isAuthChecking = true;
+    
     try {
-      console.log('Checking authentication status...');
+      console.log('checkAuth: Starting authentication check...');
       const userData = await apiService.getUser();
       if (isValidUser(userData)) {
-        console.log('User authenticated via session');
+        console.log('checkAuth: User authenticated via session');
         set({ user: userData, isAuthenticated: true });
       } else {
-        console.log('No valid session found');
+        console.log('checkAuth: No valid session found');
         set({ isAuthenticated: false, user: null });
       }
     } catch (error) {
-      console.log('Authentication check failed - user not authenticated');
+      console.log('checkAuth: Authentication check failed - user not authenticated');
       set({ isAuthenticated: false, user: null });
+    } finally {
+      isAuthChecking = false;
     }
   }
 }));
