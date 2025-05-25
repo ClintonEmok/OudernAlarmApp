@@ -1,6 +1,5 @@
-
 import { Link, useLocation } from 'react-router-dom';
-import { MapPin, AlertTriangle, Bell, Settings, Smartphone } from 'lucide-react';
+import { MapPin, AlertTriangle, Settings, Smartphone } from 'lucide-react';
 
 const navigationItems = [
   {
@@ -12,11 +11,6 @@ const navigationItems = [
     path: '/alerts',
     icon: AlertTriangle,
     label: 'Meldingen'
-  },
-  {
-    path: '/reminders',
-    icon: Bell,
-    label: 'Herinneringen'
   },
   {
     path: '/device',

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +8,6 @@ import Home from "./pages/Home";
 import Alerts from "./pages/Alerts";
 import Contacts from "./pages/Contacts";
 import Device from "./pages/Device";
-import RemindersPage from "./pages/RemindersPage";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -38,7 +36,6 @@ const App = () => {
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/device" element={<Device />} />
-              <Route path="/reminders" element={<RemindersPage />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
