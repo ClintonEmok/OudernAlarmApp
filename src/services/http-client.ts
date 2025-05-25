@@ -19,38 +19,35 @@ class HttpClient {
     const cookies = document.cookie.split(';');
     console.log('Available cookies:', cookies);
     
-    // Try multiple possible cookie names
-    const possibleNames = ['XSRF-TOKEN', 'laravel_session', 'csrf_token'];
-    
-    for (let possibleName of possibleNames) {
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === possibleName && value) {
-          console.log(`Found CSRF token in cookie: ${possibleName}`);
-          return decodeURIComponent(value);
-        }
+    // Laravel Sanctum sets XSRF-TOKEN cookie
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'XSRF-TOKEN' && value) {
+        console.log('Found XSRF-TOKEN cookie');
+        // URL decode the token value as per Laravel Sanctum docs
+        return decodeURIComponent(value);
       }
     }
     
-    console.log('No CSRF token found in cookies');
+    console.log('No XSRF-TOKEN cookie found');
     return null;
   }
 
-  private async waitForCookie(maxAttempts = 5): Promise<string | null> {
+  private async waitForCookie(maxAttempts = 10): Promise<string | null> {
     for (let i = 0; i < maxAttempts; i++) {
       const token = this.getCsrfTokenFromCookie();
       if (token) {
         return token;
       }
-      // Wait 200ms before trying again
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait 100ms before trying again
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     return null;
   }
 
   private async getCsrfToken(): Promise<void> {
     try {
-      console.log('Fetching CSRF token...');
+      console.log('Fetching CSRF token from /sanctum/csrf-cookie...');
       const response = await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
         method: 'GET',
         credentials: 'include',
@@ -65,9 +62,9 @@ class HttpClient {
         return;
       }
       
-      console.log('CSRF cookie request successful, waiting for cookie...');
+      console.log('CSRF cookie request successful, waiting for XSRF-TOKEN cookie...');
       
-      // Wait for cookie to be available in document.cookie
+      // Wait for XSRF-TOKEN cookie to be available in document.cookie
       this.csrfToken = await this.waitForCookie();
       console.log('CSRF token obtained:', this.csrfToken ? 'Yes' : 'No');
     } catch (error) {
@@ -83,6 +80,7 @@ class HttpClient {
       'X-Requested-With': 'XMLHttpRequest',
     };
 
+    // Only include Bearer token for authenticated requests (not login/register)
     if (includeAuth) {
       const token = localStorage.getItem('access_token');
       if (token) {
@@ -90,9 +88,10 @@ class HttpClient {
       }
     }
 
+    // Include XSRF token for SPA authentication (Laravel Sanctum)
     if (includeCsrf && this.csrfToken) {
-      headers['X-CSRF-TOKEN'] = this.csrfToken;
-      console.log('Including CSRF token in headers');
+      headers['X-XSRF-TOKEN'] = this.csrfToken;
+      console.log('Including X-XSRF-TOKEN in headers');
     }
 
     return headers;
@@ -169,7 +168,7 @@ class HttpClient {
       const requestOptions: RequestInit = {
         method,
         headers: this.getHeaders(includeAuth, needsCsrf),
-        credentials: 'include',
+        credentials: 'include', // Essential for Laravel Sanctum SPA auth
       };
 
       if (data) {
