@@ -28,7 +28,8 @@ const Login = () => {
       // Set user data in store (session-based authentication)
       setUser(response.user);
       
-      navigate('/');
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       if (err instanceof Error) {

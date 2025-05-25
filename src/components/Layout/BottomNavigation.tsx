@@ -1,9 +1,10 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { MapPin, AlertTriangle, Settings, Smartphone } from 'lucide-react';
 
 const navigationItems = [
   {
-    path: '/',
+    path: '/dashboard',
     icon: MapPin,
     label: 'Locatie'
   },
@@ -26,6 +27,11 @@ const navigationItems = [
 
 const BottomNavigation = () => {
   const location = useLocation();
+  
+  // Don't show navigation on login/register pages
+  if (location.pathname === '/login' || location.pathname === '/register') {
+    return null;
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-purple-100 px-2 py-1 safe-area-pb">

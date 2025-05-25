@@ -14,12 +14,9 @@ const isValidUser = (userData: any): userData is User => {
          typeof userData.updated_at === 'string';
 };
 
-let isAuthChecking = false; // Flag to prevent concurrent auth checks
-
 export interface AuthActions {
   setUser: (user: User) => void;
   logout: () => void;
-  checkAuth: () => Promise<void>;
   fetchUserData: () => Promise<void>;
   updateUser: (data: Partial<{ name: string; email: string; phone_number: string }>) => Promise<void>;
   updatePassword: (data: { current_password: string; new_password: string; new_password_confirmation: string }) => Promise<void>;
@@ -45,6 +42,8 @@ export const createAuthSlice: StateCreator<
       user: null, 
       isAuthenticated: false
     });
+    // Redirect to login after logout
+    window.location.href = '/login';
   },
   
   fetchUserData: async () => {
@@ -100,41 +99,6 @@ export const createAuthSlice: StateCreator<
     } catch (error) {
       console.error('Failed to validate invite:', error);
       throw error;
-    }
-  },
-  
-  checkAuth: async () => {
-    // Prevent concurrent calls
-    if (isAuthChecking) {
-      console.log('checkAuth: Already checking, skipping...');
-      return;
-    }
-
-    const { user, isAuthenticated } = get();
-    
-    // Don't check if we already have a valid user
-    if (user && isAuthenticated) {
-      console.log('checkAuth: Already authenticated, skipping...');
-      return;
-    }
-    
-    isAuthChecking = true;
-    
-    try {
-      console.log('checkAuth: Starting authentication check...');
-      const userData = await apiService.getUser();
-      if (isValidUser(userData)) {
-        console.log('checkAuth: User authenticated via session');
-        set({ user: userData, isAuthenticated: true });
-      } else {
-        console.log('checkAuth: No valid session found');
-        set({ isAuthenticated: false, user: null });
-      }
-    } catch (error) {
-      console.log('checkAuth: Authentication check failed - user not authenticated');
-      set({ isAuthenticated: false, user: null });
-    } finally {
-      isAuthChecking = false;
     }
   }
 });
