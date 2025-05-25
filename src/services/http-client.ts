@@ -17,11 +17,33 @@ class HttpClient {
 
   private getCsrfTokenFromCookie(): string | null {
     const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'XSRF-TOKEN') {
-        return decodeURIComponent(value);
+    console.log('Available cookies:', cookies);
+    
+    // Try multiple possible cookie names
+    const possibleNames = ['XSRF-TOKEN', 'laravel_session', 'csrf_token'];
+    
+    for (let possibleName of possibleNames) {
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === possibleName && value) {
+          console.log(`Found CSRF token in cookie: ${possibleName}`);
+          return decodeURIComponent(value);
+        }
       }
+    }
+    
+    console.log('No CSRF token found in cookies');
+    return null;
+  }
+
+  private async waitForCookie(maxAttempts = 5): Promise<string | null> {
+    for (let i = 0; i < maxAttempts; i++) {
+      const token = this.getCsrfTokenFromCookie();
+      if (token) {
+        return token;
+      }
+      // Wait 200ms before trying again
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
     return null;
   }
@@ -29,7 +51,7 @@ class HttpClient {
   private async getCsrfToken(): Promise<void> {
     try {
       console.log('Fetching CSRF token...');
-      await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
+      const response = await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -37,8 +59,16 @@ class HttpClient {
         },
       });
       
-      // Extract token from cookie after fetching
-      this.csrfToken = this.getCsrfTokenFromCookie();
+      if (!response.ok) {
+        console.error('Failed to fetch CSRF cookie:', response.status);
+        this.csrfToken = null;
+        return;
+      }
+      
+      console.log('CSRF cookie request successful, waiting for cookie...');
+      
+      // Wait for cookie to be available in document.cookie
+      this.csrfToken = await this.waitForCookie();
       console.log('CSRF token obtained:', this.csrfToken ? 'Yes' : 'No');
     } catch (error) {
       console.error('Failed to fetch CSRF token:', error);
@@ -62,6 +92,7 @@ class HttpClient {
 
     if (includeCsrf && this.csrfToken) {
       headers['X-CSRF-TOKEN'] = this.csrfToken;
+      console.log('Including CSRF token in headers');
     }
 
     return headers;
@@ -121,12 +152,17 @@ class HttpClient {
     includeAuth = true, 
     retryCount = 0
   ): Promise<T> {
-    const maxRetries = 1;
+    const maxRetries = 2;
     const needsCsrf = ['POST', 'PUT', 'DELETE'].includes(method.toUpperCase());
 
     // Get CSRF token if needed and not already available
-    if (needsCsrf && !this.csrfToken) {
+    if (needsCsrf && (!this.csrfToken || retryCount > 0)) {
+      console.log('Getting fresh CSRF token...');
       await this.getCsrfToken();
+      
+      if (!this.csrfToken) {
+        console.warn('Could not obtain CSRF token, proceeding without it');
+      }
     }
 
     try {
@@ -142,6 +178,7 @@ class HttpClient {
 
       console.log(`Making ${method} request to ${endpoint}`, {
         hasCsrfToken: !!this.csrfToken,
+        retryCount,
         headers: requestOptions.headers
       });
 
@@ -150,8 +187,8 @@ class HttpClient {
     } catch (error) {
       if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries) {
         console.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
-        // Get fresh CSRF token and retry
-        await this.getCsrfToken();
+        // Clear token and retry with fresh one
+        this.csrfToken = null;
         return this.makeRequest<T>(method, endpoint, data, includeAuth, retryCount + 1);
       }
       throw error;
