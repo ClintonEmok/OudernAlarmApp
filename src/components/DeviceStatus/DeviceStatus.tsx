@@ -1,8 +1,7 @@
-
 import { Battery, Signal, Smartphone, Settings, RefreshCw, Wifi } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent, CardHeader } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { Button } from '../ui/button';
 
 const DeviceStatus = () => {
   const { deviceInfo, updateDeviceInfo } = useStore();

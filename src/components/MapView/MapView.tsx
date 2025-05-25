@@ -1,7 +1,6 @@
-
 import { MapPin, Battery, Signal, Shield } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 
 const MapView = () => {
   const { currentLocation, deviceInfo, addAlert } = useStore();

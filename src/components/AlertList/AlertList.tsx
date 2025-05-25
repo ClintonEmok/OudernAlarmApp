@@ -1,8 +1,7 @@
-
 import { AlertTriangle, Clock, User, CheckCircle, XCircle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
 
 const AlertList = () => {
   const { alerts, markAlertAsResolved, toggleFalseAlarm } = useStore();

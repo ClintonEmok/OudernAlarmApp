@@ -1,8 +1,7 @@
-
 import { Bell, Clock, Pill, Calendar, Plus, Settings } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent, CardHeader } from '../ui/Card';
-import { Button } from '../ui/Button';
+import { Card, CardContent, CardHeader } from '../ui/card';
+import { Button } from '../ui/button';
 
 const Reminders = () => {
   const { reminders } = useStore();
