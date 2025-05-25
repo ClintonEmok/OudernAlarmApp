@@ -19,19 +19,19 @@ import { useEffect, useState } from "react";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { checkAuth } = useStore();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   
   useEffect(() => {
     // Only check auth once when app loads
     if (!hasCheckedAuth) {
-      console.log('App: Performing initial auth check...');
-      checkAuth().finally(() => {
-        console.log('App: Initial auth check completed');
+      console.log('App: Performing ONE-TIME auth check...');
+      // Access checkAuth directly from store to avoid re-renders
+      useStore.getState().checkAuth().finally(() => {
+        console.log('App: ONE-TIME auth check completed');
         setHasCheckedAuth(true);
       });
     }
-  }, [hasCheckedAuth]); // Remove checkAuth from dependencies to prevent re-runs
+  }, [hasCheckedAuth]); // Only depend on hasCheckedAuth state
 
   return (
     <QueryClientProvider client={queryClient}>

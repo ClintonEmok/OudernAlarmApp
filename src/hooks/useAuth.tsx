@@ -10,8 +10,14 @@ export const useAuth = (requireAuth = true) => {
   useEffect(() => {
     // Only handle navigation - don't trigger auth checks
     if (requireAuth && !isAuthenticated && user === null) {
+      console.log('useAuth: Redirecting to login due to no authentication');
       navigate('/login');
     }
+    
+    // Cleanup function to prevent any lingering effects
+    return () => {
+      console.log('useAuth: Cleaning up auth check effect');
+    };
   }, [isAuthenticated, user, requireAuth, navigate]);
 
   return { isAuthenticated };
