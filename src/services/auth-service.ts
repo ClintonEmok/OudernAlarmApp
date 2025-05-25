@@ -12,11 +12,29 @@ class AuthService {
   }
 
   async login(email: string, password: string) {
-    return httpClient.post('/login', { email, password }, false);
+    try {
+      // First attempt with normal CSRF handling
+      return await httpClient.post('/login', { email, password }, false);
+    } catch (error) {
+      // If CSRF error, try once more with a fresh token
+      if (error instanceof Error && error.message.includes('CSRF')) {
+        console.log('CSRF error detected, retrying login...');
+        // Wait a moment and try again
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return await httpClient.post('/login', { email, password }, false);
+      }
+      throw error;
+    }
   }
 
   async logout() {
-    return httpClient.post('/logout');
+    try {
+      return await httpClient.post('/logout');
+    } catch (error) {
+      // If logout fails due to CSRF, still clear local state
+      console.warn('Logout request failed, but clearing local state:', error);
+      return null;
+    }
   }
 
   async validateInvite(token: string) {

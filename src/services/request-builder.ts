@@ -15,10 +15,12 @@ export class RequestBuilder {
       }
     }
 
-    // Include XSRF token for SPA authentication (Laravel Sanctum)
+    // Include XSRF token for SPA authentication (Laravel Sanctum) - only if available
     if (includeCsrf && csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
       console.log('Including X-XSRF-TOKEN in headers');
+    } else if (includeCsrf && !csrfToken) {
+      console.warn('CSRF token requested but not available - proceeding without CSRF protection');
     }
 
     return headers;

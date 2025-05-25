@@ -20,17 +20,16 @@ class HttpClient {
     includeAuth = true, 
     retryCount = 0
   ): Promise<T> {
-    const maxRetries = 2;
+    const maxRetries = 1; // Reduced retries to avoid loops
     const needsCsrf = ['POST', 'PUT', 'DELETE'].includes(method.toUpperCase());
 
-    // Get CSRF token if needed and not already available
-    if (needsCsrf && (!this.csrfManager.getToken() || retryCount > 0)) {
-      console.log('Getting fresh CSRF token...');
+    // Only attempt CSRF for cross-origin if we have support
+    const shouldUseCsrf = needsCsrf && this.csrfManager.hasCsrfSupport();
+
+    // Get CSRF token if needed and supported
+    if (shouldUseCsrf && (!this.csrfManager.getToken() || retryCount > 0)) {
+      console.log('Getting CSRF token...');
       await this.csrfManager.getCsrfToken();
-      
-      if (!this.csrfManager.getToken()) {
-        console.warn('Could not obtain CSRF token, proceeding without it');
-      }
     }
 
     try {
@@ -38,25 +37,32 @@ class HttpClient {
         method,
         data,
         includeAuth,
-        needsCsrf,
+        shouldUseCsrf,
         this.csrfManager.getToken()
       );
 
       console.log(`Making ${method} request to ${endpoint}`, {
         hasCsrfToken: !!this.csrfManager.getToken(),
+        shouldUseCsrf,
         retryCount,
-        headers: requestOptions.headers
+        crossOrigin: !this.csrfManager.hasCsrfSupport()
       });
 
       const response = await fetch(`${BASE_URL}${endpoint}`, requestOptions);
       return this.responseHandler.handleResponse<T>(response);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries) {
+      if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries && shouldUseCsrf) {
         console.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
         // Clear token and retry with fresh one
         this.csrfManager.clearToken();
         return this.makeRequest<T>(method, endpoint, data, includeAuth, retryCount + 1);
       }
+      
+      // If it's a CSRF error and we've exhausted retries, provide helpful message
+      if (error instanceof Error && error.message.includes('CSRF')) {
+        throw new Error('Beveiligingsfout: De verbinding met de server kon niet worden beveiligd. Probeer de pagina te verversen.');
+      }
+      
       throw error;
     }
   }
