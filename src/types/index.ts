@@ -1,7 +1,7 @@
 
 export interface Alert {
   id: string;
-  type: 'SOS' | 'Fall' | 'Medical' | 'Geofence' | 'Battery';
+  type: 'SOS' | 'Fall';
   timestamp: Date;
   responder?: string;
   isFalseAlarm: boolean;
@@ -12,36 +12,40 @@ export interface Alert {
 export interface Contact {
   id: string;
   name: string;
-  relationship: string;
-  phone: string;
+  email: string;
+  phone_number?: string;
   priority: number;
-  isEmergencyContact: boolean;
+  relationship?: string;
 }
 
-export interface DeviceInfo {
+export interface Device {
+  id: string;
+  phone_number: string;
+  nickname?: string;
   batteryLevel: number;
   signalStrength: number;
   connectionType: '5G' | '4G' | 'WiFi';
   lastUpdate: Date;
-  deviceId: string;
   firmwareVersion: string;
 }
 
-export interface Geofence {
-  id: string;
+export interface User {
+  id: number;
   name: string;
-  latitude: number;
-  longitude: number;
-  radius: number;
-  isActive: boolean;
+  email: string;
+  phone_number?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface Reminder {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  frequency: 'Daily' | 'Weekly' | 'Monthly';
-  isActive: boolean;
-  type: 'Medication' | 'Appointment' | 'Activity';
+export interface AuthResponse {
+  message: string;
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export interface CaregiverInvite {
+  email: string;
+  token: string;
 }

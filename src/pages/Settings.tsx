@@ -1,76 +1,74 @@
-import { Settings as SettingsIcon, MapPin, Key, Shield, Bell, Users, Smartphone } from 'lucide-react';
+
+import { Settings as SettingsIcon, User, Smartphone, Shield, Users, Key } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { useStore } from '../store/useStore';
 
 const Settings = () => {
+  const { user, logout } = useStore();
+
   const settingsCategories = [
     {
-      title: 'Locatie & Veiligheid',
-      icon: <MapPin size={20} className="text-purple-600" />,
+      title: 'Account & Profiel',
+      icon: <User size={20} className="text-purple-600" />,
       items: [
-        { name: 'Geofence Instellingen', description: 'Veilige zones beheren' },
-        { name: 'GPS Frequentie', description: 'Locatie update interval' },
-        { name: 'Bewegingsdetectie', description: 'Val- en bewegingssensoren' }
+        { name: 'Persoonlijke Gegevens', description: 'Naam, email en telefoonnummer' },
+        { name: 'Wachtwoord Wijzigen', description: 'Account beveiliging' },
+        { name: 'Account Verwijderen', description: 'Permanente verwijdering' }
       ]
     },
     {
-      title: 'Toegang & Beveiliging',
-      icon: <Key size={20} className="text-purple-600" />,
+      title: 'Zorgverlening',
+      icon: <Users size={20} className="text-purple-600" />,
       items: [
-        { name: 'Sleutelkluis Code', description: 'Toegangscode beheren' },
-        { name: 'Noodcontacten', description: 'Prioriteit en contactgegevens' },
-        { name: 'Privacy Instellingen', description: 'Gegevens en toestemmingen' }
+        { name: 'Zorgverleners Beheren', description: 'Uitnodigen en prioriteiten' },
+        { name: 'Patiënten Overzicht', description: 'Mensen die u verzorgt' },
+        { name: 'Uitnodigingen', description: 'Pending invites beheren' }
       ]
     },
     {
-      title: 'Meldingen',
-      icon: <Bell size={20} className="text-purple-600" />,
-      items: [
-        { name: 'Alarm Instellingen', description: 'SOS en automatische alarmen' },
-        { name: 'Herinnering Tonen', description: 'Medicatie en afspraken' },
-        { name: 'Stilte Periodes', description: 'Rusturen configureren' }
-      ]
-    },
-    {
-      title: 'Apparaat',
+      title: 'Apparaten',
       icon: <Smartphone size={20} className="text-purple-600" />,
       items: [
-        { name: 'Firmware Update', description: 'Systeem bijwerken' },
-        { name: 'Batterij Optimalisatie', description: 'Energiebeheer' },
-        { name: 'Diagnostiek', description: 'Systeemstatus controleren' }
+        { name: 'Mijn Apparaten', description: 'Gekoppelde alarm apparaten' },
+        { name: 'Apparaat Koppelen', description: 'Nieuw apparaat toevoegen' },
+        { name: 'Apparaat Ontkoppelen', description: 'Apparaat verwijderen' }
       ]
     }
   ];
+
+  const handleLogout = () => {
+    console.log('Logout - will use API endpoint /api/logout');
+    logout();
+  };
 
   return (
     <div className="min-h-screen bg-purple-50 pb-20">
       <div className="p-4 space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900">Instellingen</h2>
-          <p className="text-sm text-gray-600">Beheer uw alarm- en zorgsysteem</p>
+          <p className="text-sm text-gray-600">Beheer uw account en apparaten</p>
         </div>
 
-        {/* Quick Access */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Snelle Toegang</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="cursor-pointer hover:bg-purple-50 transition-colors">
-              <CardContent className="p-4 text-center">
-                <Key size={24} className="mx-auto text-purple-600 mb-2" />
-                <p className="font-medium text-gray-900">Sleutelkluis</p>
-                <p className="text-xs text-gray-600">Code: ****</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="cursor-pointer hover:bg-purple-50 transition-colors">
-              <CardContent className="p-4 text-center">
-                <Shield size={24} className="mx-auto text-green-600 mb-2" />
-                <p className="font-medium text-gray-900">Geofence</p>
-                <p className="text-xs text-gray-600">1 zone actief</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* User Info */}
+        {user && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <User size={24} className="text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                  <p className="text-sm text-gray-600">{user.email}</p>
+                  {user.phone_number && (
+                    <p className="text-xs text-gray-500">{user.phone_number}</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Settings Categories */}
         {settingsCategories.map((category, index) => (
@@ -100,6 +98,19 @@ const Settings = () => {
             </Card>
           </div>
         ))}
+
+        {/* Logout */}
+        <Card>
+          <CardContent className="p-4">
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={handleLogout}
+            >
+              Uitloggen
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* App Info */}
         <Card>

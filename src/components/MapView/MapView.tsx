@@ -1,3 +1,4 @@
+
 import { MapPin, Battery, Signal, Shield } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Button } from '../ui/button';
@@ -67,9 +68,6 @@ const MapView = () => {
                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-white px-2 py-1 rounded-md shadow-md text-xs font-medium border">
                   Thuis
                 </div>
-                
-                {/* Geofence circle */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-purple-300 rounded-full opacity-60 -z-10"></div>
               </div>
             </div>
           </div>
@@ -107,7 +105,7 @@ const MapView = () => {
           </Button>
           <Button
             onClick={handleSOS}
-            variant="primary"
+            variant="destructive"
             className="flex-1 bg-red-600 hover:bg-red-700 text-white border-red-600"
           >
             🚨 SOS
