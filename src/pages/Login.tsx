@@ -21,7 +21,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response: AuthResponse = await apiService.login(email, password);
+      const response = await apiService.login(email, password) as AuthResponse;
       
       // Store token in localStorage and state
       localStorage.setItem('access_token', response.access_token);

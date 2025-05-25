@@ -3,6 +3,13 @@ import { create } from 'zustand';
 import { Alert, Contact, Device, User } from '../types';
 import { apiService } from '../services/api';
 
+interface DeviceInfo {
+  batteryLevel: number;
+  connectionType: '5G' | '4G' | 'WiFi';
+  signalStrength: number;
+  lastUpdate: Date;
+}
+
 interface AppState {
   // User authentication
   user: User | null;
@@ -14,6 +21,9 @@ interface AppState {
     latitude: number;
     longitude: number;
   };
+  
+  // Device info for MapView
+  deviceInfo: DeviceInfo;
   
   // Alerts (from API)
   alerts: Alert[];
@@ -38,6 +48,7 @@ interface AppState {
   setSelectedDevice: (device: Device | null) => void;
   setAlerts: (alerts: Alert[]) => void;
   setLoading: (loading: boolean) => void;
+  updateDeviceInfo: () => void;
   
   // API Actions
   fetchUserData: () => Promise<void>;
@@ -62,6 +73,13 @@ export const useStore = create<AppState>((set, get) => ({
     longitude: 4.9041
   },
   
+  deviceInfo: {
+    batteryLevel: 85,
+    connectionType: '4G',
+    signalStrength: 4,
+    lastUpdate: new Date()
+  },
+  
   alerts: [],
   caregivers: [],
   patients: [],
@@ -78,6 +96,20 @@ export const useStore = create<AppState>((set, get) => ({
   setAlerts: (alerts) => set({ alerts }),
   setLoading: (loading) => set({ isLoading: loading }),
   
+  updateDeviceInfo: () => {
+    const { selectedDevice } = get();
+    if (selectedDevice) {
+      set({
+        deviceInfo: {
+          batteryLevel: selectedDevice.batteryLevel,
+          connectionType: selectedDevice.connectionType,
+          signalStrength: selectedDevice.signalStrength,
+          lastUpdate: selectedDevice.lastUpdate
+        }
+      });
+    }
+  },
+  
   fetchUserData: async () => {
     try {
       set({ isLoading: true });
@@ -93,36 +125,50 @@ export const useStore = create<AppState>((set, get) => ({
   fetchCaregivers: async () => {
     try {
       const caregivers = await apiService.getCaregivers();
-      set({ caregivers });
+      set({ caregivers: Array.isArray(caregivers) ? caregivers : [] });
     } catch (error) {
       console.error('Failed to fetch caregivers:', error);
+      set({ caregivers: [] });
     }
   },
   
   fetchPatients: async () => {
     try {
       const patients = await apiService.getPatients();
-      set({ patients });
+      set({ patients: Array.isArray(patients) ? patients : [] });
     } catch (error) {
       console.error('Failed to fetch patients:', error);
+      set({ patients: [] });
     }
   },
   
   fetchDevices: async () => {
     try {
-      const devicesData = await apiService.getMyDevices();
-      set({ devices: devicesData.own || [] });
+      const devicesResponse = await apiService.getMyDevices();
+      const devices = devicesResponse?.own || [];
+      set({ devices: Array.isArray(devices) ? devices : [] });
+      
+      // Update device info if we have devices
+      if (devices.length > 0) {
+        const { selectedDevice, setSelectedDevice } = get();
+        if (!selectedDevice) {
+          setSelectedDevice(devices[0]);
+        }
+        get().updateDeviceInfo();
+      }
     } catch (error) {
       console.error('Failed to fetch devices:', error);
+      set({ devices: [] });
     }
   },
   
   fetchAlerts: async () => {
     try {
       const alerts = await apiService.getDeviceAlarms();
-      set({ alerts });
+      set({ alerts: Array.isArray(alerts) ? alerts : [] });
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
+      set({ alerts: [] });
     }
   },
   

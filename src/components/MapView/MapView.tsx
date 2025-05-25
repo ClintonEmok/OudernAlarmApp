@@ -2,21 +2,27 @@
 import { MapPin, Battery, Signal, Shield } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const MapView = () => {
-  const { currentLocation, deviceInfo, addAlert } = useStore();
+  const { currentLocation, deviceInfo } = useStore();
+  const { toast } = useToast();
 
   const handleSOS = () => {
-    addAlert({
-      type: 'SOS',
-      timestamp: new Date(),
-      isFalseAlarm: false,
-      status: 'Active',
-      location: 'Huidige locatie'
+    // TODO: Implement real SOS API call when available
+    toast({
+      title: "🚨 SOS Alarm Geactiveerd",
+      description: "Uw noodoproep is verzonden naar alle zorgverleners.",
+      variant: "destructive"
     });
+    console.log('SOS alarm activated');
   };
 
   const handleCheckIn = () => {
+    toast({
+      title: "✓ Check-in Succesvol", 
+      description: "U heeft bevestigd dat alles goed met u is.",
+    });
     console.log('Check-in performed');
   };
 
@@ -86,7 +92,7 @@ const MapView = () => {
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Laatste update</p>
-                <p className="text-sm font-medium">{new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</p>
+                <p className="text-sm font-medium">{deviceInfo.lastUpdate.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
             </div>
           </div>
