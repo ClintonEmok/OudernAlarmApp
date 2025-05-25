@@ -30,7 +30,18 @@ const Login = () => {
       
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      console.error('Login error:', err);
+      if (err instanceof Error) {
+        if (err.message.includes('CSRF token mismatch')) {
+          setError('Beveiligingstoken is verlopen. Probeer opnieuw.');
+        } else if (err.message.includes('419')) {
+          setError('Sessie verlopen. Ververs de pagina en probeer opnieuw.');
+        } else {
+          setError(err.message || 'Inloggen mislukt');
+        }
+      } else {
+        setError('Inloggen mislukt');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +61,19 @@ const Login = () => {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}
+                {error.includes('Sessie verlopen') && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="text-red-700 border-red-300 hover:bg-red-100"
+                    >
+                      Pagina verversen
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
             

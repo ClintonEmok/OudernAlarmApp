@@ -12,10 +12,25 @@ export interface DeviceConflictError extends ApiError {
 }
 
 class ApiService {
+  private async getCsrfToken(): Promise<void> {
+    try {
+      await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+    }
+  }
+
   private getHeaders(includeAuth = true): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
     };
 
     if (includeAuth) {
@@ -35,6 +50,12 @@ class ApiService {
         localStorage.removeItem('access_token');
         window.location.href = '/login';
         throw new Error('Unauthenticated');
+      }
+      
+      if (response.status === 419) {
+        // CSRF token mismatch - retry with new token
+        await this.getCsrfToken();
+        throw new Error('CSRF token mismatch. Probeer opnieuw in te loggen.');
       }
       
       if (response.status === 409) {
@@ -75,18 +96,22 @@ class ApiService {
     password: string; 
     password_confirmation: string;
   }) {
+    await this.getCsrfToken();
     const response = await fetch(`${BASE_URL}/register`, {
       method: 'POST',
       headers: this.getHeaders(false),
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     return this.handleResponse(response);
   }
 
   async login(email: string, password: string) {
+    await this.getCsrfToken();
     const response = await fetch(`${BASE_URL}/login`, {
       method: 'POST',
       headers: this.getHeaders(false),
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
     return this.handleResponse(response);
@@ -96,6 +121,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/logout`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -104,6 +130,7 @@ class ApiService {
   async getUser() {
     const response = await fetch(`${BASE_URL}/user`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -112,6 +139,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/user`, {
       method: 'PUT',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     return this.handleResponse(response);
@@ -125,6 +153,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/user/password`, {
       method: 'PUT',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     return this.handleResponse(response);
@@ -134,6 +163,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/user`, {
       method: 'DELETE',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ password }),
     });
     return this.handleResponse(response);
@@ -142,6 +172,7 @@ class ApiService {
   async getCaregivers() {
     const response = await fetch(`${BASE_URL}/user/caregivers`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -149,6 +180,7 @@ class ApiService {
   async getPatients() {
     const response = await fetch(`${BASE_URL}/user/patients`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -157,6 +189,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/user/caregivers/update`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ caregivers }),
     });
     return this.handleResponse(response);
@@ -166,6 +199,7 @@ class ApiService {
   async validateInvite(token: string) {
     const response = await fetch(`${BASE_URL}/invites/validate?token=${token}`, {
       headers: this.getHeaders(false),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -174,6 +208,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/caregivers/invite`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email }),
     });
     return this.handleResponse(response);
@@ -188,6 +223,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/caregivers/accept`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify(data),
     });
     return this.handleResponse(response);
@@ -197,6 +233,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/caregivers/remove`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ user_id }),
     });
     return this.handleResponse(response);
@@ -205,6 +242,7 @@ class ApiService {
   async getPendingInvites() {
     const response = await fetch(`${BASE_URL}/caregivers/invites/pending`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -213,6 +251,7 @@ class ApiService {
   async getMyDevices() {
     const response = await fetch(`${BASE_URL}/my-devices`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -220,6 +259,7 @@ class ApiService {
   async getOwnDevices() {
     const response = await fetch(`${BASE_URL}/my-devices/own`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -227,6 +267,7 @@ class ApiService {
   async getCaregivingDevices() {
     const response = await fetch(`${BASE_URL}/my-devices/caregiving`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -235,6 +276,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/devices/assign`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ phone_number, nickname }),
     });
     return this.handleResponse(response);
@@ -243,6 +285,7 @@ class ApiService {
   async getDevice(id: number) {
     const response = await fetch(`${BASE_URL}/devices/${id}`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse<any>(response);
   }
@@ -251,6 +294,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/devices/${id}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -259,6 +303,7 @@ class ApiService {
   async getDeviceAlarms() {
     const response = await fetch(`${BASE_URL}/device-alarms`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -266,6 +311,7 @@ class ApiService {
   async getDeviceAlarm(id: number) {
     const response = await fetch(`${BASE_URL}/device-alarms/${id}`, {
       headers: this.getHeaders(),
+      credentials: 'include',
     });
     return this.handleResponse(response);
   }
@@ -274,6 +320,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/devices/request-access`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ phone_number, message }),
     });
     return this.handleResponse(response);
