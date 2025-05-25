@@ -21,8 +21,10 @@ const Login = () => {
     setError('');
 
     try {
+      console.log('Starting login process...');
       const response = await apiService.login(email, password) as AuthResponse;
       
+      console.log('Login successful, storing token and user data');
       // Store token in localStorage and state
       localStorage.setItem('access_token', response.access_token);
       setAccessToken(response.access_token);
@@ -33,9 +35,15 @@ const Login = () => {
       console.error('Login error:', err);
       if (err instanceof Error) {
         if (err.message.includes('CSRF token mismatch')) {
-          setError('Beveiligingstoken is verlopen. Probeer opnieuw.');
+          setError('Beveiligingsfout. De pagina wordt ververst...');
+          // Auto-refresh after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         } else if (err.message.includes('419')) {
           setError('Sessie verlopen. Ververs de pagina en probeer opnieuw.');
+        } else if (err.message.includes('401') || err.message.includes('Unauthenticated')) {
+          setError('Ongeldige inloggegevens. Controleer uw email en wachtwoord.');
         } else {
           setError(err.message || 'Inloggen mislukt');
         }
@@ -61,7 +69,7 @@ const Login = () => {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}
-                {error.includes('Sessie verlopen') && (
+                {(error.includes('Sessie verlopen') || error.includes('Beveiligingsfout')) && (
                   <div className="mt-2">
                     <Button
                       type="button"

@@ -13,8 +13,22 @@ export interface DeviceConflictError extends ApiError {
 }
 
 class HttpClient {
+  private csrfToken: string | null = null;
+
+  private getCsrfTokenFromCookie(): string | null {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'XSRF-TOKEN') {
+        return decodeURIComponent(value);
+      }
+    }
+    return null;
+  }
+
   private async getCsrfToken(): Promise<void> {
     try {
+      console.log('Fetching CSRF token...');
       await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
         method: 'GET',
         credentials: 'include',
@@ -22,12 +36,17 @@ class HttpClient {
           'Accept': 'application/json',
         },
       });
+      
+      // Extract token from cookie after fetching
+      this.csrfToken = this.getCsrfTokenFromCookie();
+      console.log('CSRF token obtained:', this.csrfToken ? 'Yes' : 'No');
     } catch (error) {
       console.error('Failed to fetch CSRF token:', error);
+      this.csrfToken = null;
     }
   }
 
-  private getHeaders(includeAuth = true): HeadersInit {
+  private getHeaders(includeAuth = true, includeCsrf = false): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -39,6 +58,10 @@ class HttpClient {
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
+    }
+
+    if (includeCsrf && this.csrfToken) {
+      headers['X-CSRF-TOKEN'] = this.csrfToken;
     }
 
     return headers;
@@ -54,9 +77,10 @@ class HttpClient {
       }
       
       if (response.status === 419) {
-        // CSRF token mismatch - retry with new token
-        await this.getCsrfToken();
-        throw new Error('CSRF token mismatch. Probeer opnieuw in te loggen.');
+        // CSRF token mismatch - clear token for retry
+        console.log('CSRF token mismatch detected');
+        this.csrfToken = null;
+        throw new Error('CSRF token mismatch');
       }
       
       if (response.status === 409) {
@@ -90,43 +114,64 @@ class HttpClient {
     return response.json();
   }
 
+  private async makeRequest<T>(
+    method: string, 
+    endpoint: string, 
+    data?: any, 
+    includeAuth = true, 
+    retryCount = 0
+  ): Promise<T> {
+    const maxRetries = 1;
+    const needsCsrf = ['POST', 'PUT', 'DELETE'].includes(method.toUpperCase());
+
+    // Get CSRF token if needed and not already available
+    if (needsCsrf && !this.csrfToken) {
+      await this.getCsrfToken();
+    }
+
+    try {
+      const requestOptions: RequestInit = {
+        method,
+        headers: this.getHeaders(includeAuth, needsCsrf),
+        credentials: 'include',
+      };
+
+      if (data) {
+        requestOptions.body = JSON.stringify(data);
+      }
+
+      console.log(`Making ${method} request to ${endpoint}`, {
+        hasCsrfToken: !!this.csrfToken,
+        headers: requestOptions.headers
+      });
+
+      const response = await fetch(`${BASE_URL}${endpoint}`, requestOptions);
+      return this.handleResponse<T>(response);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries) {
+        console.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
+        // Get fresh CSRF token and retry
+        await this.getCsrfToken();
+        return this.makeRequest<T>(method, endpoint, data, includeAuth, retryCount + 1);
+      }
+      throw error;
+    }
+  }
+
   async get<T>(endpoint: string, includeAuth = true): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      headers: this.getHeaders(includeAuth),
-      credentials: 'include',
-    });
-    return this.handleResponse<T>(response);
+    return this.makeRequest<T>('GET', endpoint, undefined, includeAuth);
   }
 
   async post<T>(endpoint: string, data?: any, includeAuth = true): Promise<T> {
-    await this.getCsrfToken();
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: this.getHeaders(includeAuth),
-      credentials: 'include',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return this.handleResponse<T>(response);
+    return this.makeRequest<T>('POST', endpoint, data, includeAuth);
   }
 
   async put<T>(endpoint: string, data: any, includeAuth = true): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'PUT',
-      headers: this.getHeaders(includeAuth),
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-    return this.handleResponse<T>(response);
+    return this.makeRequest<T>('PUT', endpoint, data, includeAuth);
   }
 
   async delete<T>(endpoint: string, data?: any, includeAuth = true): Promise<T> {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(includeAuth),
-      credentials: 'include',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    return this.handleResponse<T>(response);
+    return this.makeRequest<T>('DELETE', endpoint, data, includeAuth);
   }
 }
 
