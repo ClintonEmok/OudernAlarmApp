@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Alert, Contact, Device, User, ApiDevicesResponse } from '../types';
 import { apiService } from '../services/api';
@@ -98,6 +97,24 @@ const isValidUser = (userData: any): userData is User => {
          typeof userData.updated_at === 'string';
 };
 
+// Helper function to transform API device response to Device type
+const transformApiDevice = (apiDevice: any): Device => {
+  return {
+    id: apiDevice.id || 0,
+    phone_number: apiDevice.phone_number || '',
+    nickname: apiDevice.nickname,
+    batteryLevel: apiDevice.batteryLevel || apiDevice.battery_level || 85,
+    signalStrength: apiDevice.signalStrength || apiDevice.signal_strength || 4,
+    connectionType: apiDevice.connectionType || apiDevice.connection_type || '4G',
+    lastUpdate: apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(),
+    firmwareVersion: apiDevice.firmwareVersion || apiDevice.firmware_version || '1.0.0',
+    status: apiDevice.status,
+    location: apiDevice.location,
+    created_at: apiDevice.created_at,
+    updated_at: apiDevice.updated_at
+  };
+};
+
 export const useStore = create<AppState>((set, get) => ({
   user: null,
   accessToken: null,
@@ -187,11 +204,14 @@ export const useStore = create<AppState>((set, get) => ({
   fetchDevices: async () => {
     try {
       const devicesResponse = await apiService.getMyDevices() as ApiDevicesResponse;
-      const allDevices = [...(devicesResponse.own || []), ...(devicesResponse.caregiving || [])];
+      const ownDevices = (devicesResponse.own || []).map(transformApiDevice);
+      const caregivingDevices = (devicesResponse.caregiving || []).map(transformApiDevice);
+      const allDevices = [...ownDevices, ...caregivingDevices];
+      
       set({ 
         devices: allDevices,
-        ownDevices: devicesResponse.own || [],
-        caregivingDevices: devicesResponse.caregiving || []
+        ownDevices,
+        caregivingDevices
       });
       
       if (allDevices.length > 0) {
@@ -210,7 +230,8 @@ export const useStore = create<AppState>((set, get) => ({
   fetchOwnDevices: async () => {
     try {
       const devices = await apiService.getOwnDevices();
-      set({ ownDevices: Array.isArray(devices) ? devices : [] });
+      const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
+      set({ ownDevices: transformedDevices });
     } catch (error) {
       console.error('Failed to fetch own devices:', error);
       set({ ownDevices: [] });
@@ -220,7 +241,8 @@ export const useStore = create<AppState>((set, get) => ({
   fetchCaregivingDevices: async () => {
     try {
       const devices = await apiService.getCaregivingDevices();
-      set({ caregivingDevices: Array.isArray(devices) ? devices : [] });
+      const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
+      set({ caregivingDevices: transformedDevices });
     } catch (error) {
       console.error('Failed to fetch caregiving devices:', error);
       set({ caregivingDevices: [] });
@@ -339,9 +361,10 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   
-  getDevice: async (id: number) => {
+  getDevice: async (id: number): Promise<Device> => {
     try {
-      return await apiService.getDevice(id);
+      const apiDevice = await apiService.getDevice(id);
+      return transformApiDevice(apiDevice);
     } catch (error) {
       console.error('Failed to get device:', error);
       throw error;

@@ -1,4 +1,3 @@
-
 const BASE_URL = 'https://api.ouderen-alarmering.nl/api';
 
 export interface ApiError {
@@ -218,7 +217,7 @@ class ApiService {
     const response = await fetch(`${BASE_URL}/devices/${id}`, {
       headers: this.getHeaders(),
     });
-    return this.handleResponse(response);
+    return this.handleResponse<any>(response);
   }
 
   async unassignDevice(id: number) {
