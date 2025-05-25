@@ -404,6 +404,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
   
   checkAuth: async () => {
+    const { user, isAuthenticated } = get();
+    
+    // Don't check if we already have a valid user
+    if (user && isAuthenticated) {
+      return;
+    }
+    
     try {
       console.log('Checking authentication status...');
       const userData = await apiService.getUser();

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,16 +14,20 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import { useStore } from "./store/useStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const { checkAuth } = useStore();
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Only check auth once when app loads
+    if (!hasCheckedAuth) {
+      checkAuth().finally(() => setHasCheckedAuth(true));
+    }
+  }, [checkAuth, hasCheckedAuth]);
 
   return (
     <QueryClientProvider client={queryClient}>
