@@ -1,5 +1,5 @@
 
-const BASE_URL = 'https://api.ouderen-alarmering.nl';
+const BASE_URL = 'https://api.ouderen-alarmering.nl/api';
 
 export interface ApiError {
   message: string;
@@ -25,15 +25,40 @@ class ApiService {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.message || 'API request failed');
+      if (response.status === 401) {
+        // Unauthenticated - redirect to login
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+        throw new Error('Unauthenticated');
+      }
+      
+      try {
+        const error: ApiError = await response.json();
+        throw new Error(error.message || 'API request failed');
+      } catch {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     }
     return response.json();
   }
 
   // Authentication
+  async register(data: { 
+    name: string; 
+    email: string; 
+    password: string; 
+    password_confirmation: string;
+  }) {
+    const response = await fetch(`${BASE_URL}/register`, {
+      method: 'POST',
+      headers: this.getHeaders(false),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
   async login(email: string, password: string) {
-    const response = await fetch(`${BASE_URL}/api/login`, {
+    const response = await fetch(`${BASE_URL}/login`, {
       method: 'POST',
       headers: this.getHeaders(false),
       body: JSON.stringify({ email, password }),
@@ -41,33 +66,24 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async register(data: { name: string; email: string; password: string; password_confirmation: string }) {
-    const response = await fetch(`${BASE_URL}/api/register`, {
-      method: 'POST',
-      headers: this.getHeaders(false),
-      body: JSON.stringify(data),
-    });
-    return this.handleResponse(response);
-  }
-
   async logout() {
-    const response = await fetch(`${BASE_URL}/api/logout`, {
+    const response = await fetch(`${BASE_URL}/logout`, {
       method: 'POST',
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
   }
 
-  // User
+  // User Management
   async getUser() {
-    const response = await fetch(`${BASE_URL}/api/user`, {
+    const response = await fetch(`${BASE_URL}/user`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
   }
 
   async updateUser(data: Partial<{ name: string; email: string; phone_number: string }>) {
-    const response = await fetch(`${BASE_URL}/api/user`, {
+    const response = await fetch(`${BASE_URL}/user`, {
       method: 'PUT',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
@@ -75,23 +91,61 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  // Caregivers
+  async updatePassword(data: {
+    current_password: string;
+    new_password: string;
+    new_password_confirmation: string;
+  }) {
+    const response = await fetch(`${BASE_URL}/user/password`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
+  async deleteUser(password: string) {
+    const response = await fetch(`${BASE_URL}/user`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ password }),
+    });
+    return this.handleResponse(response);
+  }
+
   async getCaregivers() {
-    const response = await fetch(`${BASE_URL}/api/user/caregivers`, {
+    const response = await fetch(`${BASE_URL}/user/caregivers`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
   }
 
   async getPatients() {
-    const response = await fetch(`${BASE_URL}/api/user/patients`, {
+    const response = await fetch(`${BASE_URL}/user/patients`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
   }
 
+  async updateCaregiverPriorities(caregivers: Array<{ user_id: number; priority: number }>) {
+    const response = await fetch(`${BASE_URL}/user/caregivers/update`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ caregivers }),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Caregiver Flows
+  async validateInvite(token: string) {
+    const response = await fetch(`${BASE_URL}/invites/validate?token=${token}`, {
+      headers: this.getHeaders(false),
+    });
+    return this.handleResponse(response);
+  }
+
   async inviteCaregiver(email: string) {
-    const response = await fetch(`${BASE_URL}/api/caregivers/invite`, {
+    const response = await fetch(`${BASE_URL}/caregivers/invite`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email }),
@@ -99,8 +153,22 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async acceptCaregiverInvite(data: {
+    token: string;
+    name: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    const response = await fetch(`${BASE_URL}/caregivers/accept`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse(response);
+  }
+
   async removeCaregiver(user_id: number) {
-    const response = await fetch(`${BASE_URL}/api/caregivers/remove`, {
+    const response = await fetch(`${BASE_URL}/caregivers/remove`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ user_id }),
@@ -108,9 +176,8 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  // Device Alarms
-  async getDeviceAlarms() {
-    const response = await fetch(`${BASE_URL}/api/device-alarms`, {
+  async getPendingInvites() {
+    const response = await fetch(`${BASE_URL}/caregivers/invites/pending`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
@@ -118,14 +185,28 @@ class ApiService {
 
   // Devices
   async getMyDevices() {
-    const response = await fetch(`${BASE_URL}/api/my-devices`, {
+    const response = await fetch(`${BASE_URL}/my-devices`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getOwnDevices() {
+    const response = await fetch(`${BASE_URL}/my-devices/own`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getCaregivingDevices() {
+    const response = await fetch(`${BASE_URL}/my-devices/caregiving`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
   }
 
   async assignDevice(phone_number: string, nickname?: string) {
-    const response = await fetch(`${BASE_URL}/api/devices/assign`, {
+    const response = await fetch(`${BASE_URL}/devices/assign`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ phone_number, nickname }),
@@ -133,9 +214,31 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getDevice(id: number) {
+    const response = await fetch(`${BASE_URL}/devices/${id}`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   async unassignDevice(id: number) {
-    const response = await fetch(`${BASE_URL}/api/devices/${id}`, {
+    const response = await fetch(`${BASE_URL}/devices/${id}`, {
       method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  // Device Alarms
+  async getDeviceAlarms() {
+    const response = await fetch(`${BASE_URL}/device-alarms`, {
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getDeviceAlarm(id: number) {
+    const response = await fetch(`${BASE_URL}/device-alarms/${id}`, {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);

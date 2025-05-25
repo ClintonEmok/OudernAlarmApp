@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { Alert, Contact, Device, User } from '../types';
+import { Alert, Contact, Device, User, ApiDevicesResponse } from '../types';
 import { apiService } from '../services/api';
 
 interface DeviceInfo {
@@ -34,7 +34,12 @@ interface AppState {
   
   // Devices
   devices: Device[];
+  ownDevices: Device[];
+  caregivingDevices: Device[];
   selectedDevice: Device | null;
+  
+  // Pending invites
+  pendingInvites: any[];
   
   // Loading states
   isLoading: boolean;
@@ -55,9 +60,29 @@ interface AppState {
   fetchCaregivers: () => Promise<void>;
   fetchPatients: () => Promise<void>;
   fetchDevices: () => Promise<void>;
+  fetchOwnDevices: () => Promise<void>;
+  fetchCaregivingDevices: () => Promise<void>;
   fetchAlerts: () => Promise<void>;
+  fetchPendingInvites: () => Promise<void>;
+  
+  // User management
+  updateUser: (data: Partial<{ name: string; email: string; phone_number: string }>) => Promise<void>;
+  updatePassword: (data: { current_password: string; new_password: string; new_password_confirmation: string }) => Promise<void>;
+  deleteUser: (password: string) => Promise<void>;
+  
+  // Caregiver management
   inviteCaregiver: (email: string) => Promise<void>;
   removeCaregiver: (userId: number) => Promise<void>;
+  acceptCaregiverInvite: (data: { token: string; name: string; password: string; password_confirmation: string }) => Promise<void>;
+  updateCaregiverPriorities: (caregivers: Array<{ user_id: number; priority: number }>) => Promise<void>;
+  
+  // Device management
+  assignDevice: (phone_number: string, nickname?: string) => Promise<void>;
+  unassignDevice: (id: number) => Promise<void>;
+  getDevice: (id: number) => Promise<Device>;
+  
+  // Invite validation
+  validateInvite: (token: string) => Promise<any>;
   
   logout: () => void;
   checkAuth: () => void;
@@ -94,7 +119,10 @@ export const useStore = create<AppState>((set, get) => ({
   caregivers: [],
   patients: [],
   devices: [],
+  ownDevices: [],
+  caregivingDevices: [],
   selectedDevice: null,
+  pendingInvites: [],
   isLoading: false,
   
   setUser: (user) => set({ user, isAuthenticated: true }),
@@ -158,22 +186,44 @@ export const useStore = create<AppState>((set, get) => ({
   
   fetchDevices: async () => {
     try {
-      const devicesResponse = await apiService.getMyDevices() as any;
-      // API returns { own: [...], caregiving: [...] } or just an array
-      const devices = devicesResponse?.own || devicesResponse || [];
-      set({ devices: Array.isArray(devices) ? devices : [] });
+      const devicesResponse = await apiService.getMyDevices() as ApiDevicesResponse;
+      const allDevices = [...(devicesResponse.own || []), ...(devicesResponse.caregiving || [])];
+      set({ 
+        devices: allDevices,
+        ownDevices: devicesResponse.own || [],
+        caregivingDevices: devicesResponse.caregiving || []
+      });
       
-      // Update device info if we have devices
-      if (devices.length > 0) {
+      if (allDevices.length > 0) {
         const { selectedDevice, setSelectedDevice } = get();
         if (!selectedDevice) {
-          setSelectedDevice(devices[0]);
+          setSelectedDevice(allDevices[0]);
         }
         get().updateDeviceInfo();
       }
     } catch (error) {
       console.error('Failed to fetch devices:', error);
-      set({ devices: [] });
+      set({ devices: [], ownDevices: [], caregivingDevices: [] });
+    }
+  },
+  
+  fetchOwnDevices: async () => {
+    try {
+      const devices = await apiService.getOwnDevices();
+      set({ ownDevices: Array.isArray(devices) ? devices : [] });
+    } catch (error) {
+      console.error('Failed to fetch own devices:', error);
+      set({ ownDevices: [] });
+    }
+  },
+  
+  fetchCaregivingDevices: async () => {
+    try {
+      const devices = await apiService.getCaregivingDevices();
+      set({ caregivingDevices: Array.isArray(devices) ? devices : [] });
+    } catch (error) {
+      console.error('Failed to fetch caregiving devices:', error);
+      set({ caregivingDevices: [] });
     }
   },
   
@@ -187,11 +237,52 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   
+  fetchPendingInvites: async () => {
+    try {
+      const invites = await apiService.getPendingInvites();
+      set({ pendingInvites: Array.isArray(invites) ? invites : [] });
+    } catch (error) {
+      console.error('Failed to fetch pending invites:', error);
+      set({ pendingInvites: [] });
+    }
+  },
+  
+  // User management
+  updateUser: async (data) => {
+    try {
+      await apiService.updateUser(data);
+      await get().fetchUserData();
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      throw error;
+    }
+  },
+  
+  updatePassword: async (data) => {
+    try {
+      await apiService.updatePassword(data);
+    } catch (error) {
+      console.error('Failed to update password:', error);
+      throw error;
+    }
+  },
+  
+  deleteUser: async (password) => {
+    try {
+      await apiService.deleteUser(password);
+      get().logout();
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      throw error;
+    }
+  },
+  
+  // Caregiver management
   inviteCaregiver: async (email: string) => {
     try {
       await apiService.inviteCaregiver(email);
-      // Refresh caregivers list
       await get().fetchCaregivers();
+      await get().fetchPendingInvites();
     } catch (error) {
       console.error('Failed to invite caregiver:', error);
       throw error;
@@ -201,10 +292,67 @@ export const useStore = create<AppState>((set, get) => ({
   removeCaregiver: async (userId: number) => {
     try {
       await apiService.removeCaregiver(userId);
-      // Refresh caregivers list
       await get().fetchCaregivers();
     } catch (error) {
       console.error('Failed to remove caregiver:', error);
+      throw error;
+    }
+  },
+  
+  acceptCaregiverInvite: async (data) => {
+    try {
+      await apiService.acceptCaregiverInvite(data);
+    } catch (error) {
+      console.error('Failed to accept caregiver invite:', error);
+      throw error;
+    }
+  },
+  
+  updateCaregiverPriorities: async (caregivers) => {
+    try {
+      await apiService.updateCaregiverPriorities(caregivers);
+      await get().fetchCaregivers();
+    } catch (error) {
+      console.error('Failed to update caregiver priorities:', error);
+      throw error;
+    }
+  },
+  
+  // Device management
+  assignDevice: async (phone_number: string, nickname?: string) => {
+    try {
+      await apiService.assignDevice(phone_number, nickname);
+      await get().fetchDevices();
+    } catch (error) {
+      console.error('Failed to assign device:', error);
+      throw error;
+    }
+  },
+  
+  unassignDevice: async (id: number) => {
+    try {
+      await apiService.unassignDevice(id);
+      await get().fetchDevices();
+    } catch (error) {
+      console.error('Failed to unassign device:', error);
+      throw error;
+    }
+  },
+  
+  getDevice: async (id: number) => {
+    try {
+      return await apiService.getDevice(id);
+    } catch (error) {
+      console.error('Failed to get device:', error);
+      throw error;
+    }
+  },
+  
+  validateInvite: async (token: string) => {
+    try {
+      return await apiService.validateInvite(token);
+    } catch (error) {
+      console.error('Failed to validate invite:', error);
       throw error;
     }
   },
@@ -218,8 +366,11 @@ export const useStore = create<AppState>((set, get) => ({
       caregivers: [],
       patients: [],
       devices: [],
+      ownDevices: [],
+      caregivingDevices: [],
       alerts: [],
-      selectedDevice: null
+      selectedDevice: null,
+      pendingInvites: []
     });
   },
   

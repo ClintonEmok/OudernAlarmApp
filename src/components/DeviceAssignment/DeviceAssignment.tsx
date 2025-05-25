@@ -5,15 +5,14 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { apiService } from '../../services/api';
 import { useStore } from '../../store/useStore';
-import { Smartphone, Plus } from 'lucide-react';
+import { Smartphone, Plus, TestTube } from 'lucide-react';
 
 const DeviceAssignment = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [nickname, setNickname] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
-  const { fetchDevices } = useStore();
+  const { assignDevice } = useStore();
   const { toast } = useToast();
 
   const handleAssignDevice = async (e: React.FormEvent) => {
@@ -31,7 +30,7 @@ const DeviceAssignment = () => {
     setIsAssigning(true);
     
     try {
-      await apiService.assignDevice(phoneNumber.trim(), nickname.trim() || undefined);
+      await assignDevice(phoneNumber.trim(), nickname.trim() || undefined);
       
       toast({
         title: "✓ Apparaat Gekoppeld",
@@ -42,14 +41,33 @@ const DeviceAssignment = () => {
       setPhoneNumber('');
       setNickname('');
       
-      // Refresh devices list
-      await fetchDevices();
-      
     } catch (error) {
       console.error('Failed to assign device:', error);
       toast({
         title: "Koppeling Mislukt",
         description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het koppelen van het apparaat.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleAddTestDevice = async () => {
+    setIsAssigning(true);
+    try {
+      await assignDevice('+3197052655266', 'Test-Alarm');
+      
+      toast({
+        title: "✓ Test Apparaat Gekoppeld",
+        description: "Het test apparaat is succesvol gekoppeld.",
+      });
+      
+    } catch (error) {
+      console.error('Failed to assign test device:', error);
+      toast({
+        title: "Koppeling Test Apparaat Mislukt",
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden bij het koppelen van het test apparaat.",
         variant: "destructive"
       });
     } finally {
@@ -65,7 +83,27 @@ const DeviceAssignment = () => {
           <span>Apparaat Koppelen</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* Quick Test Device Button */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">Test Apparaat</h4>
+              <p className="text-sm text-blue-700">Koppel snel het test apparaat voor demo doeleinden</p>
+            </div>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={handleAddTestDevice}
+              disabled={isAssigning}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <TestTube size={16} className="mr-2" />
+              Test Koppelen
+            </Button>
+          </div>
+        </div>
+
         <form onSubmit={handleAssignDevice} className="space-y-4">
           <div>
             <Label htmlFor="phoneNumber">Telefoonnummer Apparaat *</Label>

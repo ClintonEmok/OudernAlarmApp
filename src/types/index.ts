@@ -19,7 +19,7 @@ export interface Contact {
 }
 
 export interface Device {
-  id: string;
+  id: number;
   phone_number: string;
   nickname?: string;
   batteryLevel: number;
@@ -27,12 +27,13 @@ export interface Device {
   connectionType: '5G' | '4G' | 'WiFi';
   lastUpdate: Date;
   firmwareVersion: string;
-  // Additional properties that might come from the API
   status?: string;
   location?: {
     latitude: number;
     longitude: number;
   };
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface User {
@@ -54,9 +55,35 @@ export interface AuthResponse {
 export interface CaregiverInvite {
   email: string;
   token: string;
+  created_at?: string;
 }
 
 export interface DeviceAssignRequest {
   phone_number: string;
   nickname?: string;
+}
+
+export interface ApiDevicesResponse {
+  own: Device[];
+  caregiving: Device[];
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface UpdatePasswordRequest {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
+export interface CaregiverAcceptRequest {
+  token: string;
+  name: string;
+  password: string;
+  password_confirmation: string;
 }

@@ -7,30 +7,47 @@ import { useStore } from '../store/useStore';
 import { apiService } from '../services/api';
 import { AuthResponse } from '../types';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUser, setAccessToken } = useStore();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
+    if (formData.password !== formData.password_confirmation) {
+      setError('Wachtwoorden komen niet overeen');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await apiService.login(email, password) as AuthResponse;
+      const response = await apiService.register(formData) as AuthResponse;
       
-      // Store token in localStorage and state
+      // Store token and user data
       localStorage.setItem('access_token', response.access_token);
       setAccessToken(response.access_token);
       setUser(response.user);
       
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : 'Registratie mislukt');
     } finally {
       setIsLoading(false);
     }
@@ -42,11 +59,11 @@ const Login = () => {
         <CardHeader>
           <div className="text-center">
             <h1 className="text-2xl font-bold text-purple-600 mb-2">Ouderen Alarmering</h1>
-            <p className="text-gray-600">Log in om door te gaan</p>
+            <p className="text-gray-600">Maak een nieuw account aan</p>
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}
@@ -54,14 +71,30 @@ const Login = () => {
             )}
             
             <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Naam
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+            
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
               />
@@ -73,11 +106,29 @@ const Login = () => {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
+                minLength={8}
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1">
+                Bevestig Wachtwoord
+              </label>
+              <input
+                id="password_confirmation"
+                name="password_confirmation"
+                type="password"
+                value={formData.password_confirmation}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+                minLength={8}
               />
             </div>
             
@@ -86,12 +137,12 @@ const Login = () => {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Bezig met inloggen...' : 'Inloggen'}
+              {isLoading ? 'Bezig met registreren...' : 'Registreren'}
             </Button>
             
             <div className="text-center">
-              <Link to="/register" className="text-purple-600 hover:text-purple-800 text-sm">
-                Nog geen account? Registreren
+              <Link to="/login" className="text-purple-600 hover:text-purple-800 text-sm">
+                Al een account? Inloggen
               </Link>
             </div>
           </form>
@@ -101,4 +152,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

@@ -11,6 +11,7 @@ import Device from "./pages/Device";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Register from "./pages/Register";
 import { useStore } from "./store/useStore";
 import { useEffect } from "react";
 
@@ -32,6 +33,7 @@ const App = () => {
           <div className="min-h-screen bg-purple-50 w-full">
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/" element={<Home />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/contacts" element={<Contacts />} />
