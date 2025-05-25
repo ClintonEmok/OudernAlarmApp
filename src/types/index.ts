@@ -27,6 +27,12 @@ export interface Device {
   connectionType: '5G' | '4G' | 'WiFi';
   lastUpdate: Date;
   firmwareVersion: string;
+  // Additional properties that might come from the API
+  status?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface User {
@@ -48,4 +54,9 @@ export interface AuthResponse {
 export interface CaregiverInvite {
   email: string;
   token: string;
+}
+
+export interface DeviceAssignRequest {
+  phone_number: string;
+  nickname?: string;
 }

@@ -63,6 +63,16 @@ interface AppState {
   checkAuth: () => void;
 }
 
+// Type guard to check if response is a valid User object
+const isValidUser = (userData: any): userData is User => {
+  return userData && 
+         typeof userData.id === 'number' &&
+         typeof userData.name === 'string' &&
+         typeof userData.email === 'string' &&
+         typeof userData.created_at === 'string' &&
+         typeof userData.updated_at === 'string';
+};
+
 export const useStore = create<AppState>((set, get) => ({
   user: null,
   accessToken: null,
@@ -114,8 +124,10 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       set({ isLoading: true });
       const userData = await apiService.getUser();
-      if (userData) {
+      if (isValidUser(userData)) {
         set({ user: userData });
+      } else {
+        console.warn('Invalid user data received from API:', userData);
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -147,6 +159,7 @@ export const useStore = create<AppState>((set, get) => ({
   fetchDevices: async () => {
     try {
       const devicesResponse = await apiService.getMyDevices() as any;
+      // API returns { own: [...], caregiving: [...] } or just an array
       const devices = devicesResponse?.own || devicesResponse || [];
       set({ devices: Array.isArray(devices) ? devices : [] });
       

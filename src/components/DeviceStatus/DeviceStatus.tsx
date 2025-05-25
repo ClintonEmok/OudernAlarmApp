@@ -5,6 +5,7 @@ import { useStore } from '../../store/useStore';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
+import DeviceAssignment from '../DeviceAssignment/DeviceAssignment';
 
 const DeviceStatus = () => {
   useAuth();
@@ -45,16 +46,19 @@ const DeviceStatus = () => {
       <div className="p-4 space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900">Apparaat Status</h2>
-          <p className="text-sm text-gray-600">Geen apparaten gevonden</p>
+          <p className="text-sm text-gray-600">Koppel uw eerste apparaat</p>
         </div>
+        
+        <DeviceAssignment />
+        
         <Card className="text-center py-8">
           <CardContent>
             <Smartphone size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Geen Apparaten
+              Geen Apparaten Gekoppeld
             </h3>
             <p className="text-gray-600">
-              Er zijn momenteel geen apparaten gekoppeld aan uw account.
+              Gebruik het formulier hierboven om uw eerste apparaat te koppelen.
             </p>
           </CardContent>
         </Card>
@@ -203,6 +207,12 @@ const DeviceStatus = () => {
           </div>
         </div>
       )}
+      
+      {/* Add another device option */}
+      <div className="space-y-3">
+        <h4 className="font-semibold text-gray-900">Nieuw Apparaat Toevoegen</h4>
+        <DeviceAssignment />
+      </div>
     </div>
   );
 };
