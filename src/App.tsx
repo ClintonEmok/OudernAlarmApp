@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { capacitorService } from "./services/capacitor-service";
+import { pushNotificationService } from "./services/push-notification-service";
 import BottomNavigation from "./components/Layout/BottomNavigation";
 import Home from "./pages/Home";
 import Alerts from "./pages/Alerts";
@@ -25,6 +25,18 @@ const App = () => {
   useEffect(() => {
     // Initialize platform detection and log info
     capacitorService.logPlatformInfo();
+    
+    // Initialize native features on app start
+    const initializeNativeFeatures = async () => {
+      try {
+        await pushNotificationService.initialize();
+        console.log('Native features initialized in App.tsx');
+      } catch (error) {
+        console.error('Failed to initialize native features in App.tsx:', error);
+      }
+    };
+
+    initializeNativeFeatures();
   }, []);
 
   return (

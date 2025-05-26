@@ -14,6 +14,17 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       backgroundColor: '#3B82F6',
       showSpinner: false
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF",
+      sound: "beep.wav"
+    },
+    Geolocation: {
+      permissions: ["location"]
     }
   }
 };
