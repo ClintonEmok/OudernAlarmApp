@@ -3,7 +3,8 @@ import { httpClient } from './http-client';
 
 class DeviceService {
   async getMyDevices() {
-    return httpClient.get('/my-devices');
+    // Use the correct endpoint for own devices
+    return httpClient.get('/my-devices/own');
   }
 
   async getOwnDevices() {

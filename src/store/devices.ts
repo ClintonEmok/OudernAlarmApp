@@ -1,7 +1,7 @@
 
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
-import { Device, ApiDevicesResponse } from '../types';
+import { Device } from '../types';
 import { apiService } from '../services/api';
 
 // Helper function to transform API device response to Device type
@@ -70,22 +70,49 @@ export const createDeviceSlice: StateCreator<
   fetchDevices: async () => {
     try {
       console.log('=== FETCH DEVICES START ===');
+      console.log('Using endpoint: /my-devices/own');
       console.log('Checking localStorage token:', localStorage.getItem('access_token') ? 'Token exists' : 'No token found');
       
-      const devicesResponse = await apiService.getMyDevices() as ApiDevicesResponse;
-      console.log('API Response received:', devicesResponse);
-      console.log('Response type:', typeof devicesResponse);
-      console.log('Response keys:', Object.keys(devicesResponse || {}));
+      // Fetch own devices using the correct endpoint
+      const ownDevicesResponse = await apiService.getMyDevices();
+      console.log('Own devices API Response received:', ownDevicesResponse);
+      console.log('Response type:', typeof ownDevicesResponse);
+      console.log('Response keys:', Object.keys(ownDevicesResponse || {}));
       
-      // Check if response has expected structure
-      if (!devicesResponse) {
+      // Check if response is an array (expected format for /my-devices/own)
+      if (!ownDevicesResponse) {
         console.warn('No response received from API');
         set({ devices: [], ownDevices: [], caregivingDevices: [] });
         return;
       }
       
-      const ownDevices = (devicesResponse.own || []).map(transformApiDevice);
-      const caregivingDevices = (devicesResponse.caregiving || []).map(transformApiDevice);
+      // Handle response - should be an array directly
+      let ownDevices: Device[] = [];
+      if (Array.isArray(ownDevicesResponse)) {
+        ownDevices = ownDevicesResponse.map(transformApiDevice);
+        console.log('Response is array format - processing devices:', ownDevices.length);
+      } else if (ownDevicesResponse.data && Array.isArray(ownDevicesResponse.data)) {
+        ownDevices = ownDevicesResponse.data.map(transformApiDevice);
+        console.log('Response has data property - processing devices:', ownDevices.length);
+      } else {
+        console.warn('Unexpected response format:', ownDevicesResponse);
+        ownDevices = [];
+      }
+      
+      // Try to fetch caregiving devices separately (optional)
+      let caregivingDevices: Device[] = [];
+      try {
+        const caregivingResponse = await apiService.getCaregivingDevices();
+        console.log('Caregiving devices response:', caregivingResponse);
+        if (Array.isArray(caregivingResponse)) {
+          caregivingDevices = caregivingResponse.map(transformApiDevice);
+        } else if (caregivingResponse.data && Array.isArray(caregivingResponse.data)) {
+          caregivingDevices = caregivingResponse.data.map(transformApiDevice);
+        }
+      } catch (caregivingError) {
+        console.log('Could not fetch caregiving devices (this is optional):', caregivingError);
+      }
+      
       const allDevices = [...ownDevices, ...caregivingDevices];
       
       console.log('Processed own devices:', ownDevices);

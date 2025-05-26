@@ -20,9 +20,9 @@ const DebugInfo = () => {
   };
 
   const testApiCall = async () => {
-    console.log('=== MANUAL API TEST ===');
+    console.log('=== MANUAL API TEST (CORRECTED ENDPOINT) ===');
     try {
-      const response = await fetch('https://api.ouderen-alarmering.nl/api/my-devices', {
+      const response = await fetch('https://api.ouderen-alarmering.nl/api/my-devices/own', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -63,13 +63,14 @@ const DebugInfo = () => {
           <div>User: {user ? user.name : 'None'}</div>
           <div>Devices: {devices.length}</div>
           <div>Token: {localStorage.getItem('access_token') ? 'Present' : 'Missing'}</div>
+          <div className="text-blue-600">Endpoint: /my-devices/own</div>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm" onClick={checkTokenInfo}>
             Log Token Info
           </Button>
           <Button variant="outline" size="sm" onClick={testApiCall}>
-            Test API Call
+            Test /own API
           </Button>
         </div>
       </CardContent>
