@@ -55,11 +55,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-purple-600 mb-2">Ouderen Alarmering</h1>
+            <h1 className="text-2xl font-bold text-blue-600 mb-2">Ouderen Alarmering</h1>
             <p className="text-gray-600">Log in om door te gaan</p>
           </div>
         </CardHeader>
@@ -93,7 +93,7 @@ const Login = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -107,7 +107,7 @@ const Login = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -121,7 +121,7 @@ const Login = () => {
             </Button>
             
             <div className="text-center">
-              <Link to="/register" className="text-purple-600 hover:text-purple-800 text-sm">
+              <Link to="/register" className="text-blue-600 hover:text-blue-800 text-sm">
                 Nog geen account? Registreren
               </Link>
             </div>

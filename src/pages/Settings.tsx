@@ -47,7 +47,7 @@ const Settings = () => {
   const settingsCategories = [
     {
       title: 'Account & Profiel',
-      icon: <User size={20} className="text-purple-600" />,
+      icon: <User size={20} className="text-blue-600" />,
       items: [
         { name: 'Persoonlijke Gegevens', description: 'Naam, email en telefoonnummer' },
         { name: 'Wachtwoord Wijzigen', description: 'Account beveiliging' },
@@ -56,7 +56,7 @@ const Settings = () => {
     },
     {
       title: 'Zorgverlening',
-      icon: <Users size={20} className="text-purple-600" />,
+      icon: <Users size={20} className="text-blue-600" />,
       items: [
         { name: 'Zorgverleners Beheren', description: 'Uitnodigen en prioriteiten' },
         { name: 'Patiënten Overzicht', description: 'Mensen die u verzorgt' },
@@ -65,7 +65,7 @@ const Settings = () => {
     },
     {
       title: 'Apparaten',
-      icon: <Smartphone size={20} className="text-purple-600" />,
+      icon: <Smartphone size={20} className="text-blue-600" />,
       items: [
         { name: 'Mijn Apparaten', description: 'Gekoppelde alarm apparaten' },
         { name: 'Apparaat Koppelen', description: 'Nieuw apparaat toevoegen' },
@@ -86,7 +86,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 pb-20">
+    <div className="min-h-screen bg-blue-50 pb-20">
       <div className="p-4 space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900">Instellingen</h2>
@@ -98,8 +98,8 @@ const Settings = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User size={24} className="text-purple-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User size={24} className="text-blue-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{user.name}</h3>
@@ -159,7 +159,7 @@ const Settings = () => {
         {/* App Info */}
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-purple-600 mb-2">
+            <div className="text-blue-600 mb-2">
               <SettingsIcon size={32} className="mx-auto" />
             </div>
             <h4 className="font-semibold text-gray-900 mb-1">Ouderen Alarmering</h4>
