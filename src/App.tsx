@@ -26,7 +26,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen bg-purple-50 w-full">
+          <div className="min-h-screen bg-blue-50 w-full">
             <Routes>
               {/* Default route redirects to login */}
               <Route path="/" element={<Navigate to="/login" replace />} />

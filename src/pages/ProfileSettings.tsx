@@ -42,7 +42,7 @@ const ProfileSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 pb-20">
+    <div className="min-h-screen bg-blue-50 pb-20">
       <div className="p-4 space-y-6">
         <div className="flex items-center space-x-3">
           <Button
@@ -58,7 +58,7 @@ const ProfileSettings = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <User size={20} className="text-purple-600" />
+              <User size={20} className="text-blue-600" />
               <span>Profiel Informatie</span>
             </CardTitle>
           </CardHeader>

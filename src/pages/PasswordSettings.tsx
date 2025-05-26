@@ -51,7 +51,7 @@ const PasswordSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 pb-20">
+    <div className="min-h-screen bg-blue-50 pb-20">
       <div className="p-4 space-y-6">
         <div className="flex items-center space-x-3">
           <Button
@@ -67,7 +67,7 @@ const PasswordSettings = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Lock size={20} className="text-purple-600" />
+              <Lock size={20} className="text-blue-600" />
               <span>Beveiligingsinstellingen</span>
             </CardTitle>
           </CardHeader>
