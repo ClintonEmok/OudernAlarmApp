@@ -41,16 +41,55 @@ class HttpClient {
         this.csrfManager.getToken()
       );
 
+      console.log(`=== HTTP REQUEST START ===`);
       console.log(`Making ${method} request to ${endpoint}`, {
+        fullUrl: `${BASE_URL}${endpoint}`,
         hasCsrfToken: !!this.csrfManager.getToken(),
         shouldUseCsrf,
         retryCount,
-        crossOrigin: !this.csrfManager.hasCsrfSupport()
+        crossOrigin: !this.csrfManager.hasCsrfSupport(),
+        includeAuth,
+        hasAuthToken: includeAuth ? !!localStorage.getItem('access_token') : 'not checked'
       });
+      console.log('Request headers:', requestOptions.headers);
+      console.log('Request body:', requestOptions.body);
 
       const response = await fetch(`${BASE_URL}${endpoint}`, requestOptions);
-      return this.responseHandler.handleResponse<T>(response);
+      
+      console.log(`=== HTTP RESPONSE ===`);
+      console.log('Response status:', response.status, response.statusText);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Response ok:', response.ok);
+      
+      // Clone response to read it twice (once for logging, once for processing)
+      const responseClone = response.clone();
+      let responseText = '';
+      try {
+        responseText = await responseClone.text();
+        console.log('Response body (raw):', responseText);
+        
+        // Try to parse as JSON for better logging
+        if (responseText) {
+          try {
+            const parsedResponse = JSON.parse(responseText);
+            console.log('Response body (parsed):', parsedResponse);
+          } catch (parseError) {
+            console.log('Response is not valid JSON');
+          }
+        }
+      } catch (readError) {
+        console.log('Could not read response body for logging');
+      }
+      
+      const result = this.responseHandler.handleResponse<T>(response);
+      console.log(`=== HTTP REQUEST END ===`);
+      return result;
     } catch (error) {
+      console.error(`=== HTTP REQUEST ERROR ===`);
+      console.error('Request failed:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      
       if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries && shouldUseCsrf) {
         console.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
         // Clear token and retry with fresh one
