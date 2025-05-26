@@ -1,4 +1,3 @@
-
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
 import { Device } from '../types';
@@ -91,8 +90,8 @@ export const createDeviceSlice: StateCreator<
       if (Array.isArray(ownDevicesResponse)) {
         ownDevices = ownDevicesResponse.map(transformApiDevice);
         console.log('Response is array format - processing devices:', ownDevices.length);
-      } else if (ownDevicesResponse.data && Array.isArray(ownDevicesResponse.data)) {
-        ownDevices = ownDevicesResponse.data.map(transformApiDevice);
+      } else if (ownDevicesResponse && typeof ownDevicesResponse === 'object' && 'data' in ownDevicesResponse && Array.isArray((ownDevicesResponse as any).data)) {
+        ownDevices = ((ownDevicesResponse as any).data).map(transformApiDevice);
         console.log('Response has data property - processing devices:', ownDevices.length);
       } else {
         console.warn('Unexpected response format:', ownDevicesResponse);
@@ -106,8 +105,8 @@ export const createDeviceSlice: StateCreator<
         console.log('Caregiving devices response:', caregivingResponse);
         if (Array.isArray(caregivingResponse)) {
           caregivingDevices = caregivingResponse.map(transformApiDevice);
-        } else if (caregivingResponse.data && Array.isArray(caregivingResponse.data)) {
-          caregivingDevices = caregivingResponse.data.map(transformApiDevice);
+        } else if (caregivingResponse && typeof caregivingResponse === 'object' && 'data' in caregivingResponse && Array.isArray((caregivingResponse as any).data)) {
+          caregivingDevices = ((caregivingResponse as any).data).map(transformApiDevice);
         }
       } catch (caregivingError) {
         console.log('Could not fetch caregiving devices (this is optional):', caregivingError);

@@ -1,0 +1,178 @@
+
+import React, { useEffect, useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Device } from '../../types';
+
+interface InteractiveMapProps {
+  device: Device | null;
+  mapboxToken: string;
+}
+
+const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const marker = useRef<mapboxgl.Marker | null>(null);
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/streets-v12');
+
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken) return;
+
+    // Set Mapbox access token
+    mapboxgl.accessToken = mapboxToken;
+
+    // Default location or device location
+    const defaultLat = 52.3676;
+    const defaultLng = 4.9041;
+    const lat = device?.location?.latitude || defaultLat;
+    const lng = device?.location?.longitude || defaultLng;
+
+    // Initialize map
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: mapStyle,
+      center: [lng, lat],
+      zoom: 15,
+      pitch: 45,
+    });
+
+    // Add navigation controls
+    map.current.addControl(
+      new mapboxgl.NavigationControl({
+        visualizePitch: true,
+      }),
+      'top-right'
+    );
+
+    // Add fullscreen control
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+    // Add scale control
+    map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+    // Create custom marker element
+    const markerElement = document.createElement('div');
+    markerElement.className = 'custom-marker';
+    markerElement.style.cssText = `
+      width: 32px;
+      height: 32px;
+      background-color: #43A3FA;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    
+    // Add icon to marker
+    markerElement.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    `;
+
+    // Add marker to map
+    marker.current = new mapboxgl.Marker(markerElement)
+      .setLngLat([lng, lat])
+      .addTo(map.current);
+
+    // Add popup to marker
+    if (device) {
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: false,
+        closeOnClick: false
+      }).setHTML(`
+        <div class="p-2">
+          <h3 class="font-semibold text-gray-900">${device.nickname || 'Ouderen Alarm'}</h3>
+          <p class="text-sm text-gray-600">Batterij: ${device.batteryLevel}%</p>
+          <p class="text-sm text-gray-600">Signaal: ${device.signalStrength}/5</p>
+          <p class="text-xs text-gray-500">
+            Laatste update: ${new Date(device.lastUpdate).toLocaleTimeString('nl-NL', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </p>
+        </div>
+      `);
+
+      marker.current.setPopup(popup);
+    }
+
+    // Cleanup
+    return () => {
+      if (marker.current) {
+        marker.current.remove();
+      }
+      if (map.current) {
+        map.current.remove();
+      }
+    };
+  }, [device, mapboxToken, mapStyle]);
+
+  const mapStyles = [
+    { name: 'Straten', value: 'mapbox://styles/mapbox/streets-v12' },
+    { name: 'Satelliet', value: 'mapbox://styles/mapbox/satellite-streets-v12' },
+    { name: 'Licht', value: 'mapbox://styles/mapbox/light-v11' },
+    { name: 'Donker', value: 'mapbox://styles/mapbox/dark-v11' }
+  ];
+
+  return (
+    <div className="relative w-full h-full">
+      {/* Map container */}
+      <div ref={mapContainer} className="absolute inset-0" />
+      
+      {/* Map style selector */}
+      <div className="absolute top-4 left-4 z-10">
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2">
+          <select 
+            value={mapStyle} 
+            onChange={(e) => setMapStyle(e.target.value)}
+            className="text-xs border-none outline-none bg-transparent"
+          >
+            {mapStyles.map((style) => (
+              <option key={style.value} value={style.value}>
+                {style.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Device info overlay */}
+      {device && (
+        <div className="absolute bottom-4 left-4 right-4 z-10">
+          <div className="bg-white rounded-lg p-3 shadow-md border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Apparaat Locatie</p>
+                <p className="font-semibold text-gray-900">{device.nickname || 'Ouderen Alarm'}</p>
+                {device.location && (
+                  <p className="text-xs text-gray-500">
+                    {device.location.latitude.toFixed(6)}, {device.location.longitude.toFixed(6)}
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="flex items-center space-x-2 mb-1">
+                  <div className={`w-2 h-2 rounded-full ${device.batteryLevel > 20 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="text-sm font-medium">{device.batteryLevel}%</span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(device.lastUpdate).toLocaleTimeString('nl-NL', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default InteractiveMap;
