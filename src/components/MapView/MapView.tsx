@@ -1,30 +1,9 @@
 
 import { MapPin, Battery, Signal, Shield } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { Button } from '../ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 const MapView = () => {
   const { currentLocation, deviceInfo } = useStore();
-  const { toast } = useToast();
-
-  const handleSOS = () => {
-    // TODO: Implement real SOS API call when available
-    toast({
-      title: "🚨 SOS Alarm Geactiveerd",
-      description: "Uw noodoproep is verzonden naar alle zorgverleners.",
-      variant: "destructive"
-    });
-    console.log('SOS alarm activated');
-  };
-
-  const handleCheckIn = () => {
-    toast({
-      title: "✓ Check-in Succesvol", 
-      description: "U heeft bevestigd dat alles goed met u is.",
-    });
-    console.log('Check-in performed');
-  };
 
   return (
     <div className="h-full flex flex-col">
@@ -99,27 +78,16 @@ const MapView = () => {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Info Section - replaces action buttons */}
       <div className="bg-white p-4 border-t border-purple-100">
-        <div className="flex space-x-3">
-          <Button
-            onClick={handleCheckIn}
-            variant="secondary"
-            className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-          >
-            ✓ Check-in
-          </Button>
-          <Button
-            onClick={handleSOS}
-            variant="destructive"
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white border-red-600"
-          >
-            🚨 SOS
-          </Button>
+        <div className="text-center">
+          <p className="text-sm text-gray-600 mb-1">
+            SOS en Check-in functies zijn beschikbaar via uw apparaat
+          </p>
+          <p className="text-xs text-gray-500">
+            Gebruik de knoppen op uw persoonlijk alarm voor noodhulp
+          </p>
         </div>
-        <p className="text-xs text-gray-500 text-center mt-2">
-          Druk op SOS voor noodhulp of Check-in om te laten weten dat alles goed is
-        </p>
       </div>
     </div>
   );

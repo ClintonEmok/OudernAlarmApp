@@ -1,6 +1,12 @@
 
 import { httpClient } from './http-client';
 
+interface LoginResponse {
+  access_token: string;
+  user?: any;
+  message?: string;
+}
+
 class AuthService {
   async register(data: { 
     name: string; 
@@ -14,7 +20,7 @@ class AuthService {
   async login(email: string, password: string) {
     try {
       // First attempt with normal CSRF handling
-      const response = await httpClient.post('/login', { email, password }, false);
+      const response = await httpClient.post('/login', { email, password }, false) as LoginResponse;
       
       // Store access token if login is successful
       if (response && response.access_token) {
@@ -29,7 +35,7 @@ class AuthService {
         console.log('CSRF error detected, retrying login...');
         // Wait a moment and try again
         await new Promise(resolve => setTimeout(resolve, 500));
-        const retryResponse = await httpClient.post('/login', { email, password }, false);
+        const retryResponse = await httpClient.post('/login', { email, password }, false) as LoginResponse;
         
         // Store access token on retry success
         if (retryResponse && retryResponse.access_token) {
