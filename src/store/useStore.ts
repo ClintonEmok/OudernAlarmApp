@@ -5,6 +5,7 @@ import { createDeviceSlice, DeviceSlice } from './devices';
 import { createContactSlice, ContactSlice } from './contacts';
 import { createAlertSlice, AlertSlice } from './alerts';
 import { LocationState, LoadingState, DeviceInfo } from './types';
+import { authService } from '../services/auth-service';
 
 interface AppState extends 
   AuthSlice, 
@@ -54,8 +55,11 @@ export const useStore = create<AppState>((set, get, api) => ({
   // Alert slice
   ...createAlertSlice(set, get, api),
   
-  // Override logout to clear all state
+  // Override logout to clear all state and token
   logout: () => {
+    // Clear the access token
+    authService.clearToken();
+    
     set({ 
       user: null, 
       isAuthenticated: false,
@@ -68,5 +72,8 @@ export const useStore = create<AppState>((set, get, api) => ({
       selectedDevice: null,
       pendingInvites: []
     });
+    
+    // Redirect to login
+    window.location.href = '/login';
   }
 }));

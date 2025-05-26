@@ -3,6 +3,7 @@ import { StateCreator } from 'zustand';
 import { AuthState } from './types';
 import { User } from '../types';
 import { apiService } from '../services/api';
+import { authService } from '../services/auth-service';
 
 // Type guard to check if response is a valid User object
 const isValidUser = (userData: any): userData is User => {
@@ -38,16 +39,27 @@ export const createAuthSlice: StateCreator<
   setUser: (user) => set({ user, isAuthenticated: true }),
   
   logout: () => {
+    // Clear the access token
+    authService.clearToken();
+    
     set({ 
       user: null, 
       isAuthenticated: false
     });
+    
     // Redirect to login after logout
     window.location.href = '/login';
   },
   
   fetchUserData: async () => {
     try {
+      // Check if we have a valid token before making the request
+      if (!authService.hasValidToken()) {
+        console.log('No valid token found, user not authenticated');
+        set({ isAuthenticated: false, user: null });
+        return;
+      }
+
       get().setLoading(true);
       const userData = await apiService.getUser();
       if (isValidUser(userData)) {
@@ -58,7 +70,16 @@ export const createAuthSlice: StateCreator<
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
-      set({ isAuthenticated: false, user: null });
+      
+      // If we get 401 Unauthorized, clear the token and redirect to login
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthenticated'))) {
+        console.log('Token appears to be invalid, clearing and redirecting to login');
+        authService.clearToken();
+        set({ isAuthenticated: false, user: null });
+        window.location.href = '/login';
+      } else {
+        set({ isAuthenticated: false, user: null });
+      }
     } finally {
       get().setLoading(false);
     }
