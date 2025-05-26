@@ -163,7 +163,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
 
       {/* Clean device info overlay - only show when device is available */}
       {device && device.location && (
-        <div className="absolute bottom-4 left-4 right-4 z-10">
+        <div className="absolute bottom-4 left-4 right-4 z-50">
           <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
