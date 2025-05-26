@@ -1,3 +1,4 @@
+
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
 import { Device } from '../types';
@@ -6,6 +7,16 @@ import { apiService } from '../services/api';
 // Helper function to transform API device response to Device type
 const transformApiDevice = (apiDevice: any): Device => {
   console.log('Transforming API device:', apiDevice);
+  
+  // Transform location data, converting string coordinates to numbers
+  let location = undefined;
+  if (apiDevice.location) {
+    location = {
+      latitude: parseFloat(apiDevice.location.latitude),
+      longitude: parseFloat(apiDevice.location.longitude)
+    };
+  }
+  
   return {
     id: apiDevice.id || 0,
     phone_number: apiDevice.phone_number || '',
@@ -16,7 +27,7 @@ const transformApiDevice = (apiDevice: any): Device => {
     lastUpdate: apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(),
     firmwareVersion: apiDevice.firmwareVersion || apiDevice.firmware_version || '1.0.0',
     status: apiDevice.status,
-    location: apiDevice.location,
+    location: location,
     created_at: apiDevice.created_at,
     updated_at: apiDevice.updated_at
   };
