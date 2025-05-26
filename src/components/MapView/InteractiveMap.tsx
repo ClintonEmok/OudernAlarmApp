@@ -144,13 +144,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Map style selector */}
+      {/* Clean map style selector */}
       <div className="absolute top-4 left-4 z-10">
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-2">
           <select 
             value={mapStyle} 
             onChange={(e) => setMapStyle(e.target.value)}
-            className="text-xs border-none outline-none bg-transparent"
+            className="text-sm border-none outline-none bg-transparent font-medium"
           >
             {mapStyles.map((style) => (
               <option key={style.value} value={style.value}>
@@ -161,24 +161,22 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
         </div>
       </div>
 
-      {/* Device info overlay */}
-      {device && (
+      {/* Clean device info overlay - only show when device is available */}
+      {device && device.location && (
         <div className="absolute bottom-4 left-4 right-4 z-10">
-          <div className="bg-white rounded-lg p-3 shadow-md border border-gray-100">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-200/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Apparaat Locatie</p>
-                <p className="font-semibold text-gray-900">{device.nickname || 'Ouderen Alarm'}</p>
-                {device.location && (
-                  <p className="text-xs text-gray-500">
-                    {device.location.latitude.toFixed(6)}, {device.location.longitude.toFixed(6)}
-                  </p>
-                )}
+                <p className="text-sm text-gray-600 mb-1">Huidige Locatie</p>
+                <p className="font-semibold text-gray-900 text-lg">{device.nickname || 'Ouderen Alarm'}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {device.location.latitude.toFixed(6)}, {device.location.longitude.toFixed(6)}
+                </p>
               </div>
               <div className="text-right">
-                <div className="flex items-center space-x-2 mb-1">
-                  <div className={`w-2 h-2 rounded-full ${device.batteryLevel > 20 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="text-sm font-medium">{device.batteryLevel}%</span>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className={`w-3 h-3 rounded-full ${device.batteryLevel > 20 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="text-sm font-semibold">{device.batteryLevel}%</span>
                 </div>
                 <p className="text-xs text-gray-500">
                   {new Date(device.lastUpdate).toLocaleTimeString('nl-NL', { 
