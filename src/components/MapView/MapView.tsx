@@ -77,18 +77,6 @@ const MapView = () => {
           </div>
         </div>
       </div>
-
-      {/* Info Section - replaces action buttons */}
-      <div className="bg-white p-4 border-t border-purple-100">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 mb-1">
-            SOS en Check-in functies zijn beschikbaar via uw apparaat
-          </p>
-          <p className="text-xs text-gray-500">
-            Gebruik de knoppen op uw persoonlijk alarm voor noodhulp
-          </p>
-        </div>
-      </div>
     </div>
   );
 };
