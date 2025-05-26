@@ -35,6 +35,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
       center: [lng, lat],
       zoom: 15,
       pitch: 45,
+      attributionControl: false, // Remove attribution control (info icon)
     });
 
     // Add navigation controls
@@ -48,8 +49,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
     // Add fullscreen control
     map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
 
-    // Add scale control
-    map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+    // Remove the scale control - commenting out this line
+    // map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
 
     // Create custom marker element
     const markerElement = document.createElement('div');
