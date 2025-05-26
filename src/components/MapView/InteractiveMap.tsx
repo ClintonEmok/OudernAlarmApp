@@ -35,7 +35,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
       center: [lng, lat],
       zoom: 15,
       pitch: 45,
-      logoPosition: false, // Remove Mapbox logo
     });
 
     // Add navigation controls
