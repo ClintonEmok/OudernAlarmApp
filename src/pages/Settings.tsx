@@ -1,3 +1,4 @@
+
 import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -8,6 +9,40 @@ import { apiService } from '../services/api';
 const Settings = () => {
   const { user, logout } = useStore();
   const navigate = useNavigate();
+
+  const handleSettingClick = (settingName: string) => {
+    switch (settingName) {
+      case 'Persoonlijke Gegevens':
+        navigate('/settings/profile');
+        break;
+      case 'Wachtwoord Wijzigen':
+        navigate('/settings/password');
+        break;
+      case 'Account Verwijderen':
+        navigate('/settings/delete-account');
+        break;
+      case 'Zorgverleners Beheren':
+        navigate('/contacts');
+        break;
+      case 'Patiënten Overzicht':
+        navigate('/contacts');
+        break;
+      case 'Uitnodigingen':
+        navigate('/settings/invitations');
+        break;
+      case 'Mijn Apparaten':
+        navigate('/device');
+        break;
+      case 'Apparaat Koppelen':
+        navigate('/settings/device-pairing');
+        break;
+      case 'Apparaat Ontkoppelen':
+        navigate('/settings/device-unpairing');
+        break;
+      default:
+        console.log('Setting not implemented yet:', settingName);
+    }
+  };
 
   const settingsCategories = [
     {
@@ -92,6 +127,7 @@ const Settings = () => {
                   <div
                     key={itemIndex}
                     className="p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleSettingClick(item.name)}
                   >
                     <div className="flex items-center justify-between">
                       <div>

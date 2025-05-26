@@ -10,6 +10,9 @@ import Alerts from "./pages/Alerts";
 import Contacts from "./pages/Contacts";
 import Device from "./pages/Device";
 import Settings from "./pages/Settings";
+import ProfileSettings from "./pages/ProfileSettings";
+import PasswordSettings from "./pages/PasswordSettings";
+import DevicePairing from "./pages/DevicePairing";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
@@ -36,6 +39,11 @@ const App = () => {
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/device" element={<Device />} />
               <Route path="/settings" element={<Settings />} />
+              
+              {/* Settings sub-pages */}
+              <Route path="/settings/profile" element={<ProfileSettings />} />
+              <Route path="/settings/password" element={<PasswordSettings />} />
+              <Route path="/settings/device-pairing" element={<DevicePairing />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
