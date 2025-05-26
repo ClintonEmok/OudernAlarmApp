@@ -160,35 +160,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
           </select>
         </div>
       </div>
-
-      {/* Clean device info overlay - only show when device is available */}
-      {device && device.location && (
-        <div className="absolute bottom-4 left-4 right-4 z-50">
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-200/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Huidige Locatie</p>
-                <p className="font-semibold text-gray-900 text-lg">{device.nickname || 'Ouderen Alarm'}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {device.location.latitude.toFixed(6)}, {device.location.longitude.toFixed(6)}
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className={`w-3 h-3 rounded-full ${device.batteryLevel > 20 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <span className="text-sm font-semibold">{device.batteryLevel}%</span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {new Date(device.lastUpdate).toLocaleTimeString('nl-NL', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

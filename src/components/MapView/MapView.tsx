@@ -20,7 +20,7 @@ const MapView = () => {
       {/* Clean Status Bar - only show when device is selected */}
       {selectedDevice && (
         <div className="bg-white p-3 border-b border-blue-100 shadow-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <Battery size={16} className="text-green-600" />
@@ -36,6 +36,14 @@ const MapView = () => {
               <span className="text-sm font-medium">Veilig</span>
             </div>
           </div>
+          {selectedDevice.location && (
+            <div className="flex items-center space-x-2 text-gray-600">
+              <MapPin size={14} />
+              <span className="text-xs">
+                {selectedDevice.location.latitude.toFixed(6)}, {selectedDevice.location.longitude.toFixed(6)}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
