@@ -21,11 +21,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
     // Set Mapbox access token
     mapboxgl.accessToken = mapboxToken;
 
-    // Default location or device location
+    // Use device location if available, otherwise use default Netherlands location
     const defaultLat = 52.3676;
     const defaultLng = 4.9041;
     const lat = device?.location?.latitude || defaultLat;
     const lng = device?.location?.longitude || defaultLng;
+
+    console.log('Map initialized with location:', { lat, lng, device: device?.nickname });
 
     // Initialize map
     map.current = new mapboxgl.Map({
@@ -111,6 +113,24 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
       }
     };
   }, [device, mapboxToken, mapStyle]);
+
+  // Update map center and marker when device location changes
+  useEffect(() => {
+    if (map.current && marker.current && device?.location) {
+      const { latitude, longitude } = device.location;
+      console.log('Updating map location to:', { latitude, longitude });
+      
+      // Fly to new location
+      map.current.flyTo({
+        center: [longitude, latitude],
+        zoom: 15,
+        essential: true
+      });
+      
+      // Update marker position
+      marker.current.setLngLat([longitude, latitude]);
+    }
+  }, [device?.location]);
 
   const mapStyles = [
     { name: 'Straten', value: 'mapbox://styles/mapbox/streets-v12' },
