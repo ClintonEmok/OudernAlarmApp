@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../../store/useStore';
 import { Smartphone, Plus, TestTube } from 'lucide-react';
 import DeviceConflictDialog from '../DeviceConflict/DeviceConflictDialog';
-
 const DeviceAssignment = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [nickname, setNickname] = useState('');
@@ -22,10 +20,12 @@ const DeviceAssignment = () => {
     phoneNumber: '',
     errorDetails: undefined
   });
-  
-  const { assignDevice } = useStore();
-  const { toast } = useToast();
-
+  const {
+    assignDevice
+  } = useStore();
+  const {
+    toast
+  } = useToast();
   const handleDeviceConflictError = (error: any, phoneNumber: string) => {
     if ((error as any).isDeviceConflict) {
       setConflictDialog({
@@ -45,10 +45,8 @@ const DeviceAssignment = () => {
       });
     }
   };
-
   const handleAssignDevice = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!phoneNumber.trim()) {
       toast({
         title: "Telefoonnummer vereist",
@@ -57,21 +55,17 @@ const DeviceAssignment = () => {
       });
       return;
     }
-
     setIsAssigning(true);
-    
     try {
       await assignDevice(phoneNumber.trim(), nickname.trim() || undefined);
-      
       toast({
         title: "✓ Apparaat Gekoppeld",
-        description: "Het apparaat is succesvol aan uw account gekoppeld.",
+        description: "Het apparaat is succesvol aan uw account gekoppeld."
       });
-      
+
       // Clear form
       setPhoneNumber('');
       setNickname('');
-      
     } catch (error) {
       console.error('Failed to assign device:', error);
       handleDeviceConflictError(error, phoneNumber.trim());
@@ -79,17 +73,14 @@ const DeviceAssignment = () => {
       setIsAssigning(false);
     }
   };
-
   const handleAddTestDevice = async () => {
     setIsAssigning(true);
     try {
       await assignDevice('+3197052655266', 'Test-Alarm');
-      
       toast({
         title: "✓ Test Apparaat Gekoppeld",
-        description: "Het test apparaat is succesvol gekoppeld.",
+        description: "Het test apparaat is succesvol gekoppeld."
       });
-      
     } catch (error) {
       console.error('Failed to assign test device:', error);
       handleDeviceConflictError(error, '+3197052655266');
@@ -97,9 +88,7 @@ const DeviceAssignment = () => {
       setIsAssigning(false);
     }
   };
-
-  return (
-    <>
+  return <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -109,36 +98,12 @@ const DeviceAssignment = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Quick Test Device Button */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-blue-900 mb-1">Test Apparaat</h4>
-                <p className="text-sm text-blue-700">Koppel snel het test apparaat voor demo doeleinden</p>
-              </div>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleAddTestDevice}
-                disabled={isAssigning}
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
-              >
-                <TestTube size={16} className="mr-2" />
-                Test Koppelen
-              </Button>
-            </div>
-          </div>
+          
 
           <form onSubmit={handleAssignDevice} className="space-y-4">
             <div>
               <Label htmlFor="phoneNumber">Telefoonnummer Apparaat *</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                placeholder="+31612345678"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="mt-1"
-              />
+              <Input id="phoneNumber" type="tel" placeholder="+31612345678" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="mt-1" />
               <p className="text-xs text-gray-500 mt-1">
                 Voer het telefoonnummer in zoals vermeld op het apparaat
               </p>
@@ -146,45 +111,27 @@ const DeviceAssignment = () => {
             
             <div>
               <Label htmlFor="nickname">Bijnaam (optioneel)</Label>
-              <Input
-                id="nickname"
-                type="text"
-                placeholder="Bijvoorbeeld: Oma's Alarm"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                className="mt-1"
-              />
+              <Input id="nickname" type="text" placeholder="Bijvoorbeeld: Oma's Alarm" value={nickname} onChange={e => setNickname(e.target.value)} className="mt-1" />
             </div>
             
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isAssigning}
-            >
-              {isAssigning ? (
-                <>
+            <Button type="submit" className="w-full" disabled={isAssigning}>
+              {isAssigning ? <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                   Koppelen...
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Smartphone size={16} className="mr-2" />
                   Apparaat Koppelen
-                </>
-              )}
+                </>}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <DeviceConflictDialog
-        isOpen={conflictDialog.isOpen}
-        onClose={() => setConflictDialog({ isOpen: false, phoneNumber: '', errorDetails: undefined })}
-        phoneNumber={conflictDialog.phoneNumber}
-        errorDetails={conflictDialog.errorDetails}
-      />
-    </>
-  );
+      <DeviceConflictDialog isOpen={conflictDialog.isOpen} onClose={() => setConflictDialog({
+      isOpen: false,
+      phoneNumber: '',
+      errorDetails: undefined
+    })} phoneNumber={conflictDialog.phoneNumber} errorDetails={conflictDialog.errorDetails} />
+    </>;
 };
-
 export default DeviceAssignment;
