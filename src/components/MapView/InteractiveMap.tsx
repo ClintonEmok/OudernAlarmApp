@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -36,6 +35,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ device, mapboxToken }) 
       center: [lng, lat],
       zoom: 15,
       pitch: 45,
+      logoPosition: false, // Remove Mapbox logo
     });
 
     // Add navigation controls

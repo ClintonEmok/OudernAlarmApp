@@ -110,3 +110,8 @@ button:active {
 .status-indicator {
   animation: pulse-gentle 2s infinite;
 }
+
+/* Hide Mapbox logo */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
