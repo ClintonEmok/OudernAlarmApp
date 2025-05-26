@@ -10,16 +10,18 @@ interface MapboxTokenProps {
   onTokenSaved: (token: string) => void;
 }
 
+// Default Mapbox token
+const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ';
+
 const MapboxToken: React.FC<MapboxTokenProps> = ({ onTokenSaved }) => {
   const [token, setToken] = useState('');
   const [savedToken, setSavedToken] = useState('');
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('mapbox_token');
-    if (storedToken) {
-      setSavedToken(storedToken);
-      onTokenSaved(storedToken);
-    }
+    // Check for stored token first, otherwise use default
+    const storedToken = localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN;
+    setSavedToken(storedToken);
+    onTokenSaved(storedToken);
   }, [onTokenSaved]);
 
   const handleSaveToken = () => {
