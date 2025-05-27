@@ -5,8 +5,10 @@ import { capacitorService } from '../services/capacitor-service';
 import { useNativeFeatures } from '../hooks/useNativeFeatures';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { MapPin, Bell, Shield, Smartphone } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import LocationControls from '../components/NativeFeatures/LocationControls';
+import NotificationControls from '../components/NativeFeatures/NotificationControls';
+import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
@@ -83,61 +85,20 @@ const Device = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Location Services */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="font-medium">Locatie Services</p>
-                  <p className="text-sm text-gray-600">
-                    {locationPermission ? 'Toegestaan' : 'Geen toestemming'}
-                    {currentLocation && ` • ${currentLocation.latitude.toFixed(4)}, ${currentLocation.longitude.toFixed(4)}`}
-                  </p>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button size="sm" variant="outline" onClick={handleGetLocation}>
-                  Locatie
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant={isTracking ? "destructive" : "default"} 
-                  onClick={handleToggleTracking}
-                >
-                  {isTracking ? 'Stop' : 'Track'}
-                </Button>
-              </div>
-            </div>
+            <LocationControls
+              locationPermission={locationPermission}
+              currentLocation={currentLocation}
+              isTracking={isTracking}
+              onGetLocation={handleGetLocation}
+              onToggleTracking={handleToggleTracking}
+            />
 
-            {/* Push Notifications */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Bell className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="font-medium">Push Notificaties</p>
-                  <p className="text-sm text-gray-600">
-                    {isNative ? 'Native push ready' : 'Web notificaties'}
-                  </p>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" onClick={sendTestNotification}>
-                Test
-              </Button>
-            </div>
+            <NotificationControls
+              isNative={isNative}
+              onSendTestNotification={sendTestNotification}
+            />
 
-            {/* Security Features */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Shield className="h-5 w-5 text-red-600" />
-                <div>
-                  <p className="font-medium">Veiligheid</p>
-                  <p className="text-sm text-gray-600">
-                    SOS knop en alarm systeem
-                  </p>
-                </div>
-              </div>
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
+            <SecurityStatus />
           </CardContent>
         </Card>
       </div>
