@@ -1,10 +1,12 @@
+
 import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { AlertTriangle, Unlink } from 'lucide-react';
+import { Card, CardContent } from '../ui/card';
+import { AlertTriangle, Unlink, Smartphone } from 'lucide-react';
 import DeviceAssignment from '../DeviceAssignment/DeviceAssignment';
 import DeviceOverview from './DeviceOverview';
 import DeviceMetrics from './DeviceMetrics';
