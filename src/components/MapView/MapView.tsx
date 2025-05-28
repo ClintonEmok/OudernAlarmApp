@@ -55,8 +55,8 @@ const MapView = () => {
     <div className="h-full flex flex-col">
       {/* Clean Status Bar - only show when device is selected */}
       {selectedDevice && (
-        <div className="bg-white p-3 border-b border-blue-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-white p-4 border-b border-blue-100 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <Battery size={16} className="text-green-600" />
@@ -86,57 +86,58 @@ const MapView = () => {
           </div>
           
           {selectedDevice.location && (
-            <div className="space-y-1">
-              {/* Address Information */}
+            <div className="space-y-3">
+              {/* Location Title and Time */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <MapPin size={14} className="text-blue-600" />
-                  <div className="flex-1">
+                <div>
+                  <h3 className="text-sm text-gray-500 font-medium">Huidige locatie</h3>
+                  <div className="flex items-center space-x-2">
+                    <MapPin size={16} className="text-blue-600" />
                     {addressLoading ? (
-                      <span className="text-sm text-gray-500">Adres ophalen...</span>
+                      <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span>
                     ) : address ? (
-                      <div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {address.shortAddress}
-                        </span>
-                        {address.address !== address.shortAddress && (
-                          <div className="text-xs text-gray-600 truncate" title={address.address}>
-                            {address.address}
-                          </div>
-                        )}
-                      </div>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {address.components.city || address.shortAddress || 'Thuis'}
+                      </span>
                     ) : addressError ? (
-                      <span className="text-sm text-red-600">{addressError}</span>
+                      <span className="text-lg font-semibold text-red-600">Locatie onbekend</span>
                     ) : (
-                      <span className="text-sm text-gray-500">Adres niet beschikbaar</span>
+                      <span className="text-lg font-semibold text-gray-900">Thuis</span>
+                    )}
+                    {addressError && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={refetch}
+                        className="p-1 h-6 w-6"
+                      >
+                        <RotateCcw size={12} />
+                      </Button>
                     )}
                   </div>
                 </div>
-                {addressError && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={refetch}
-                    className="p-1 h-6 w-6"
-                  >
-                    <RotateCcw size={12} />
-                  </Button>
-                )}
+                <div className="text-right">
+                  <span className="text-sm text-gray-500">Laatste update</span>
+                  <div className="text-lg font-semibold text-gray-900">
+                    {new Date(selectedDevice.lastUpdate).toLocaleTimeString('nl-NL', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </div>
+                </div>
               </div>
               
               {/* Coordinates */}
-              <div className="flex items-center space-x-2 text-gray-500">
-                <span className="text-xs">
-                  {selectedDevice.location.latitude.toFixed(6)}, {selectedDevice.location.longitude.toFixed(6)}
-                </span>
+              <div className="text-sm text-gray-500">
+                {selectedDevice.location.latitude.toFixed(4)}, {selectedDevice.location.longitude.toFixed(4)}
               </div>
 
               {/* User location status */}
               {showUserLocation && currentLocation && (
-                <div className="flex items-center space-x-2 text-green-600 pt-1 border-t border-gray-100">
+                <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100">
                   <User size={12} />
                   <span className="text-xs">
-                    Jouw locatie: {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
+                    Jouw locatie: {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}
                   </span>
                 </div>
               )}
