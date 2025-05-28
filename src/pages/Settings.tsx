@@ -35,6 +35,9 @@ const Settings = () => {
       case 'Apparaat Ontkoppelen':
         navigate('/settings/device-unpairing');
         break;
+      case 'Hulp & Ondersteuning':
+        navigate('/settings/support');
+        break;
       default:
         console.log('Setting not implemented yet:', settingName);
     }
@@ -160,7 +163,12 @@ const Settings = () => {
             <h4 className="font-semibold text-gray-900 mb-1">Ouderen Alarmering</h4>
             <p className="text-sm text-gray-600 mb-3">Versie 2.1.3</p>
             <div className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => handleSettingClick('Hulp & Ondersteuning')}
+              >
                 Hulp & Ondersteuning
               </Button>
               <Button variant="outline" size="sm" className="w-full">

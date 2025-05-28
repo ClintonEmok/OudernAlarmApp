@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import PasswordSettings from "./pages/PasswordSettings";
 import DevicePairing from "./pages/DevicePairing";
 import Invitations from "./pages/Invitations";
+import SupportTicket from "./pages/SupportTicket";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
@@ -66,6 +66,7 @@ const App = () => {
               <Route path="/settings/password" element={<PasswordSettings />} />
               <Route path="/settings/device-pairing" element={<DevicePairing />} />
               <Route path="/settings/invitations" element={<Invitations />} />
+              <Route path="/settings/support" element={<SupportTicket />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
