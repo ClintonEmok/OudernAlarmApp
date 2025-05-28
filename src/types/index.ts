@@ -1,12 +1,21 @@
-
 export interface Alert {
   id: string;
-  type: 'SOS' | 'Fall';
+  type: 'SOS' | 'Fall' | 'emergency' | 'low_battery' | 'offline';
   timestamp: Date;
   responder?: string;
   isFalseAlarm: boolean;
   status: 'Active' | 'Responding' | 'Resolved';
-  location?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
+  // Additional properties used by AlertList
+  title?: string;
+  device_nickname?: string;
+  device_phone?: string;
+  description?: string;
+  message?: string;
+  created_at?: string;
 }
 
 export interface Contact {

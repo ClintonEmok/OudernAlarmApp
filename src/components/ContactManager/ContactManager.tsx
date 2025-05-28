@@ -84,7 +84,7 @@ const ContactManager = () => {
   const handleUpdatePriority = async (caregiverId: number, newPriority: number) => {
     try {
       const updatedCaregivers = caregivers.map(c => 
-        c.id === caregiverId ? { user_id: parseInt(c.id), priority: newPriority } : { user_id: parseInt(c.id), priority: c.priority }
+        c.id === caregiverId.toString() ? { user_id: parseInt(c.id), priority: newPriority } : { user_id: parseInt(c.id), priority: c.priority }
       );
       
       await updateCaregiverPriorities(updatedCaregivers);
