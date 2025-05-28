@@ -1,5 +1,4 @@
-
-import { Phone, Edit, Star, Shield, UserPlus, Trash2, Save, X } from 'lucide-react';
+import { Phone, Edit, Star, Shield, UserPlus, Trash2, Save, X, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Card, CardContent } from '../ui/card';
@@ -18,10 +17,22 @@ const ContactManager = () => {
   const [editingCaregiver, setEditingCaregiver] = useState<number | null>(null);
   const [editPriority, setEditPriority] = useState<number>(1);
   const [removeDialog, setRemoveDialog] = useState<{ isOpen: boolean; caregiver: any }>({ isOpen: false, caregiver: null });
+  const [patientsError, setPatientsError] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchCaregivers();
-    fetchPatients();
+    const loadData = async () => {
+      await fetchCaregivers();
+      
+      try {
+        await fetchPatients();
+        setPatientsError(false);
+      } catch (error) {
+        console.error('Failed to fetch patients:', error);
+        setPatientsError(true);
+      }
+    };
+    
+    loadData();
   }, [fetchCaregivers, fetchPatients]);
 
   const handleInviteCaregiver = async (e: React.FormEvent) => {
@@ -108,7 +119,7 @@ const ContactManager = () => {
       <div className="p-4 space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900">Contacten</h2>
-          <p className="text-sm text-gray-600">Beheer uw zorgverleners en patiënten</p>
+          <p className="text-sm text-gray-600">Beheer uw zorgverleners en gekoppelde accounts</p>
         </div>
 
         {/* Caregivers */}
@@ -261,14 +272,28 @@ const ContactManager = () => {
           </div>
         </div>
 
-        {/* Patients */}
-        {patients.length > 0 && (
-          <div>
-            <div className="flex items-center space-x-2 mb-3">
-              <Shield size={20} className="text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Patiënten</h3>
-            </div>
-            
+        {/* Patients / Gekoppelde Accounts */}
+        <div>
+          <div className="flex items-center space-x-2 mb-3">
+            <Shield size={20} className="text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Gekoppelde Accounts</h3>
+          </div>
+          
+          {patientsError ? (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle size={20} className="text-yellow-600" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800">Tijdelijk niet beschikbaar</h4>
+                    <p className="text-sm text-yellow-700">
+                      De gekoppelde accounts kunnen momenteel niet worden geladen. Dit wordt binnenkort opgelost.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : patients.length > 0 ? (
             <div className="space-y-3">
               {patients.map((patient) => (
                 <Card key={patient.id}>
@@ -304,8 +329,23 @@ const ContactManager = () => {
                 </Card>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <Card className="text-center py-8">
+              <CardContent>
+                <Shield size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Geen Gekoppelde Accounts
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Er zijn momenteel geen andere accounts aan uw account gekoppeld.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Accounts worden gekoppeld wanneer u wordt uitgenodigd als zorgverlener of wanneer anderen toegang krijgen tot uw apparaten.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Remove Confirmation Dialog */}
