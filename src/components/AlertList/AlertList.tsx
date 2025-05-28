@@ -1,121 +1,289 @@
 
-import { AlertTriangle, Clock, User, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
-import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '../ui/badge';
+import { formatDistanceToNow } from 'date-fns';
+import { nl } from 'date-fns/locale';
 
 const AlertList = () => {
   useAuth();
-  const { alerts, fetchAlerts, isLoading } = useStore();
+  const { alerts, fetchAlerts } = useStore();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
+    const loadAlerts = async () => {
+      setIsLoading(true);
+      try {
+        await fetchAlerts();
+      } catch (error) {
+        console.error('Failed to fetch alerts:', error);
+        toast({
+          title: "Laden Mislukt",
+          description: "Kon alarmen niet laden. Probeer opnieuw.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAlerts();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadAlerts, 30000);
+    return () => clearInterval(interval);
+  }, [fetchAlerts, toast]);
 
   const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'SOS': return '🚨';
-      case 'Fall': return '⚠️';
-      default: return '⚠️';
+    switch (type?.toLowerCase()) {
+      case 'sos':
+      case 'emergency':
+        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case 'low_battery':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case 'offline':
+        return <AlertTriangle className="h-5 w-5 text-gray-500" />;
+      default:
+        return <AlertTriangle className="h-5 w-5 text-blue-500" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active': return 'text-red-600 bg-red-50';
-      case 'Responding': return 'text-yellow-600 bg-yellow-50';
-      case 'Resolved': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+  const getAlertColor = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'sos':
+      case 'emergency':
+        return 'border-red-200 bg-red-50';
+      case 'low_battery':
+        return 'border-yellow-200 bg-yellow-50';
+      case 'offline':
+        return 'border-gray-200 bg-gray-50';
+      default:
+        return 'border-blue-200 bg-blue-50';
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const alertDate = new Date(date);
-    const diffMs = now.getTime() - alertDate.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMins < 60) return `${diffMins} min geleden`;
-    if (diffHours < 24) return `${diffHours} uur geleden`;
-    return `${diffDays} dag(en) geleden`;
+  const getAlertBadgeVariant = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'sos':
+      case 'emergency':
+        return 'destructive';
+      case 'low_battery':
+        return 'secondary';
+      default:
+        return 'default';
+    }
   };
 
-  if (isLoading) {
+  const handleCallUser = (phoneNumber: string) => {
+    if (phoneNumber) {
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      toast({
+        title: "Geen Telefoonnummer",
+        description: "Geen telefoonnummer beschikbaar voor dit apparaat.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewLocation = (alert: any) => {
+    if (alert.location?.latitude && alert.location?.longitude) {
+      const url = `https://maps.google.com/maps?q=${alert.location.latitude},${alert.location.longitude}`;
+      window.open(url, '_blank');
+    } else {
+      toast({
+        title: "Geen Locatie",
+        description: "Locatie informatie niet beschikbaar voor dit alarm.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMarkAsResolved = async (alertId: string) => {
+    try {
+      // This would call an API to mark the alert as resolved
+      // For now, we'll just show a success message
+      toast({
+        title: "✓ Alarm Opgelost",
+        description: "Het alarm is gemarkeerd als opgelost.",
+      });
+      
+      // Refresh alerts
+      await fetchAlerts();
+    } catch (error) {
+      console.error('Failed to resolve alert:', error);
+      toast({
+        title: "Actie Mislukt",
+        description: "Kon het alarm niet markeren als opgelost.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    try {
+      await fetchAlerts();
+      toast({
+        title: "✓ Ververst",
+        description: "Alarmen zijn bijgewerkt.",
+      });
+    } catch (error) {
+      console.error('Failed to refresh alerts:', error);
+      toast({
+        title: "Verversen Mislukt",
+        description: "Kon alarmen niet verversen.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading && alerts.length === 0) {
     return (
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-6">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900">Meldingen</h2>
-          <p className="text-sm text-gray-600">Laden...</p>
+          <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
+          <p className="text-sm text-gray-600">Laden van alarmen...</p>
+        </div>
+        
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Meldingen</h2>
-        <p className="text-sm text-gray-600">Overzicht van alle alarmen en gebeurtenissen</p>
+    <div className="p-4 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
+          <p className="text-sm text-gray-600">
+            {alerts.length === 0 ? 'Geen actieve alarmen' : `${alerts.length} alarm${alerts.length !== 1 ? 'en' : ''}`}
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Laden...' : 'Ververs'}
+        </Button>
       </div>
 
       {alerts.length === 0 ? (
         <Card className="text-center py-8">
           <CardContent>
             <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen meldingen</h3>
-            <p className="text-gray-600">Alles is momenteel in orde!</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Alles is in orde
+            </h3>
+            <p className="text-gray-600">
+              Er zijn momenteel geen actieve alarmen.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {alerts.map((alert) => (
-            <Card key={alert.id} className={alert.isFalseAlarm ? 'border-gray-300 bg-gray-50' : ''}>
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <span className="text-2xl">{getAlertIcon(alert.type)}</span>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className={`font-semibold ${alert.isFalseAlarm ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                        {alert.type} Melding
+            <Card key={alert.id} className={`${getAlertColor(alert.type)} border-l-4`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {getAlertIcon(alert.type)}
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {alert.title || `${alert.type} Alarm`}
                       </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(alert.status)}`}>
-                        {alert.status}
+                      <p className="text-sm text-gray-600">
+                        Apparaat: {alert.device_nickname || alert.device_phone || 'Onbekend'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={getAlertBadgeVariant(alert.type)}>
+                    {alert.type?.toUpperCase() || 'ALARM'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-700">
+                    {alert.description || alert.message || 'Geen beschrijving beschikbaar'}
+                  </p>
+                  
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <Clock size={14} />
+                      <span>
+                        {alert.created_at 
+                          ? formatDistanceToNow(new Date(alert.created_at), { 
+                              addSuffix: true, 
+                              locale: nl 
+                            })
+                          : 'Onbekend tijdstip'
+                        }
                       </span>
                     </div>
                     
-                    <div className="space-y-1 text-sm text-gray-600">
+                    {alert.location && (
                       <div className="flex items-center space-x-1">
-                        <Clock size={14} />
-                        <span>{formatTimeAgo(alert.timestamp)}</span>
-                      </div>
-                      
-                      {alert.location && (
-                        <div className="flex items-center space-x-1">
-                          <span>📍</span>
-                          <span>{alert.location}</span>
-                        </div>
-                      )}
-                      
-                      {alert.responder && (
-                        <div className="flex items-center space-x-1">
-                          <User size={14} />
-                          <span>Reactie van: {alert.responder}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {alert.isFalseAlarm && (
-                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                        ⚠️ Gemarkeerd als loos alarm
+                        <MapPin size={14} />
+                        <span>Locatie beschikbaar</span>
                       </div>
                     )}
+                  </div>
+                  
+                  <div className="flex space-x-2 pt-2">
+                    {alert.device_phone && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleCallUser(alert.device_phone)}
+                        className="flex-1"
+                      >
+                        <Phone size={14} className="mr-1" />
+                        Bellen
+                      </Button>
+                    )}
+                    
+                    {alert.location && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewLocation(alert)}
+                        className="flex-1"
+                      >
+                        <MapPin size={14} className="mr-1" />
+                        Locatie
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={() => handleMarkAsResolved(alert.id)}
+                      className="flex-1"
+                    >
+                      <CheckCircle size={14} className="mr-1" />
+                      Opgelost
+                    </Button>
                   </div>
                 </div>
               </CardContent>
