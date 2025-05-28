@@ -6,23 +6,36 @@ import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
-
 const ContactManager = () => {
   useAuth();
-  const { caregivers, patients, fetchCaregivers, fetchPatients, inviteCaregiver, removeCaregiver, updateCaregiverPriorities } = useStore();
-  const { toast } = useToast();
+  const {
+    caregivers,
+    patients,
+    fetchCaregivers,
+    fetchPatients,
+    inviteCaregiver,
+    removeCaregiver,
+    updateCaregiverPriorities
+  } = useStore();
+  const {
+    toast
+  } = useToast();
   const [inviteEmail, setInviteEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [editingCaregiver, setEditingCaregiver] = useState<number | null>(null);
   const [editPriority, setEditPriority] = useState<number>(1);
-  const [removeDialog, setRemoveDialog] = useState<{ isOpen: boolean; caregiver: any }>({ isOpen: false, caregiver: null });
+  const [removeDialog, setRemoveDialog] = useState<{
+    isOpen: boolean;
+    caregiver: any;
+  }>({
+    isOpen: false,
+    caregiver: null
+  });
   const [patientsError, setPatientsError] = useState<boolean>(false);
-
   useEffect(() => {
     const loadData = async () => {
       await fetchCaregivers();
-      
       try {
         await fetchPatients();
         setPatientsError(false);
@@ -31,14 +44,11 @@ const ContactManager = () => {
         setPatientsError(true);
       }
     };
-    
     loadData();
   }, [fetchCaregivers, fetchPatients]);
-
   const handleInviteCaregiver = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail.trim()) return;
-
     setIsInviting(true);
     try {
       await inviteCaregiver(inviteEmail);
@@ -46,14 +56,13 @@ const ContactManager = () => {
       setShowInviteForm(false);
       toast({
         title: "✓ Uitnodiging Verstuurd",
-        description: `Uitnodiging is verstuurd naar ${inviteEmail}`,
+        description: `Uitnodiging is verstuurd naar ${inviteEmail}`
       });
     } catch (error: any) {
       console.error('Failed to invite caregiver:', error);
-      
+
       // Better error handling for different scenarios
       let errorMessage = "Er is een fout opgetreden bij het versturen van de uitnodiging.";
-      
       if (error.message?.includes('409') || error.message?.includes('conflict')) {
         errorMessage = "Deze persoon heeft al een uitnodiging ontvangen of is al gekoppeld.";
       } else if (error.message?.includes('422')) {
@@ -61,7 +70,6 @@ const ContactManager = () => {
       } else if (error.message?.includes('400')) {
         errorMessage = "Controleer het email adres en probeer opnieuw.";
       }
-      
       toast({
         title: "Uitnodiging Mislukt",
         description: errorMessage,
@@ -71,17 +79,18 @@ const ContactManager = () => {
       setIsInviting(false);
     }
   };
-
   const handleRemoveCaregiver = async () => {
     if (!removeDialog.caregiver) return;
-    
     try {
       await removeCaregiver(removeDialog.caregiver.id);
       toast({
         title: "✓ Zorgverlener Verwijderd",
-        description: `${removeDialog.caregiver.name} is verwijderd uit uw contacten.`,
+        description: `${removeDialog.caregiver.name} is verwijderd uit uw contacten.`
       });
-      setRemoveDialog({ isOpen: false, caregiver: null });
+      setRemoveDialog({
+        isOpen: false,
+        caregiver: null
+      });
     } catch (error) {
       console.error('Failed to remove caregiver:', error);
       toast({
@@ -91,18 +100,20 @@ const ContactManager = () => {
       });
     }
   };
-
   const handleUpdatePriority = async (caregiverId: number, newPriority: number) => {
     try {
-      const updatedCaregivers = caregivers.map(c => 
-        c.id === caregiverId.toString() ? { user_id: parseInt(c.id), priority: newPriority } : { user_id: parseInt(c.id), priority: c.priority }
-      );
-      
+      const updatedCaregivers = caregivers.map(c => c.id === caregiverId.toString() ? {
+        user_id: parseInt(c.id),
+        priority: newPriority
+      } : {
+        user_id: parseInt(c.id),
+        priority: c.priority
+      });
       await updateCaregiverPriorities(updatedCaregivers);
       setEditingCaregiver(null);
       toast({
         title: "✓ Prioriteit Bijgewerkt",
-        description: "De prioriteit is succesvol aangepast.",
+        description: "De prioriteit is succesvol aangepast."
       });
     } catch (error) {
       console.error('Failed to update priority:', error);
@@ -113,9 +124,7 @@ const ContactManager = () => {
       });
     }
   };
-
-  return (
-    <>
+  return <>
       <div className="p-4 space-y-6">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900">Contacten</h2>
@@ -136,23 +145,14 @@ const ContactManager = () => {
           </div>
 
           {/* Invite Form */}
-          {showInviteForm && (
-            <Card className="mb-3 border-blue-200">
+          {showInviteForm && <Card className="mb-3 border-blue-200">
               <CardContent className="p-4">
                 <form onSubmit={handleInviteCaregiver} className="space-y-3">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       Email adres
                     </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="zorgverlener@email.com"
-                      required
-                    />
+                    <input id="email" type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="zorgverlener@email.com" required />
                   </div>
                   <div className="flex space-x-2">
                     <Button type="submit" size="sm" disabled={isInviting}>
@@ -164,12 +164,10 @@ const ContactManager = () => {
                   </div>
                 </form>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
           
           <div className="space-y-3">
-            {caregivers.map((caregiver) => (
-              <Card key={caregiver.id} className="border-blue-100">
+            {caregivers.map(caregiver => <Card key={caregiver.id} className="border-blue-100">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -186,78 +184,44 @@ const ContactManager = () => {
                           <h4 className="font-semibold text-gray-900">{caregiver.name}</h4>
                           <div className="flex items-center">
                             <Star size={14} className="text-yellow-500 fill-current" />
-                            {editingCaregiver === parseInt(caregiver.id) ? (
-                              <div className="flex items-center space-x-1 ml-1">
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="10"
-                                  value={editPriority}
-                                  onChange={(e) => setEditPriority(parseInt(e.target.value))}
-                                  className="w-12 text-xs border border-gray-300 rounded px-1"
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="p-1 h-6 w-6"
-                                  onClick={() => handleUpdatePriority(parseInt(caregiver.id), editPriority)}
-                                >
+                            {editingCaregiver === parseInt(caregiver.id) ? <div className="flex items-center space-x-1 ml-1">
+                                <input type="number" min="1" max="10" value={editPriority} onChange={e => setEditPriority(parseInt(e.target.value))} className="w-12 text-xs border border-gray-300 rounded px-1" />
+                                <Button size="sm" variant="outline" className="p-1 h-6 w-6" onClick={() => handleUpdatePriority(parseInt(caregiver.id), editPriority)}>
                                   <Save size={12} />
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="p-1 h-6 w-6"
-                                  onClick={() => setEditingCaregiver(null)}
-                                >
+                                <Button size="sm" variant="outline" className="p-1 h-6 w-6" onClick={() => setEditingCaregiver(null)}>
                                   <X size={12} />
                                 </Button>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-gray-500 ml-1">#{caregiver.priority}</span>
-                            )}
+                              </div> : <span className="text-xs text-gray-500 ml-1">#{caregiver.priority}</span>}
                           </div>
                         </div>
                         <p className="text-sm text-gray-600">{caregiver.email}</p>
-                        {caregiver.phone_number && (
-                          <p className="text-sm text-gray-500">{caregiver.phone_number}</p>
-                        )}
+                        {caregiver.phone_number && <p className="text-sm text-gray-500">{caregiver.phone_number}</p>}
                       </div>
                     </div>
                     
                     <div className="flex space-x-2">
-                      {caregiver.phone_number && (
-                        <Button size="sm" variant="outline" className="p-2">
+                      {caregiver.phone_number && <Button size="sm" variant="outline" className="p-2">
                           <Phone size={16} />
-                        </Button>
-                      )}
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="p-2"
-                        onClick={() => {
-                          setEditingCaregiver(parseInt(caregiver.id));
-                          setEditPriority(caregiver.priority);
-                        }}
-                      >
+                        </Button>}
+                      <Button size="sm" variant="outline" className="p-2" onClick={() => {
+                    setEditingCaregiver(parseInt(caregiver.id));
+                    setEditPriority(caregiver.priority);
+                  }}>
                         <Edit size={16} />
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="p-2 text-red-600 border-red-300 hover:bg-red-50"
-                        onClick={() => setRemoveDialog({ isOpen: true, caregiver })}
-                      >
+                      <Button size="sm" variant="outline" className="p-2 text-red-600 border-red-300 hover:bg-red-50" onClick={() => setRemoveDialog({
+                    isOpen: true,
+                    caregiver
+                  })}>
                         <Trash2 size={16} />
                       </Button>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
             
-            {caregivers.length === 0 && (
-              <Card className="text-center py-8">
+            {caregivers.length === 0 && <Card className="text-center py-8">
                 <CardContent>
                   <Shield size={48} className="mx-auto text-gray-300 mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -267,89 +231,19 @@ const ContactManager = () => {
                     Gebruik de uitnodiging functie om zorgverleners toe te voegen.
                   </p>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </div>
         </div>
 
         {/* Patients / Gekoppelde Accounts */}
-        <div>
-          <div className="flex items-center space-x-2 mb-3">
-            <Shield size={20} className="text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Gekoppelde Accounts</h3>
-          </div>
-          
-          {patientsError ? (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <AlertCircle size={20} className="text-yellow-600" />
-                  <div>
-                    <h4 className="font-medium text-yellow-800">Tijdelijk niet beschikbaar</h4>
-                    <p className="text-sm text-yellow-700">
-                      De gekoppelde accounts kunnen momenteel niet worden geladen. Dit wordt binnenkort opgelost.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : patients.length > 0 ? (
-            <div className="space-y-3">
-              {patients.map((patient) => (
-                <Card key={patient.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-green-600 font-semibold">
-                              {patient.name.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{patient.name}</h4>
-                          <p className="text-sm text-gray-600">{patient.email}</p>
-                          {patient.phone_number && (
-                            <p className="text-sm text-gray-500">{patient.phone_number}</p>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        {patient.phone_number && (
-                          <Button size="sm" variant="outline" className="p-2">
-                            <Phone size={16} />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="text-center py-8">
-              <CardContent>
-                <Shield size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Geen Gekoppelde Accounts
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Er zijn momenteel geen andere accounts aan uw account gekoppeld.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Accounts worden gekoppeld wanneer u wordt uitgenodigd als zorgverlener of wanneer anderen toegang krijgen tot uw apparaten.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        
       </div>
 
       {/* Remove Confirmation Dialog */}
-      <Dialog open={removeDialog.isOpen} onOpenChange={(open) => !open && setRemoveDialog({ isOpen: false, caregiver: null })}>
+      <Dialog open={removeDialog.isOpen} onOpenChange={open => !open && setRemoveDialog({
+      isOpen: false,
+      caregiver: null
+    })}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -370,24 +264,19 @@ const ContactManager = () => {
           </div>
 
           <DialogFooter className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setRemoveDialog({ isOpen: false, caregiver: null })}
-            >
+            <Button variant="outline" onClick={() => setRemoveDialog({
+            isOpen: false,
+            caregiver: null
+          })}>
               Annuleren
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleRemoveCaregiver}
-            >
+            <Button variant="destructive" onClick={handleRemoveCaregiver}>
               <Trash2 size={16} className="mr-2" />
               Verwijderen
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
-  );
+    </>;
 };
-
 export default ContactManager;
