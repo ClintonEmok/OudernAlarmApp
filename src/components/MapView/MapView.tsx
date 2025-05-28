@@ -1,8 +1,9 @@
 
-import { useEffect } from 'react';
-import { MapPin, Battery, Signal, Shield, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useAddressLookup } from '../../hooks/useAddressLookup';
+import { useLocationService } from '../../hooks/useLocationService';
 import InteractiveMap from './InteractiveMap';
 import { Button } from '../ui/button';
 
@@ -11,15 +12,44 @@ const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmt
 
 const MapView = () => {
   const { selectedDevice, deviceInfo, fetchDevices } = useStore();
+  const [showUserLocation, setShowUserLocation] = useState(false);
+  
   const { address, isLoading: addressLoading, error: addressError, refetch } = useAddressLookup({
     device: selectedDevice,
     mapboxToken: DEFAULT_MAPBOX_TOKEN
   });
 
+  const { 
+    currentLocation, 
+    locationPermission, 
+    getCurrentLocation, 
+    requestLocationPermissions 
+  } = useLocationService();
+
   // Automatically fetch devices when component mounts
   useEffect(() => {
     fetchDevices();
   }, [fetchDevices]);
+
+  const handleToggleUserLocation = async () => {
+    if (!showUserLocation) {
+      try {
+        if (!locationPermission) {
+          const granted = await requestLocationPermissions();
+          if (!granted) {
+            console.log('Location permission denied');
+            return;
+          }
+        }
+        await getCurrentLocation();
+        setShowUserLocation(true);
+      } catch (error) {
+        console.error('Failed to get user location:', error);
+      }
+    } else {
+      setShowUserLocation(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -37,9 +67,21 @@ const MapView = () => {
                 <span className="text-sm font-medium">{selectedDevice.connectionType}</span>
               </div>
             </div>
-            <div className="flex items-center space-x-1 text-green-600">
-              <Shield size={16} />
-              <span className="text-sm font-medium">Veilig</span>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 text-green-600">
+                <Shield size={16} />
+                <span className="text-sm font-medium">Veilig</span>
+              </div>
+              {/* User location toggle */}
+              <Button
+                variant={showUserLocation ? "default" : "outline"}
+                size="sm"
+                onClick={handleToggleUserLocation}
+                className="p-1 h-8 w-8"
+                title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
+              >
+                {showUserLocation ? <User size={14} /> : <UserX size={14} />}
+              </Button>
             </div>
           </div>
           
@@ -88,6 +130,16 @@ const MapView = () => {
                   {selectedDevice.location.latitude.toFixed(6)}, {selectedDevice.location.longitude.toFixed(6)}
                 </span>
               </div>
+
+              {/* User location status */}
+              {showUserLocation && currentLocation && (
+                <div className="flex items-center space-x-2 text-green-600 pt-1 border-t border-gray-100">
+                  <User size={12} />
+                  <span className="text-xs">
+                    Jouw locatie: {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -95,7 +147,12 @@ const MapView = () => {
 
       {/* Full Screen Map */}
       <div className="flex-1 relative">
-        <InteractiveMap device={selectedDevice} mapboxToken={DEFAULT_MAPBOX_TOKEN} />
+        <InteractiveMap 
+          device={selectedDevice} 
+          mapboxToken={DEFAULT_MAPBOX_TOKEN}
+          userLocation={currentLocation}
+          showUserLocation={showUserLocation}
+        />
       </div>
     </div>
   );
