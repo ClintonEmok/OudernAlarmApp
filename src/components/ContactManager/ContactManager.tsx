@@ -126,7 +126,7 @@ const ContactManager = () => {
         <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Shield size={20} className="text-purple-600" />
+              <Shield size={20} className="text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900">Zorgverleners</h3>
             </div>
             <Button size="sm" onClick={() => setShowInviteForm(!showInviteForm)}>
@@ -137,7 +137,7 @@ const ContactManager = () => {
 
           {/* Invite Form */}
           {showInviteForm && (
-            <Card className="mb-3 border-purple-200">
+            <Card className="mb-3 border-blue-200">
               <CardContent className="p-4">
                 <form onSubmit={handleInviteCaregiver} className="space-y-3">
                   <div>
@@ -149,7 +149,7 @@ const ContactManager = () => {
                       type="email"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="zorgverlener@email.com"
                       required
                     />
@@ -169,13 +169,13 @@ const ContactManager = () => {
           
           <div className="space-y-3">
             {caregivers.map((caregiver) => (
-              <Card key={caregiver.id} className="border-purple-100">
+              <Card key={caregiver.id} className="border-blue-100">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                          <span className="text-purple-600 font-semibold text-lg">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-semibold text-lg">
                             {caregiver.name.charAt(0)}
                           </span>
                         </div>
