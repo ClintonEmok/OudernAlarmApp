@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,7 +12,11 @@ import DeviceMetrics from './DeviceMetrics';
 import DeviceConnectionDetails from './DeviceConnectionDetails';
 import DeviceStatusIndicators from './DeviceStatusIndicators';
 
-const DeviceStatus = () => {
+interface DeviceStatusProps {
+  onRefresh?: () => void;
+}
+
+const DeviceStatus = ({ onRefresh }: DeviceStatusProps) => {
   useAuth();
   const { devices, selectedDevice, fetchDevices, setSelectedDevice, unassignDevice } = useStore();
   const { toast } = useToast();
@@ -33,7 +36,11 @@ const DeviceStatus = () => {
   }, [devices, selectedDevice, setSelectedDevice]);
 
   const handleRefresh = () => {
-    fetchDevices();
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      fetchDevices();
+    }
   };
 
   const handleDisconnectDevice = async () => {

@@ -9,6 +9,8 @@ import { Smartphone } from 'lucide-react';
 import LocationControls from '../components/NativeFeatures/LocationControls';
 import NotificationControls from '../components/NativeFeatures/NotificationControls';
 import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
+import { useStore } from '../store/useStore';
+import { useToast } from '@/hooks/use-toast';
 
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
@@ -16,6 +18,9 @@ const Device = () => {
     isNative: false,
     isMobile: false
   });
+
+  const { fetchDevices } = useStore();
+  const { toast } = useToast();
 
   const {
     isInitialized,
@@ -64,6 +69,30 @@ const Device = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      console.log('Refreshing device data...');
+      toast({
+        title: "Vernieuwen...",
+        description: "Apparaatgegevens worden bijgewerkt.",
+      });
+      
+      await fetchDevices();
+      
+      toast({
+        title: "✓ Bijgewerkt",
+        description: "Apparaatgegevens zijn succesvol vernieuwd.",
+      });
+    } catch (error) {
+      console.error('Failed to refresh devices:', error);
+      toast({
+        title: "Fout bij vernieuwen",
+        description: "Kon apparaatgegevens niet bijwerken.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-blue-50 pb-20">
       {/* Platform info for debugging */}
@@ -73,7 +102,7 @@ const Device = () => {
         </div>
       )}
       
-      <DeviceStatus />
+      <DeviceStatus onRefresh={handleRefresh} />
 
       {/* Native Features Section */}
       <div className="p-4 space-y-4">
