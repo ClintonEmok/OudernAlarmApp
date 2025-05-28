@@ -1,4 +1,3 @@
-
 import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -22,9 +21,6 @@ const Settings = () => {
         navigate('/settings/delete-account');
         break;
       case 'Zorgverleners Beheren':
-        navigate('/contacts');
-        break;
-      case 'Patiënten Overzicht':
         navigate('/contacts');
         break;
       case 'Uitnodigingen':
@@ -59,7 +55,6 @@ const Settings = () => {
       icon: <Users size={20} className="text-blue-600" />,
       items: [
         { name: 'Zorgverleners Beheren', description: 'Uitnodigen en prioriteiten' },
-        { name: 'Patiënten Overzicht', description: 'Mensen die u verzorgt' },
         { name: 'Uitnodigingen', description: 'Pending invites beheren' }
       ]
     },
