@@ -17,12 +17,20 @@ const transformApiDevice = (apiDevice: any): Device => {
     };
   }
   
+  // Use real battery level from API status, with fallback to old format
+  const batteryLevel = apiDevice.status?.battery_level || 
+                      apiDevice.batteryLevel || 
+                      apiDevice.battery_level || 
+                      85; // only as last resort
+  
+  console.log('Using battery level:', batteryLevel, 'from API status:', apiDevice.status);
+  
   return {
     id: apiDevice.id || 0,
     phone_number: apiDevice.phone_number || '',
     nickname: apiDevice.nickname,
-    batteryLevel: apiDevice.batteryLevel || apiDevice.battery_level || 85,
-    signalStrength: apiDevice.signalStrength || apiDevice.signal_strength || 4,
+    batteryLevel: batteryLevel,
+    signalStrength: apiDevice.signalStrength || apiDevice.signal_strength || apiDevice.status?.signal_strength || 4,
     connectionType: apiDevice.connectionType || apiDevice.connection_type || '4G',
     lastUpdate: apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(),
     firmwareVersion: apiDevice.firmwareVersion || apiDevice.firmware_version || '1.0.0',
