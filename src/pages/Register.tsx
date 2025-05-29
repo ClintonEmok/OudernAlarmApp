@@ -42,7 +42,14 @@ const Register = () => {
 
     try {
       securityUtils.log('Starting registration process...');
-      const response = await apiService.register(formData) as AuthResponse;
+      // Ensure all required fields are present
+      const registrationData: RegisterFormData = {
+        name: formData.name || '',
+        email: formData.email || '',
+        password: formData.password || '',
+        password_confirmation: formData.password_confirmation || ''
+      };
+      const response = await apiService.register(registrationData) as AuthResponse;
       
       securityUtils.log('Registration successful, setting user data');
       setUser(response.user);

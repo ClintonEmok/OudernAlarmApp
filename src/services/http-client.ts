@@ -1,117 +1,129 @@
 
-import { CsrfManager } from './csrf-manager';
-import { ResponseHandler } from './response-handler';
-import { RequestBuilder } from './request-builder';
 import { env, securityUtils } from '../utils/env';
+import { tokenManager } from './token-manager';
+import { csrfManager } from './csrf-manager';
 
-// Re-export types for backward compatibility
-export type { ApiError, DeviceConflictError } from './response-handler';
+interface RequestOptions {
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  credentials: RequestCredentials;
+}
 
 class HttpClient {
-  private csrfManager = new CsrfManager();
-  private responseHandler = new ResponseHandler();
-  private requestBuilder = new RequestBuilder();
+  private baseURL: string;
 
-  private async makeRequest<T>(
-    method: string, 
-    endpoint: string, 
-    data?: any, 
-    includeAuth = true, 
-    retryCount = 0
-  ): Promise<T> {
-    const maxRetries = 1;
-    const needsCsrf = ['POST', 'PUT', 'DELETE'].includes(method.toUpperCase());
-    const shouldUseCsrf = needsCsrf && this.csrfManager.hasCsrfSupport();
+  constructor() {
+    this.baseURL = env.API_BASE_URL;
+  }
 
-    if (shouldUseCsrf && (!this.csrfManager.getToken() || retryCount > 0)) {
-      securityUtils.log('Getting CSRF token...');
-      await this.csrfManager.getCsrfToken();
+  private async buildRequest(endpoint: string, options: Partial<RequestOptions> = {}, requireAuth = true): Promise<RequestOptions> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...options.headers
+    };
+
+    // Add auth token if required and available
+    if (requireAuth) {
+      const token = await tokenManager.getValidToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
     }
 
-    try {
-      const requestOptions = this.requestBuilder.buildRequest(
-        method,
-        data,
-        includeAuth,
-        shouldUseCsrf,
-        this.csrfManager.getToken()
-      );
-
-      // Secure logging - only in development
-      if (env.IS_DEVELOPMENT) {
-        securityUtils.log(`=== HTTP REQUEST START ===`);
-        securityUtils.log(`Making ${method} request to ${endpoint}`, {
-          fullUrl: `${env.API_BASE_URL}${endpoint}`,
-          hasCsrfToken: !!this.csrfManager.getToken(),
-          shouldUseCsrf,
-          retryCount,
-          crossOrigin: !this.csrfManager.hasCsrfSupport(),
-          includeAuth,
-          hasAuthToken: includeAuth ? !!localStorage.getItem('access_token') : 'not checked'
-        });
-        securityUtils.log('Request headers:', securityUtils.sanitizeForLogging(requestOptions.headers));
-        securityUtils.log('Request body:', securityUtils.sanitizeForLogging(requestOptions.body));
+    // Add CSRF token for state-changing operations
+    if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method.toUpperCase())) {
+      const csrfToken = await csrfManager.getToken();
+      if (csrfToken) {
+        headers['X-XSRF-TOKEN'] = csrfToken;
       }
-
-      const response = await fetch(`${env.API_BASE_URL}${endpoint}`, requestOptions);
-      
-      // Secure response logging
-      if (env.IS_DEVELOPMENT) {
-        securityUtils.log(`=== HTTP RESPONSE ===`);
-        securityUtils.log('Response status:', response.status, response.statusText);
-        securityUtils.log('Response ok:', response.ok);
-        
-        // Only log response body in development and sanitize it
-        const responseClone = response.clone();
-        try {
-          const responseText = await responseClone.text();
-          if (responseText) {
-            try {
-              const parsedResponse = JSON.parse(responseText);
-              securityUtils.log('Response body (parsed):', securityUtils.sanitizeForLogging(parsedResponse));
-            } catch (parseError) {
-              securityUtils.log('Response is not valid JSON');
-            }
-          }
-        } catch (readError) {
-          securityUtils.log('Could not read response body for logging');
-        }
-      }
-      
-      const result = this.responseHandler.handleResponse<T>(response);
-      securityUtils.log(`=== HTTP REQUEST END ===`);
-      return result;
-    } catch (error) {
-      securityUtils.error(`HTTP Request failed for ${method} ${endpoint}`, error);
-      
-      if (error instanceof Error && error.message.includes('CSRF token mismatch') && retryCount < maxRetries && shouldUseCsrf) {
-        securityUtils.log(`Retrying request after CSRF error (attempt ${retryCount + 1})`);
-        this.csrfManager.clearToken();
-        return this.makeRequest<T>(method, endpoint, data, includeAuth, retryCount + 1);
-      }
-      
-      if (error instanceof Error && error.message.includes('CSRF')) {
-        throw new Error('Beveiligingsfout: De verbinding met de server kon niet worden beveiligd. Probeer de pagina te verversen.');
-      }
-      
-      throw error;
     }
+
+    return {
+      method: options.method || 'GET',
+      headers,
+      credentials: 'include',
+      ...(options.body && { body: options.body })
+    };
   }
 
-  async get<T>(endpoint: string, includeAuth = true): Promise<T> {
-    return this.makeRequest<T>('GET', endpoint, undefined, includeAuth);
+  private async handleResponse(response: Response) {
+    securityUtils.log(`Response status: ${response.status}`);
+    
+    if (response.status === 401) {
+      // Clear invalid tokens
+      tokenManager.clearTokens();
+      throw new Error('Authentication required');
+    }
+
+    if (response.status === 419) {
+      // CSRF token mismatch
+      csrfManager.clearToken();
+      throw new Error('CSRF token mismatch');
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      
+      if (!response.ok) {
+        const errorMessage = data.message || data.error || `HTTP ${response.status}`;
+        securityUtils.error('API Error:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      securityUtils.log('Response data received:', securityUtils.sanitizeForLogging(data));
+      return data;
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.text();
   }
 
-  async post<T>(endpoint: string, data?: any, includeAuth = true): Promise<T> {
-    return this.makeRequest<T>('POST', endpoint, data, includeAuth);
+  async get(endpoint: string, requireAuth = true) {
+    const requestOptions = await this.buildRequest(endpoint, { method: 'GET' }, requireAuth);
+    const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
+    return this.handleResponse(response);
   }
 
-  async put<T>(endpoint: string, data: any, includeAuth = true): Promise<T> {
-    return this.makeRequest<T>('PUT', endpoint, data, includeAuth);
+  async post(endpoint: string, data?: any, requireAuth = true) {
+    const requestOptions = await this.buildRequest(
+      endpoint, 
+      { 
+        method: 'POST',
+        body: data ? JSON.stringify(data) : undefined
+      }, 
+      requireAuth
+    );
+    
+    securityUtils.log(`POST ${endpoint}`, securityUtils.sanitizeForLogging(data));
+    const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
+    return this.handleResponse(response);
   }
 
-  async delete<T>(endpoint: string, data?: any, includeAuth = true): Promise<T> {
-    return this.makeRequest<T>('DELETE', endpoint, data, includeAuth);
+  async put(endpoint: string, data?: any, requireAuth = true) {
+    const requestOptions = await this.buildRequest(
+      endpoint, 
+      { 
+        method: 'PUT',
+        body: data ? JSON.stringify(data) : undefined
+      }, 
+      requireAuth
+    );
+    
+    const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
+    return this.handleResponse(response);
+  }
+
+  async delete(endpoint: string, requireAuth = true) {
+    const requestOptions = await this.buildRequest(endpoint, { method: 'DELETE' }, requireAuth);
+    const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
+    return this.handleResponse(response);
   }
 }
 

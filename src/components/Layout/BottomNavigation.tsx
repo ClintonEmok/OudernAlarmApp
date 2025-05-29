@@ -43,8 +43,8 @@ const BottomNavigation = () => {
   }
 
   return (
-    <nav className="bg-white border-t border-blue-100 safe-area-pb h-16 flex-shrink-0">
-      <div className="flex justify-around items-center px-2 h-full">
+    <nav className="bg-white border-t border-blue-100 iphone-navbar flex-shrink-0">
+      <div className="flex justify-around items-center px-2 h-16">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;

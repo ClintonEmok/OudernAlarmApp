@@ -11,7 +11,7 @@ const Home = () => {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="iphone-page-container">
       <MapView />
     </div>
   );
