@@ -1,4 +1,3 @@
-
 import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
@@ -20,7 +19,9 @@ const AlertList = () => {
     const loadAlerts = async () => {
       setIsLoading(true);
       try {
+        console.log('Loading alerts...');
         await fetchAlerts();
+        console.log('Alerts loaded successfully, count:', alerts.length);
       } catch (error) {
         console.error('Failed to fetch alerts:', error);
         toast({
@@ -35,16 +36,27 @@ const AlertList = () => {
 
     loadAlerts();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadAlerts, 30000);
+    // Increased polling frequency for faster updates (every 10 seconds)
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing alerts...');
+      loadAlerts();
+    }, 10000);
+    
     return () => clearInterval(interval);
   }, [fetchAlerts, toast]);
+
+  // Log alerts for debugging
+  useEffect(() => {
+    console.log('Current alerts in component:', alerts);
+  }, [alerts]);
 
   const getAlertIcon = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'sos':
       case 'emergency':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case 'fall':
+        return <AlertTriangle className="h-5 w-5 text-orange-500" />;
       case 'low_battery':
         return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
       case 'offline':
@@ -59,6 +71,8 @@ const AlertList = () => {
       case 'sos':
       case 'emergency':
         return 'border-red-200 bg-red-50';
+      case 'fall':
+        return 'border-orange-200 bg-orange-50';
       case 'low_battery':
         return 'border-yellow-200 bg-yellow-50';
       case 'offline':
@@ -72,6 +86,8 @@ const AlertList = () => {
     switch (type?.toLowerCase()) {
       case 'sos':
       case 'emergency':
+        return 'destructive';
+      case 'fall':
         return 'destructive';
       case 'low_battery':
         return 'secondary';
@@ -129,6 +145,7 @@ const AlertList = () => {
   const handleRefresh = async () => {
     setIsLoading(true);
     try {
+      console.log('Manual refresh triggered');
       await fetchAlerts();
       toast({
         title: "✓ Ververst",
@@ -175,6 +192,7 @@ const AlertList = () => {
           <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
           <p className="text-sm text-gray-600">
             {alerts.length === 0 ? 'Geen actieve alarmen' : `${alerts.length} alarm${alerts.length !== 1 ? 'en' : ''}`}
+            <span className="text-xs text-gray-400 ml-2">(Updates elke 10 sec)</span>
           </p>
         </div>
         <Button 
