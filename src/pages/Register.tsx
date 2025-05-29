@@ -8,6 +8,7 @@ import { apiService } from '../services/api';
 import { AuthResponse } from '../types';
 import { registerSchema, RegisterFormData } from '../schemas/validation';
 import { securityUtils } from '../utils/env';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 const Register = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -18,33 +19,14 @@ const Register = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const { errors, validate, clearErrors } = useFormValidation(registerSchema);
   const { setUser } = useStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear validation error for this field
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    try {
-      registerSchema.parse(formData);
-      setValidationErrors({});
-      return true;
-    } catch (error: any) {
-      const errors: Record<string, string> = {};
-      error.errors?.forEach((err: any) => {
-        errors[err.path[0]] = err.message;
-      });
-      setValidationErrors(errors);
-      return false;
-    }
+    clearErrors();
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -52,7 +34,7 @@ const Register = () => {
     setError('');
     
     // Validate form before submission
-    if (!validateForm()) {
+    if (!validate(formData)) {
       return;
     }
 
@@ -101,12 +83,12 @@ const Register = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  validationErrors.name ? 'border-red-500' : 'border-gray-300'
+                  errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {validationErrors.name && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors.name}</p>
+              {errors.name && (
+                <p className="text-red-600 text-sm mt-1">{errors.name[0]}</p>
               )}
             </div>
             
@@ -121,12 +103,12 @@ const Register = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  validationErrors.email ? 'border-red-500' : 'border-gray-300'
+                  errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
               />
-              {validationErrors.email && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors.email}</p>
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email[0]}</p>
               )}
             </div>
             
@@ -141,13 +123,13 @@ const Register = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  validationErrors.password ? 'border-red-500' : 'border-gray-300'
+                  errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
                 minLength={8}
               />
-              {validationErrors.password && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors.password}</p>
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">{errors.password[0]}</p>
               )}
             </div>
             
@@ -162,13 +144,13 @@ const Register = () => {
                 value={formData.password_confirmation}
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  validationErrors.password_confirmation ? 'border-red-500' : 'border-gray-300'
+                  errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
                 }`}
                 required
                 minLength={8}
               />
-              {validationErrors.password_confirmation && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors.password_confirmation}</p>
+              {errors.password_confirmation && (
+                <p className="text-red-600 text-sm mt-1">{errors.password_confirmation[0]}</p>
               )}
             </div>
             
