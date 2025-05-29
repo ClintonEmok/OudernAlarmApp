@@ -5,27 +5,31 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { AlertTriangle, Check } from 'lucide-react';
+import { env } from '../../utils/env';
 
 interface MapboxTokenProps {
   onTokenSaved: (token: string) => void;
 }
-
-// Default Mapbox token
-const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ';
 
 const MapboxToken: React.FC<MapboxTokenProps> = ({ onTokenSaved }) => {
   const [token, setToken] = useState('');
   const [savedToken, setSavedToken] = useState('');
 
   useEffect(() => {
-    // Check for stored token first, otherwise use default
-    const storedToken = localStorage.getItem('mapbox_token') || DEFAULT_MAPBOX_TOKEN;
+    // Check for stored token first, otherwise use environment variable
+    const storedToken = localStorage.getItem('mapbox_token') || env.MAPBOX_PUBLIC_TOKEN;
     setSavedToken(storedToken);
     onTokenSaved(storedToken);
   }, [onTokenSaved]);
 
   const handleSaveToken = () => {
     if (token.trim()) {
+      // Validate token format (basic check for Mapbox public token)
+      if (!token.trim().startsWith('pk.')) {
+        alert('Ongeldig token format. Mapbox public tokens beginnen met "pk."');
+        return;
+      }
+      
       localStorage.setItem('mapbox_token', token.trim());
       setSavedToken(token.trim());
       onTokenSaved(token.trim());

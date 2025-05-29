@@ -1,5 +1,6 @@
 
 import { authService } from './auth-service';
+import { securityUtils, env } from '../utils/env';
 
 interface TokenData {
   access_token: string;
@@ -25,7 +26,7 @@ class TokenManager {
       localStorage.setItem(TokenManager.EXPIRES_KEY, tokenData.expires_at.toString());
     }
     
-    console.log('Tokens stored successfully');
+    securityUtils.log('Tokens stored successfully');
   }
 
   getAccessToken(): string | null {
@@ -39,8 +40,8 @@ class TokenManager {
   isTokenExpired(): boolean {
     const expiresAt = localStorage.getItem(TokenManager.EXPIRES_KEY);
     if (!expiresAt) {
-      // If no expiry info, assume token is valid for now
-      return false;
+      // If no expiry info, check if token exists
+      return !this.getAccessToken();
     }
     
     const now = Date.now();
@@ -74,7 +75,7 @@ class TokenManager {
 
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
-      console.log('No refresh token available');
+      securityUtils.log('No refresh token available');
       this.clearTokens();
       return null;
     }
@@ -91,28 +92,30 @@ class TokenManager {
 
   private async performTokenRefresh(refreshToken: string): Promise<string | null> {
     try {
-      console.log('Attempting to refresh token...');
+      securityUtils.log('Attempting to refresh token...');
       
-      // Here you would call your refresh endpoint
-      // For now, we'll clear tokens if refresh is not implemented
-      console.warn('Token refresh not implemented yet');
-      this.clearTokens();
-      return null;
+      // Implement actual token refresh with the API
+      const response = await fetch(`${env.API_BASE_URL}/refresh`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
       
-      // TODO: Implement actual token refresh
-      // const response = await fetch('/api/refresh', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ refresh_token: refreshToken })
-      // });
-      // 
-      // if (response.ok) {
-      //   const tokenData = await response.json();
-      //   this.setTokens(tokenData);
-      //   return tokenData.access_token;
-      // }
+      if (response.ok) {
+        const tokenData = await response.json();
+        this.setTokens(tokenData);
+        securityUtils.log('Token refresh successful');
+        return tokenData.access_token;
+      } else {
+        securityUtils.error('Token refresh failed with status:', response.status);
+      }
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      securityUtils.error('Token refresh failed:', error);
     }
     
     this.clearTokens();
@@ -123,7 +126,7 @@ class TokenManager {
     localStorage.removeItem(TokenManager.TOKEN_KEY);
     localStorage.removeItem(TokenManager.REFRESH_TOKEN_KEY);
     localStorage.removeItem(TokenManager.EXPIRES_KEY);
-    console.log('Tokens cleared');
+    securityUtils.log('Tokens cleared');
   }
 
   hasValidToken(): boolean {

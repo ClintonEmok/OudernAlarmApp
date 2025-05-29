@@ -6,36 +6,68 @@ import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { useStore } from '../store/useStore';
 import { apiService } from '../services/api';
 import { AuthResponse } from '../types';
+import { loginSchema, LoginFormData } from '../schemas/validation';
+import { securityUtils } from '../utils/env';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { setUser } = useStore();
   const navigate = useNavigate();
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    try {
+      loginSchema.parse(formData);
+      setValidationErrors({});
+      return true;
+    } catch (error: any) {
+      const errors: Record<string, string> = {};
+      error.errors?.forEach((err: any) => {
+        errors[err.path[0]] = err.message;
+      });
+      setValidationErrors(errors);
+      return false;
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      console.log('Starting login process...');
-      const response = await apiService.login(email, password) as AuthResponse;
+      securityUtils.log('Starting login process...');
+      const response = await apiService.login(formData.email, formData.password) as AuthResponse;
       
-      console.log('Login successful, setting user data');
-      // Set user data in store (session-based authentication)
+      securityUtils.log('Login successful, setting user data');
       setUser(response.user);
-      
-      // Redirect to dashboard after successful login
       navigate('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
+      securityUtils.error('Login error:', err);
       if (err instanceof Error) {
         if (err.message.includes('CSRF token mismatch')) {
           setError('Beveiligingsfout. De pagina wordt ververst...');
-          // Auto-refresh after a short delay
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -90,12 +122,18 @@ const Login = () => {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  validationErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               />
+              {validationErrors.email && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.email}</p>
+              )}
             </div>
             
             <div>
@@ -104,12 +142,18 @@ const Login = () => {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  validationErrors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               />
+              {validationErrors.password && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.password}</p>
+              )}
             </div>
             
             <Button 

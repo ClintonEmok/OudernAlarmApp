@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { useStore } from '../store/useStore';
 import { apiService } from '../services/api';
 import { AuthResponse } from '../types';
+import { registerSchema, RegisterFormData } from '../schemas/validation';
+import { securityUtils } from '../utils/env';
 
 const Register = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
     email: '',
     password: '',
@@ -16,38 +18,55 @@ const Register = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const { setUser } = useStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    try {
+      registerSchema.parse(formData);
+      setValidationErrors({});
+      return true;
+    } catch (error: any) {
+      const errors: Record<string, string> = {};
+      error.errors?.forEach((err: any) => {
+        errors[err.path[0]] = err.message;
+      });
+      setValidationErrors(errors);
+      return false;
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
-
-    if (formData.password !== formData.password_confirmation) {
-      setError('Wachtwoorden komen niet overeen');
-      setIsLoading(false);
+    
+    // Validate form before submission
+    if (!validateForm()) {
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      console.log('Starting registration process...');
+      securityUtils.log('Starting registration process...');
       const response = await apiService.register(formData) as AuthResponse;
       
-      console.log('Registration successful, setting user data');
-      // Set user data in store (session-based authentication)
+      securityUtils.log('Registration successful, setting user data');
       setUser(response.user);
-      
       navigate('/');
     } catch (err) {
-      console.error('Registration error:', err);
+      securityUtils.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registratie mislukt');
     } finally {
       setIsLoading(false);
@@ -81,9 +100,14 @@ const Register = () => {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  validationErrors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               />
+              {validationErrors.name && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.name}</p>
+              )}
             </div>
             
             <div>
@@ -96,9 +120,14 @@ const Register = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  validationErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
               />
+              {validationErrors.email && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.email}</p>
+              )}
             </div>
             
             <div>
@@ -111,10 +140,15 @@ const Register = () => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  validationErrors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
                 minLength={8}
               />
+              {validationErrors.password && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.password}</p>
+              )}
             </div>
             
             <div>
@@ -127,10 +161,15 @@ const Register = () => {
                 type="password"
                 value={formData.password_confirmation}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                  validationErrors.password_confirmation ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
                 minLength={8}
               />
+              {validationErrors.password_confirmation && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors.password_confirmation}</p>
+              )}
             </div>
             
             <Button 
