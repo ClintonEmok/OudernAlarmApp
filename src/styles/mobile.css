@@ -12,7 +12,7 @@
   /* iPhone SE and smaller devices */
   @media screen and (max-height: 667px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 64px;
+      height: 40px;
       padding-bottom: max(env(safe-area-inset-bottom), 4px);
     }
     
