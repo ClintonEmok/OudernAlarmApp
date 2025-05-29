@@ -1,13 +1,26 @@
 
 import { env, securityUtils } from '../utils/env';
 import { tokenManager } from './token-manager';
-import { csrfManager } from './csrf-manager';
 
 interface RequestOptions {
   method: string;
   headers: Record<string, string>;
   body?: string;
   credentials: RequestCredentials;
+}
+
+export class ApiError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+export class DeviceConflictError extends ApiError {
+  constructor(message: string) {
+    super(message, 409);
+    this.name = 'DeviceConflictError';
+  }
 }
 
 class HttpClient {
@@ -33,14 +46,6 @@ class HttpClient {
       }
     }
 
-    // Add CSRF token for state-changing operations
-    if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method.toUpperCase())) {
-      const csrfToken = await csrfManager.getToken();
-      if (csrfToken) {
-        headers['X-XSRF-TOKEN'] = csrfToken;
-      }
-    }
-
     return {
       method: options.method || 'GET',
       headers,
@@ -53,15 +58,12 @@ class HttpClient {
     securityUtils.log(`Response status: ${response.status}`);
     
     if (response.status === 401) {
-      // Clear invalid tokens
       tokenManager.clearTokens();
-      throw new Error('Authentication required');
+      throw new ApiError('Authentication required', 401);
     }
 
     if (response.status === 419) {
-      // CSRF token mismatch
-      csrfManager.clearToken();
-      throw new Error('CSRF token mismatch');
+      throw new ApiError('CSRF token mismatch', 419);
     }
 
     const contentType = response.headers.get('content-type');
@@ -71,15 +73,20 @@ class HttpClient {
       if (!response.ok) {
         const errorMessage = data.message || data.error || `HTTP ${response.status}`;
         securityUtils.error('API Error:', errorMessage);
-        throw new Error(errorMessage);
+        
+        if (response.status === 409) {
+          throw new DeviceConflictError(errorMessage);
+        }
+        
+        throw new ApiError(errorMessage, response.status);
       }
 
-      securityUtils.log('Response data received:', securityUtils.sanitizeForLogging(data));
+      securityUtils.log('Response data received');
       return data;
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status);
     }
 
     return response.text();
@@ -101,7 +108,7 @@ class HttpClient {
       requireAuth
     );
     
-    securityUtils.log(`POST ${endpoint}`, securityUtils.sanitizeForLogging(data));
+    securityUtils.log(`POST ${endpoint}`);
     const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
     return this.handleResponse(response);
   }

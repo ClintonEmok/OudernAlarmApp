@@ -1,0 +1,20 @@
+
+/* Smooth transitions for all interactive elements */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Custom button animations */
+button:active {
+  @apply scale-95;
+}
+
+/* Status indicator animations */
+@keyframes pulse-gentle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.status-indicator {
+  animation: pulse-gentle 2s infinite;
+}

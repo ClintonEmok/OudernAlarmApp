@@ -1,180 +1,150 @@
-
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { useStore } from '../store/useStore';
-import { apiService } from '../services/api';
-import { AuthResponse } from '../types';
-import { registerSchema, RegisterFormData } from '../schemas/validation';
-import { securityUtils } from '../utils/env';
-import { useFormValidation } from '../hooks/useFormValidation';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { authService } from '../services/auth-service';
+import { Eye, EyeOff } from 'lucide-react';
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'Naam moet minimaal 2 karakters bevatten'),
+  email: z.string().email('Ongeldig e-mailadres'),
+  password: z.string().min(8, 'Wachtwoord moet minimaal 8 karakters bevatten'),
+  password_confirmation: z.string()
+}).refine((data) => data.password === data.password_confirmation, {
+  message: "Wachtwoorden komen niet overeen",
+  path: ["password_confirmation"],
+});
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 const Register = () => {
-  const [formData, setFormData] = useState<RegisterFormData>({
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: ''
-  });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { errors, validate, clearErrors } = useFormValidation(registerSchema);
-  const { setUser } = useStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    clearErrors();
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validate form before submission
-    if (!validate(formData)) {
-      return;
+  const form = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      password_confirmation: ''
     }
+  });
 
+  const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
-
     try {
-      securityUtils.log('Starting registration process...');
-      // Ensure all required fields are present
-      const registrationData: RegisterFormData = {
-        name: formData.name || '',
-        email: formData.email || '',
-        password: formData.password || '',
-        password_confirmation: formData.password_confirmation || ''
-      };
-      const response = await apiService.register(registrationData) as AuthResponse;
+      await authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.password_confirmation
+      });
       
-      securityUtils.log('Registration successful, setting user data');
-      setUser(response.user);
-      navigate('/');
-    } catch (err) {
-      securityUtils.error('Registration error:', err);
-      setError(err instanceof Error ? err.message : 'Registratie mislukt');
+      toast({
+        title: "Account aangemaakt!",
+        description: "Je account is succesvol aangemaakt. Je kunt nu inloggen.",
+      });
+      
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      toast({
+        title: "Registratie mislukt",
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden tijdens de registratie.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center p-4">
+    <div className="iphone-page-container flex items-center justify-center">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-purple-600 mb-2">Ouderen Alarmering</h1>
-            <p className="text-gray-600">Maak een nieuw account aan</p>
-          </div>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Maak een account aan</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
+        <CardContent className="grid gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Naam</Label>
+              <Input id="name" type="text" placeholder="Uw naam" {...form.register('name')} />
+              {form.formState.errors.name && (
+                <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="voorbeeld@email.com" {...form.register('email')} />
+              {form.formState.errors.email && (
+                <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Wachtwoord</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Wachtwoord"
+                  {...form.register('password')}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <span className="sr-only">Wachtwoord tonen</span>
+                </Button>
               </div>
-            )}
-            
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Naam
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                }`}
-                required
-              />
-              {errors.name && (
-                <p className="text-red-600 text-sm mt-1">{errors.name[0]}</p>
+              {form.formState.errors.password && (
+                <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
               )}
             </div>
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                }`}
-                required
-              />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">{errors.email[0]}</p>
+            <div className="grid gap-2">
+              <Label htmlFor="password_confirmation">Wachtwoord bevestigen</Label>
+              <div className="relative">
+                <Input
+                  id="password_confirmation"
+                  type={showPasswordConfirmation ? 'text' : 'password'}
+                  placeholder="Wachtwoord bevestigen"
+                  {...form.register('password_confirmation')}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
+                  onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
+                >
+                  {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <span className="sr-only">Wachtwoord tonen</span>
+                </Button>
+              </div>
+              {form.formState.errors.password_confirmation && (
+                <p className="text-sm text-red-500">{form.formState.errors.password_confirmation.message}</p>
               )}
             </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Wachtwoord
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
-                }`}
-                required
-                minLength={8}
-              />
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password[0]}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1">
-                Bevestig Wachtwoord
-              </label>
-              <input
-                id="password_confirmation"
-                name="password_confirmation"
-                type="password"
-                value={formData.password_confirmation}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                  errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
-                }`}
-                required
-                minLength={8}
-              />
-              {errors.password_confirmation && (
-                <p className="text-red-600 text-sm mt-1">{errors.password_confirmation[0]}</p>
-              )}
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Bezig met registreren...' : 'Registreren'}
+            <Button disabled={isLoading} className="w-full">
+              {isLoading ? 'Aanmaken...' : 'Account aanmaken'}
             </Button>
-            
-            <div className="text-center">
-              <Link to="/login" className="text-purple-600 hover:text-purple-800 text-sm">
-                Al een account? Inloggen
-              </Link>
-            </div>
           </form>
+          <div className="text-sm text-gray-500 text-center">
+            Heb je al een account? <Link to="/login" className="text-blue-600 hover:underline">Inloggen</Link>
+          </div>
         </CardContent>
       </Card>
     </div>
