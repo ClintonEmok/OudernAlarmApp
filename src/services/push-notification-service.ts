@@ -9,8 +9,17 @@ export interface NotificationPayload {
   data?: any;
 }
 
+export interface NotificationPermissionStatus {
+  receive: 'granted' | 'denied' | 'prompt';
+  local: 'granted' | 'denied' | 'prompt';
+}
+
 class PushNotificationService {
   private isInitialized = false;
+  private permissionStatus: NotificationPermissionStatus = {
+    receive: 'prompt',
+    local: 'prompt'
+  };
 
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
@@ -24,11 +33,17 @@ class PushNotificationService {
     }
 
     try {
-      // Request permission
-      const permissionResult = await PushNotifications.requestPermissions();
-      console.log('Push notification permission:', permissionResult);
+      // Check current permissions first
+      await this.checkPermissions();
+      
+      // Request permission if needed
+      if (this.permissionStatus.receive !== 'granted') {
+        const permissionResult = await PushNotifications.requestPermissions();
+        console.log('Push notification permission:', permissionResult);
+        this.permissionStatus.receive = permissionResult.receive;
+      }
 
-      if (permissionResult.receive === 'granted') {
+      if (this.permissionStatus.receive === 'granted') {
         // Register with Apple / Google to receive push via APNS/FCM
         await PushNotifications.register();
         
@@ -39,25 +54,84 @@ class PushNotificationService {
         console.log('Push notifications initialized successfully');
       } else {
         console.warn('Push notification permission denied');
+        throw new Error('Push notification permission denied');
       }
     } catch (error) {
       console.error('Failed to initialize push notifications:', error);
+      throw error;
     }
+  }
+
+  async checkPermissions(): Promise<NotificationPermissionStatus> {
+    try {
+      if (capacitorService.isNative()) {
+        const pushPermissions = await PushNotifications.checkPermissions();
+        const localPermissions = await LocalNotifications.checkPermissions();
+        
+        this.permissionStatus = {
+          receive: pushPermissions.receive,
+          local: localPermissions.display
+        };
+      } else {
+        // Web notification permission check
+        if ('Notification' in window) {
+          this.permissionStatus.receive = Notification.permission as any;
+          this.permissionStatus.local = Notification.permission as any;
+        }
+      }
+      
+      console.log('Current notification permissions:', this.permissionStatus);
+      return this.permissionStatus;
+    } catch (error) {
+      console.error('Failed to check notification permissions:', error);
+      return this.permissionStatus;
+    }
+  }
+
+  async requestPermissions(): Promise<NotificationPermissionStatus> {
+    try {
+      if (capacitorService.isNative()) {
+        const pushPermissions = await PushNotifications.requestPermissions();
+        const localPermissions = await LocalNotifications.requestPermissions();
+        
+        this.permissionStatus = {
+          receive: pushPermissions.receive,
+          local: localPermissions.display
+        };
+      } else {
+        // Web notification permission request
+        if ('Notification' in window) {
+          const permission = await Notification.requestPermission();
+          this.permissionStatus.receive = permission as any;
+          this.permissionStatus.local = permission as any;
+        }
+      }
+      
+      return this.permissionStatus;
+    } catch (error) {
+      console.error('Failed to request notification permissions:', error);
+      throw error;
+    }
+  }
+
+  getPermissionStatus(): NotificationPermissionStatus {
+    return this.permissionStatus;
   }
 
   private async initializeWebNotifications(): Promise<void> {
     try {
       // Request web notification permission
-      if ('Notification' in window) {
-        const permission = await Notification.requestPermission();
-        console.log('Web notification permission:', permission);
-      }
+      await this.requestPermissions();
 
       // Initialize local notifications as fallback
-      await LocalNotifications.requestPermissions();
+      if (capacitorService.isNative()) {
+        await LocalNotifications.requestPermissions();
+      }
+      
       this.isInitialized = true;
     } catch (error) {
       console.error('Failed to initialize web notifications:', error);
+      throw error;
     }
   }
 
@@ -65,7 +139,6 @@ class PushNotificationService {
     // On success, we should be able to receive notifications
     PushNotifications.addListener('registration', (token: Token) => {
       console.log('Push registration success, token: ' + token.value);
-      // Here you would typically send the token to your backend
       this.sendTokenToServer(token.value);
     });
 
@@ -88,12 +161,16 @@ class PushNotificationService {
   }
 
   private async sendTokenToServer(token: string): Promise<void> {
-    // Store token locally for now
-    localStorage.setItem('push_token', token);
-    console.log('Push token stored:', token);
-    
-    // TODO: Send to your backend API
-    // await apiService.registerPushToken(token);
+    try {
+      // Store token locally
+      localStorage.setItem('push_token', token);
+      console.log('Push token stored:', token);
+      
+      // TODO: Send to your backend API
+      // await apiService.registerPushToken(token);
+    } catch (error) {
+      console.error('Failed to store push token:', error);
+    }
   }
 
   private handleNotificationReceived(notification: PushNotificationSchema): void {
@@ -115,12 +192,18 @@ class PushNotificationService {
     // Handle notification tap - navigate to relevant screen
     const data = action.notification.data;
     if (data?.screen) {
-      window.location.href = data.screen;
+      // Use React Router for navigation
+      window.location.hash = data.screen;
     }
   }
 
   async sendLocalNotification(payload: NotificationPayload): Promise<void> {
     try {
+      // Check permissions first
+      if (this.permissionStatus.local !== 'granted') {
+        await this.requestPermissions();
+      }
+
       if (capacitorService.isNative()) {
         await LocalNotifications.schedule({
           notifications: [
@@ -129,7 +212,11 @@ class PushNotificationService {
               body: payload.body,
               id: Date.now(),
               extra: payload.data,
-              schedule: { at: new Date(Date.now() + 1000) }
+              schedule: { at: new Date(Date.now() + 1000) },
+              sound: 'beep.wav',
+              attachments: undefined,
+              actionTypeId: '',
+              group: 'ouderen-alarm'
             }
           ]
         });
@@ -138,13 +225,16 @@ class PushNotificationService {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification(payload.title, {
             body: payload.body,
-            icon: '/favicon.ico',
-            data: payload.data
+            icon: '/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png',
+            badge: '/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png',
+            data: payload.data,
+            tag: 'ouderen-alarm'
           });
         }
       }
     } catch (error) {
       console.error('Failed to send local notification:', error);
+      throw error;
     }
   }
 
@@ -160,7 +250,8 @@ class PushNotificationService {
         type: 'alarm',
         device: deviceName,
         alarmType,
-        screen: '/alerts'
+        screen: '/alerts',
+        priority: 'high'
       }
     };
 
@@ -175,7 +266,23 @@ class PushNotificationService {
         type: 'battery',
         device: deviceName,
         batteryLevel,
-        screen: '/device'
+        screen: '/device',
+        priority: 'normal'
+      }
+    };
+
+    await this.sendLocalNotification(payload);
+  }
+
+  async sendLocationUpdateNotification(deviceName: string): Promise<void> {
+    const payload: NotificationPayload = {
+      title: '📍 Locatie Update',
+      body: `${deviceName} heeft een nieuwe locatie gedeeld`,
+      data: {
+        type: 'location',
+        device: deviceName,
+        screen: '/dashboard',
+        priority: 'normal'
       }
     };
 
