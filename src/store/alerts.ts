@@ -66,6 +66,13 @@ const arraysEqual = (a: string[], b: string[]): boolean => {
   return sortedA.every((val, index) => val === sortedB[index]);
 };
 
+// Helper function to extract device phone numbers from API response
+const extractDevicePhones = (devices: any[]): string[] => {
+  return devices
+    .map(device => device.phone_number)
+    .filter(phone => phone && phone.trim() !== '');
+};
+
 export const createAlertSlice: StateCreator<
   AlertSlice,
   [],
@@ -94,27 +101,70 @@ export const createAlertSlice: StateCreator<
     try {
       console.log('🔒 SECURITY: Starting alert fetch with authorization checks...');
       
-      // First, get user's authorized devices
-      console.log('🔒 Fetching user devices for authorization...');
-      const userDevicesResponse = await apiService.getMyDevices();
-      console.log('🔒 User devices response:', userDevicesResponse);
+      // Fetch devices from both endpoints
+      let ownDevices: any[] = [];
+      let caregivingDevices: any[] = [];
+      let ownDevicesError: any = null;
+      let caregivingDevicesError: any = null;
       
-      // Extract device phone numbers from user's devices
-      let authorizedDevicePhones: string[] = [];
-      if (Array.isArray(userDevicesResponse)) {
-        authorizedDevicePhones = userDevicesResponse
-          .map(device => device.phone_number)
-          .filter(phone => phone && phone.trim() !== '');
-      } else if (userDevicesResponse && typeof userDevicesResponse === 'object' && 'data' in userDevicesResponse) {
-        authorizedDevicePhones = ((userDevicesResponse as any).data || [])
-          .map((device: any) => device.phone_number)
-          .filter((phone: string) => phone && phone.trim() !== '');
+      // Fetch own devices
+      try {
+        console.log('🔒 Fetching own devices for authorization...');
+        const ownDevicesResponse = await apiService.getMyDevices();
+        console.log('🔒 Own devices response:', ownDevicesResponse);
+        
+        if (Array.isArray(ownDevicesResponse)) {
+          ownDevices = ownDevicesResponse;
+        } else if (ownDevicesResponse && typeof ownDevicesResponse === 'object' && 'data' in ownDevicesResponse) {
+          ownDevices = (ownDevicesResponse as any).data || [];
+        }
+        console.log(`🔒 Found ${ownDevices.length} own devices`);
+      } catch (error) {
+        ownDevicesError = error;
+        console.warn('🔒 Failed to fetch own devices:', error);
       }
       
-      console.log('🔒 SECURITY: Authorized device phones:', authorizedDevicePhones);
+      // Fetch caregiving devices
+      try {
+        console.log('🔒 Fetching caregiving devices for authorization...');
+        const caregivingDevicesResponse = await apiService.getCaregivingDevices();
+        console.log('🔒 Caregiving devices response:', caregivingDevicesResponse);
+        
+        if (Array.isArray(caregivingDevicesResponse)) {
+          caregivingDevices = caregivingDevicesResponse;
+        } else if (caregivingDevicesResponse && typeof caregivingDevicesResponse === 'object' && 'data' in caregivingDevicesResponse) {
+          caregivingDevices = (caregivingDevicesResponse as any).data || [];
+        }
+        console.log(`🔒 Found ${caregivingDevices.length} caregiving devices`);
+      } catch (error) {
+        caregivingDevicesError = error;
+        console.warn('🔒 Failed to fetch caregiving devices:', error);
+      }
+      
+      // If both endpoints failed, throw an error
+      if (ownDevicesError && caregivingDevicesError) {
+        console.error('🔒 CRITICAL: Both device endpoints failed');
+        throw new Error('Could not fetch any authorized devices');
+      }
+      
+      // Extract phone numbers from both device lists
+      const ownDevicePhones = extractDevicePhones(ownDevices);
+      const caregivingDevicePhones = extractDevicePhones(caregivingDevices);
+      
+      // Combine all authorized device phone numbers
+      const allAuthorizedPhones = [...ownDevicePhones, ...caregivingDevicePhones];
+      
+      console.log('🔒 SECURITY: Device authorization summary:', {
+        ownDevices: ownDevicePhones.length,
+        caregivingDevices: caregivingDevicePhones.length,
+        totalAuthorized: allAuthorizedPhones.length,
+        ownDevicePhones,
+        caregivingDevicePhones,
+        allAuthorizedPhones
+      });
       
       // Update authorized devices in store (with change detection)
-      get().setAuthorizedDevices(authorizedDevicePhones);
+      get().setAuthorizedDevices(allAuthorizedPhones);
       
       // Now fetch alerts
       console.log('🔒 Fetching alerts from API...');

@@ -57,23 +57,23 @@ const AlertList = () => {
     }
   }, [fetchAlerts, toast]);
 
-  // Initial load effect - only depends on loadAlerts function
+  // Initial load effect
   useEffect(() => {
     loadAlerts();
   }, [loadAlerts]);
 
-  // Separate effect for polling - doesn't depend on authorizedDevicePhones
+  // Separate effect for polling - stable dependencies only
   useEffect(() => {
     // Clear any existing interval
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
     }
 
-    // Set up polling interval (increased to 30 seconds to reduce server load)
+    // Set up polling interval (30 seconds to reduce server load)
     pollingIntervalRef.current = setInterval(() => {
       console.log('🔒 Auto-refreshing alerts with security checks...');
       loadAlerts();
-    }, 30000); // 30 seconds instead of 10
+    }, 30000); // 30 seconds
 
     // Cleanup function
     return () => {
