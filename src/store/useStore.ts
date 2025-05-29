@@ -51,17 +51,17 @@ export const useStore = create<StoreState>()(
       // Device info actions
       setDeviceInfo: (info) => set({ deviceInfo: info }),
       
-      // Auth slice
-      ...createAuthSlice(set, get, apiService),
+      // Auth slice - pass apiService as third parameter
+      ...createAuthSlice(set, get, apiService as any),
       
-      // Device slice
-      ...createDeviceSlice(set, get, apiService),
+      // Device slice - pass apiService as third parameter
+      ...createDeviceSlice(set, get, apiService as any),
       
-      // Contact slice
-      ...createContactSlice(set, get, apiService),
+      // Contact slice - pass apiService as third parameter
+      ...createContactSlice(set, get, apiService as any),
       
-      // Alert slice
-      ...createAlertSlice(set, get, apiService),
+      // Alert slice - pass apiService as third parameter
+      ...createAlertSlice(set, get, apiService as any),
       
       // Override logout to clear all state and token
       logout: () => {
