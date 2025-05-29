@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '../ui/scroll-area';
 import AlertCard from './AlertCard';
 import AlertHeader from './AlertHeader';
 import AlertLoadingSkeleton from './AlertLoadingSkeleton';
@@ -177,31 +177,38 @@ const AlertList = () => {
   }
 
   return (
-    <div className="p-4 space-y-6">
-      <SecurityWarnings warnings={securityWarnings} />
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 p-4 pb-2">
+        <SecurityWarnings warnings={securityWarnings} />
+        <AlertHeader 
+          alertCount={alerts.length}
+          authorizedDeviceCount={authorizedDevicePhones.size}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+        />
+      </div>
 
-      <AlertHeader 
-        alertCount={alerts.length}
-        authorizedDeviceCount={authorizedDevicePhones.size}
-        isLoading={isLoading}
-        onRefresh={handleRefresh}
-      />
-
-      {alerts.length === 0 ? (
-        <AlertEmptyState />
-      ) : (
-        <div className="space-y-3">
-          {alerts.map((alert) => (
-            <AlertCard
-              key={alert.id}
-              alert={alert}
-              onCall={handleCallUser}
-              onViewLocation={handleViewLocation}
-              onMarkAsResolved={handleMarkAsResolved}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 pt-2">
+            {alerts.length === 0 ? (
+              <AlertEmptyState />
+            ) : (
+              <div className="space-y-3">
+                {alerts.map((alert) => (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    onCall={handleCallUser}
+                    onViewLocation={handleViewLocation}
+                    onMarkAsResolved={handleMarkAsResolved}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 };

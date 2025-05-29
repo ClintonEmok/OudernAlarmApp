@@ -74,7 +74,7 @@
 
   html {
     height: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
     /* PWA optimizations */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
@@ -84,7 +84,7 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     height: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -95,11 +95,16 @@
     /* PWA specific optimizations */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior: none;
   }
 
   #root {
     height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height for better mobile support */
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -132,6 +137,14 @@
   .touch-manipulation {
     touch-action: manipulation;
   }
+
+  /* Perfect fit utility for PWA pages */
+  .pwa-page-container {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* Mobile-first responsive design */
@@ -158,6 +171,8 @@ button:active {
     -webkit-tap-highlight-color: transparent;
     /* Prevent pull-to-refresh on iOS */
     overscroll-behavior-y: contain;
+    /* Ensure no bouncing */
+    overscroll-behavior: none;
   }
   
   /* Fix for iOS PWA navigation */
