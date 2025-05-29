@@ -36,7 +36,7 @@ class NotificationApiService {
   }
 
   async markNotificationAsRead(notificationId: number) {
-    return httpClient.patch(`/notifications/${notificationId}/read`);
+    return httpClient.put(`/notifications/${notificationId}/read`, {});
   }
 }
 

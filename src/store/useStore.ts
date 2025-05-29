@@ -1,8 +1,24 @@
+
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { apiService } from '../services/api';
-import { Device, DeviceInfo, Alert, Contact, User } from '../types';
+import { Device, Alert, Contact, User } from '../types';
 import { notificationMonitorService } from '../services/notification-monitor-service';
+import { authService } from '../services/auth-service';
+
+// Import slice creators
+import { createAuthSlice, AuthSlice } from './auth';
+import { createDeviceSlice, DeviceSlice } from './devices';
+import { createContactSlice, ContactSlice } from './contacts';
+import { createAlertSlice, AlertSlice } from './alerts';
+import { AuthState, DeviceState, ContactState, AlertState, LoadingState, LocationState } from './types';
+
+export interface DeviceInfo {
+  batteryLevel: number;
+  connectionType: '5G' | '4G' | 'WiFi';
+  signalStrength: number;
+  lastUpdate: Date;
+}
 
 interface StoreState extends 
   AuthSlice, 
@@ -43,16 +59,16 @@ export const useStore = create<StoreState>()(
       setDeviceInfo: (info) => set({ deviceInfo: info }),
       
       // Auth slice
-      ...createAuthSlice(set, get, api),
+      ...createAuthSlice(set, get),
       
       // Device slice
-      ...createDeviceSlice(set, get, api),
+      ...createDeviceSlice(set, get),
       
       // Contact slice
-      ...createContactSlice(set, get, api),
+      ...createContactSlice(set, get),
       
       // Alert slice
-      ...createAlertSlice(set, get, api),
+      ...createAlertSlice(set, get),
       
       // Override logout to clear all state and token
       logout: () => {
@@ -78,7 +94,7 @@ export const useStore = create<StoreState>()(
       
       fetchDevices: async () => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const data = await apiService.getMyDevices();
           
           // Monitor devices for notifications
@@ -93,7 +109,6 @@ export const useStore = create<StoreState>()(
         } catch (error: any) {
           console.error('Failed to fetch devices:', error);
           set({ 
-            error: error.message || 'Failed to fetch devices',
             isLoading: false 
           });
         }

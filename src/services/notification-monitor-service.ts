@@ -44,8 +44,7 @@ class NotificationMonitorService {
     this.lastDeviceStates.set(device.id, {
       batteryLevel: device.batteryLevel,
       location: device.location,
-      lastUpdate: device.lastUpdate,
-      isOnline: device.isOnline
+      lastUpdate: device.lastUpdate
     });
   }
 
@@ -101,7 +100,7 @@ class NotificationMonitorService {
     const minutesSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60);
     
     // Device hasn't updated in over 30 minutes
-    if (minutesSinceUpdate > 30 && device.isOnline && this.shouldTrigger('device_offline')) {
+    if (minutesSinceUpdate > 30 && this.shouldTrigger('device_offline')) {
       await pushNotificationService.sendLocalNotification({
         title: '📡 Apparaat Offline',
         body: `${device.nickname || device.phone_number} is al ${Math.round(minutesSinceUpdate)} minuten offline`,
