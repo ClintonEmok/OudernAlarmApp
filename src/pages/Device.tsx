@@ -1,4 +1,3 @@
-
 import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
 import DebugInfo from '../components/DebugInfo/DebugInfo';
 import { capacitorService } from '../services/capacitor-service';
@@ -117,15 +116,15 @@ const Device = () => {
   };
 
   return (
-    <div className="h-full bg-blue-50 overflow-y-auto">
-      <div className="safe-area-pt">
+    <div className="h-full bg-blue-50 flex flex-col">
+      <div className="flex-1 overflow-y-auto pt-safe">
         {/* Platform info for debugging */}
         {process.env.NODE_ENV === 'development'}
         
         <DeviceStatus onRefresh={handleRefresh} />
 
         {/* Native Features Section */}
-        <div className="p-4 space-y-4 pb-20">
+        <div className="p-4 space-y-4 pb-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">

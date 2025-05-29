@@ -43,8 +43,8 @@ const BottomNavigation = () => {
   }
 
   return (
-    <nav className="bg-white border-t border-blue-100 safe-area-pb">
-      <div className="flex justify-around items-center px-2 py-2">
+    <nav className="bg-white border-t border-blue-100 safe-area-pb h-16 flex-shrink-0">
+      <div className="flex justify-around items-center px-2 h-full">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -54,15 +54,15 @@ const BottomNavigation = () => {
               key={item.path}
               to={item.path}
               data-react-router-link="true"
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors touch-manipulation ${
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors touch-manipulation h-12 min-w-0 ${
                 isActive 
                   ? 'text-blue-600 bg-blue-50' 
                   : 'text-gray-500 hover:text-blue-600'
               }`}
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <Icon size={20} />
-              <span className="text-xs mt-1 font-medium">{item.label}</span>
+              <Icon size={18} className="flex-shrink-0" />
+              <span className="text-xs mt-0.5 font-medium leading-tight truncate">{item.label}</span>
             </Link>
           );
         })}

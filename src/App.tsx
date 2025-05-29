@@ -69,8 +69,8 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="flex flex-col h-screen bg-blue-50 overflow-hidden">
-              <main className="flex-1 overflow-hidden">
+            <div className="flex flex-col h-screen h-dvh bg-blue-50 overflow-hidden">
+              <main className="flex-1 min-h-0 overflow-hidden">
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
