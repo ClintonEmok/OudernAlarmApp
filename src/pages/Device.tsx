@@ -1,4 +1,3 @@
-
 import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
 import DebugInfo from '../components/DebugInfo/DebugInfo';
 import { capacitorService } from '../services/capacitor-service';
@@ -12,19 +11,19 @@ import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
 import { pushNotificationService } from '../services/push-notification-service';
-
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
     platform: '',
     isNative: false,
     isMobile: false
   });
-
   const [notificationPermission, setNotificationPermission] = useState(false);
-
-  const { fetchDevices } = useStore();
-  const { toast } = useToast();
-
+  const {
+    fetchDevices
+  } = useStore();
+  const {
+    toast
+  } = useToast();
   const {
     isInitialized,
     isNative,
@@ -37,7 +36,6 @@ const Device = () => {
     requestLocationPermissions,
     sendTestNotification
   } = useNativeFeatures();
-
   useEffect(() => {
     setPlatformInfo({
       platform: capacitorService.getPlatform(),
@@ -54,10 +52,8 @@ const Device = () => {
         console.error('Failed to check notification permissions:', error);
       }
     };
-
     checkNotificationPermissions();
   }, []);
-
   const handleGetLocation = async () => {
     try {
       if (!locationPermission) {
@@ -68,7 +64,6 @@ const Device = () => {
       console.error('Failed to get location:', error);
     }
   };
-
   const handleToggleTracking = async () => {
     try {
       if (isTracking) {
@@ -83,7 +78,6 @@ const Device = () => {
       console.error('Failed to toggle tracking:', error);
     }
   };
-
   const handleRequestNotificationPermission = async () => {
     try {
       const permissions = await pushNotificationService.requestPermissions();
@@ -93,20 +87,17 @@ const Device = () => {
       throw error;
     }
   };
-
   const handleRefresh = async () => {
     try {
       console.log('Refreshing device data...');
       toast({
         title: "Vernieuwen...",
-        description: "Apparaatgegevens worden bijgewerkt.",
+        description: "Apparaatgegevens worden bijgewerkt."
       });
-      
       await fetchDevices();
-      
       toast({
         title: "✓ Bijgewerkt",
-        description: "Apparaatgegevens zijn succesvol vernieuwd.",
+        description: "Apparaatgegevens zijn succesvol vernieuwd."
       });
     } catch (error) {
       console.error('Failed to refresh devices:', error);
@@ -117,15 +108,9 @@ const Device = () => {
       });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-blue-50 pb-20">
+  return <div className="min-h-screen bg-blue-50 pb-20">
       {/* Platform info for debugging */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-blue-100 p-2 text-xs text-blue-800 border-b">
-          Platform: {platformInfo.platform} | Native: {platformInfo.isNative ? 'Yes' : 'No'} | Mobile: {platformInfo.isMobile ? 'Yes' : 'No'} | Features: {isInitialized ? 'Ready' : 'Loading...'}
-        </div>
-      )}
+      {process.env.NODE_ENV === 'development'}
       
       <DeviceStatus onRefresh={handleRefresh} />
 
@@ -139,27 +124,14 @@ const Device = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <LocationControls
-              locationPermission={locationPermission}
-              currentLocation={currentLocation}
-              isTracking={isTracking}
-              onGetLocation={handleGetLocation}
-              onToggleTracking={handleToggleTracking}
-            />
+            <LocationControls locationPermission={locationPermission} currentLocation={currentLocation} isTracking={isTracking} onGetLocation={handleGetLocation} onToggleTracking={handleToggleTracking} />
 
-            <NotificationControls
-              isNative={isNative}
-              hasPermission={notificationPermission}
-              onSendTestNotification={sendTestNotification}
-              onRequestPermission={handleRequestNotificationPermission}
-            />
+            <NotificationControls isNative={isNative} hasPermission={notificationPermission} onSendTestNotification={sendTestNotification} onRequestPermission={handleRequestNotificationPermission} />
 
             <SecurityStatus />
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Device;
