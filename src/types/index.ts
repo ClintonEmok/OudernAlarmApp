@@ -32,17 +32,17 @@ export interface Device {
   phone_number: string;
   nickname?: string;
   batteryLevel: number;
-  signalStrength: number;
-  connectionType: '5G' | '4G' | 'WiFi';
+  signalStrength: number | null;
+  connectionType: string | null;
   lastUpdate: Date;
-  firmwareVersion: string;
-  status?: string;
+  firmwareVersion: string | null;
+  status?: any;
   location?: {
     latitude: number;
     longitude: number;
   };
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface User {

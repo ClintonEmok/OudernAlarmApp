@@ -25,15 +25,31 @@ const transformApiDevice = (apiDevice: any): Device => {
   
   console.log('Using battery level:', batteryLevel, 'from API status:', apiDevice.status);
   
+  // Only use real data from API - no fallbacks for signal, firmware, or connection type
+  const signalStrength = apiDevice.signalStrength || 
+                         apiDevice.signal_strength || 
+                         apiDevice.status?.signal_strength || 
+                         null;
+  
+  const connectionType = apiDevice.connectionType || 
+                        apiDevice.connection_type || 
+                        null;
+  
+  const firmwareVersion = apiDevice.firmwareVersion || 
+                         apiDevice.firmware_version || 
+                         null;
+  
+  console.log('Device data - Signal:', signalStrength, 'Connection:', connectionType, 'Firmware:', firmwareVersion);
+  
   return {
     id: apiDevice.id || 0,
     phone_number: apiDevice.phone_number || '',
     nickname: apiDevice.nickname,
     batteryLevel: batteryLevel,
-    signalStrength: apiDevice.signalStrength || apiDevice.signal_strength || apiDevice.status?.signal_strength || 4,
-    connectionType: apiDevice.connectionType || apiDevice.connection_type || '4G',
+    signalStrength: signalStrength,
+    connectionType: connectionType,
     lastUpdate: apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(),
-    firmwareVersion: apiDevice.firmwareVersion || apiDevice.firmware_version || '1.0.0',
+    firmwareVersion: firmwareVersion,
     status: apiDevice.status,
     location: location,
     created_at: apiDevice.created_at,

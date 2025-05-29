@@ -20,7 +20,9 @@ const DeviceConnectionDetails: React.FC<DeviceConnectionDetailsProps> = ({ devic
             <Signal size={16} className="text-gray-500" />
             <span className="text-sm text-gray-600">Netwerk Type</span>
           </div>
-          <span className="font-medium">{device.connectionType}</span>
+          <span className="font-medium">
+            {device.connectionType || <span className="text-gray-500">Onbekend</span>}
+          </span>
         </div>
         
         <div className="flex items-center justify-between">
@@ -36,13 +38,15 @@ const DeviceConnectionDetails: React.FC<DeviceConnectionDetailsProps> = ({ devic
           </span>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Settings size={16} className="text-gray-500" />
-            <span className="text-sm text-gray-600">Firmware</span>
+        {device.firmwareVersion && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Settings size={16} className="text-gray-500" />
+              <span className="text-sm text-gray-600">Firmware</span>
+            </div>
+            <span className="font-medium">v{device.firmwareVersion}</span>
           </div>
-          <span className="font-medium">v{device.firmwareVersion}</span>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
