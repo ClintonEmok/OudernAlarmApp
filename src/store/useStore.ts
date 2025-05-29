@@ -11,14 +11,7 @@ import { createAuthSlice, AuthSlice } from './auth';
 import { createDeviceSlice, DeviceSlice } from './devices';
 import { createContactSlice, ContactSlice } from './contacts';
 import { createAlertSlice, AlertSlice } from './alerts';
-import { AuthState, DeviceState, ContactState, AlertState, LoadingState, LocationState } from './types';
-
-export interface DeviceInfo {
-  batteryLevel: number;
-  connectionType: '5G' | '4G' | 'WiFi';
-  signalStrength: number;
-  lastUpdate: Date;
-}
+import { AuthState, DeviceState, ContactState, AlertState, LoadingState, LocationState, DeviceInfo } from './types';
 
 interface StoreState extends 
   AuthSlice, 
@@ -59,16 +52,16 @@ export const useStore = create<StoreState>()(
       setDeviceInfo: (info) => set({ deviceInfo: info }),
       
       // Auth slice
-      ...createAuthSlice(set, get),
+      ...createAuthSlice(set, get, apiService),
       
       // Device slice
-      ...createDeviceSlice(set, get),
+      ...createDeviceSlice(set, get, apiService),
       
       // Contact slice
-      ...createContactSlice(set, get),
+      ...createContactSlice(set, get, apiService),
       
       // Alert slice
-      ...createAlertSlice(set, get),
+      ...createAlertSlice(set, get, apiService),
       
       // Override logout to clear all state and token
       logout: () => {
@@ -95,7 +88,7 @@ export const useStore = create<StoreState>()(
       fetchDevices: async () => {
         try {
           set({ isLoading: true });
-          const data = await apiService.getMyDevices();
+          const data: Device[] = await apiService.getMyDevices();
           
           // Monitor devices for notifications
           data.forEach(device => {
@@ -109,6 +102,7 @@ export const useStore = create<StoreState>()(
         } catch (error: any) {
           console.error('Failed to fetch devices:', error);
           set({ 
+            devices: [],
             isLoading: false 
           });
         }
