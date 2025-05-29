@@ -1,4 +1,3 @@
-
 import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
@@ -12,19 +11,41 @@ import { nl } from 'date-fns/locale';
 
 const AlertList = () => {
   useAuth();
-  const { alerts, fetchAlerts } = useStore();
+  const { alerts, fetchAlerts, authorizedDevicePhones } = useStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [securityWarnings, setSecurityWarnings] = useState<string[]>([]);
 
   useEffect(() => {
     const loadAlerts = async () => {
       setIsLoading(true);
       try {
-        console.log('Loading alerts...');
+        console.log('🔒 Loading alerts with security checks...');
         await fetchAlerts();
-        console.log('Alerts loaded successfully, count:', alerts.length);
+        console.log('🔒 Alerts loaded successfully, count:', alerts.length);
+        
+        // Additional frontend security validation
+        const unauthorizedAlerts = alerts.filter(alert => 
+          !authorizedDevicePhones.has(alert.device_phone || '')
+        );
+        
+        if (unauthorizedAlerts.length > 0) {
+          console.error('🚨 SECURITY: Found unauthorized alerts in frontend:', unauthorizedAlerts);
+          setSecurityWarnings([
+            `Verdachte activiteit gedetecteerd: ${unauthorizedAlerts.length} alarm(en) van ongeautoriseerde apparaten zijn geblokkeerd.`
+          ]);
+          
+          toast({
+            title: "🔒 Beveiligingswaarschuwing",
+            description: "Sommige alarmen zijn geblokkeerd vanwege toegangsrechten.",
+            variant: "destructive"
+          });
+        } else {
+          setSecurityWarnings([]);
+        }
+        
       } catch (error) {
-        console.error('Failed to fetch alerts:', error);
+        console.error('🔒 Failed to fetch alerts:', error);
         toast({
           title: "Laden Mislukt",
           description: "Kon alarmen niet laden. Probeer opnieuw.",
@@ -39,17 +60,18 @@ const AlertList = () => {
     
     // Increased polling frequency for faster updates (every 10 seconds)
     const interval = setInterval(() => {
-      console.log('Auto-refreshing alerts...');
+      console.log('🔒 Auto-refreshing alerts with security checks...');
       loadAlerts();
     }, 10000);
     
     return () => clearInterval(interval);
-  }, [fetchAlerts, toast]);
+  }, [fetchAlerts, toast, authorizedDevicePhones]);
 
-  // Log alerts for debugging
+  // Log alerts and security info for debugging
   useEffect(() => {
-    console.log('Current alerts in component:', alerts);
-  }, [alerts]);
+    console.log('🔒 Current alerts in component:', alerts);
+    console.log('🔒 Authorized device phones:', Array.from(authorizedDevicePhones));
+  }, [alerts, authorizedDevicePhones]);
 
   const getAlertIcon = (type: string) => {
     switch (type?.toLowerCase()) {
@@ -98,6 +120,17 @@ const AlertList = () => {
   };
 
   const handleCallUser = (phoneNumber: string) => {
+    // Additional security check before allowing call
+    if (!authorizedDevicePhones.has(phoneNumber)) {
+      console.warn('🚨 SECURITY: Blocked call attempt to unauthorized device:', phoneNumber);
+      toast({
+        title: "🔒 Toegang Geweigerd",
+        description: "U heeft geen toestemming om dit apparaat te bellen.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (phoneNumber) {
       window.location.href = `tel:${phoneNumber}`;
     } else {
@@ -188,6 +221,19 @@ const AlertList = () => {
 
   return (
     <div className="p-4 space-y-6">
+      {/* Security warnings */}
+      {securityWarnings.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <span className="text-sm font-medium text-red-800">Beveiligingswaarschuwing</span>
+          </div>
+          {securityWarnings.map((warning, index) => (
+            <p key={index} className="text-sm text-red-700 mt-1">{warning}</p>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="text-center flex-1">
           <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
@@ -195,6 +241,11 @@ const AlertList = () => {
             {alerts.length === 0 ? 'Geen actieve alarmen' : `${alerts.length} alarm${alerts.length !== 1 ? 'en' : ''}`}
             <span className="text-xs text-gray-400 ml-2">(Updates elke 10 sec)</span>
           </p>
+          {authorizedDevicePhones.size > 0 && (
+            <p className="text-xs text-gray-400">
+              🔒 {authorizedDevicePhones.size} geautoriseerde apparaten
+            </p>
+          )}
         </div>
         <Button 
           variant="outline" 

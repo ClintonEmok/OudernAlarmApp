@@ -7,6 +7,8 @@ import { apiService } from '../services/api';
 export interface AlertActions {
   setAlerts: (alerts: Alert[]) => void;
   fetchAlerts: () => Promise<void>;
+  authorizedDevicePhones: Set<string>;
+  setAuthorizedDevices: (devicePhones: string[]) => void;
 }
 
 export type AlertSlice = AlertState & AlertActions;
@@ -49,33 +51,92 @@ const transformApiAlert = (apiAlert: any): Alert => {
   };
 };
 
+// Security function to check if user has access to device
+const isDeviceAuthorized = (devicePhone: string, authorizedDevices: Set<string>): boolean => {
+  const isAuthorized = authorizedDevices.has(devicePhone);
+  console.log(`🔒 Device authorization check: ${devicePhone} -> ${isAuthorized ? 'AUTHORIZED' : 'DENIED'}`);
+  return isAuthorized;
+};
+
 export const createAlertSlice: StateCreator<
   AlertSlice,
   [],
   [],
   AlertSlice
-> = (set) => ({
+> = (set, get) => ({
   alerts: [],
+  authorizedDevicePhones: new Set(),
   
   setAlerts: (alerts) => set({ alerts }),
   
+  setAuthorizedDevices: (devicePhones) => {
+    const authorizedSet = new Set(devicePhones);
+    console.log('🔒 Setting authorized devices:', Array.from(authorizedSet));
+    set({ authorizedDevicePhones: authorizedSet });
+  },
+  
   fetchAlerts: async () => {
     try {
-      console.log('Fetching alerts from API...');
+      console.log('🔒 SECURITY: Starting alert fetch with authorization checks...');
+      
+      // First, get user's authorized devices
+      console.log('🔒 Fetching user devices for authorization...');
+      const userDevicesResponse = await apiService.getMyDevices();
+      console.log('🔒 User devices response:', userDevicesResponse);
+      
+      // Extract device phone numbers from user's devices
+      let authorizedDevicePhones: string[] = [];
+      if (Array.isArray(userDevicesResponse)) {
+        authorizedDevicePhones = userDevicesResponse
+          .map(device => device.phone_number)
+          .filter(phone => phone && phone.trim() !== '');
+      } else if (userDevicesResponse && typeof userDevicesResponse === 'object' && 'data' in userDevicesResponse) {
+        authorizedDevicePhones = ((userDevicesResponse as any).data || [])
+          .map((device: any) => device.phone_number)
+          .filter((phone: string) => phone && phone.trim() !== '');
+      }
+      
+      console.log('🔒 SECURITY: Authorized device phones:', authorizedDevicePhones);
+      
+      // Update authorized devices in store
+      get().setAuthorizedDevices(authorizedDevicePhones);
+      
+      // Now fetch alerts
+      console.log('🔒 Fetching alerts from API...');
       const response = await apiService.getDeviceAlarms() as ApiAlertResponse;
-      console.log('Raw API response:', response);
+      console.log('🔒 Raw API response:', response);
       
       // Handle paginated response - extract data array
       const alertsData = response?.data || (Array.isArray(response) ? response : []);
-      console.log('Alerts data to transform:', alertsData);
+      console.log('🔒 Alerts data to transform:', alertsData);
       
       // Transform each alert to match our interface
       const transformedAlerts = alertsData.map(transformApiAlert);
-      console.log('Transformed alerts:', transformedAlerts);
+      console.log('🔒 Transformed alerts (before filtering):', transformedAlerts);
       
-      set({ alerts: transformedAlerts });
+      // SECURITY CHECK: Filter alerts to only include those from authorized devices
+      const authorizedAlerts = transformedAlerts.filter(alert => {
+        const devicePhone = alert.device_phone;
+        const isAuthorized = isDeviceAuthorized(devicePhone, get().authorizedDevicePhones);
+        
+        if (!isAuthorized) {
+          console.warn('🚨 SECURITY VIOLATION: Blocking unauthorized alert from device:', {
+            alertId: alert.id,
+            devicePhone: devicePhone,
+            deviceNickname: alert.device_nickname,
+            authorizedDevices: Array.from(get().authorizedDevicePhones)
+          });
+        }
+        
+        return isAuthorized;
+      });
+      
+      console.log('🔒 SECURITY: Authorized alerts after filtering:', authorizedAlerts);
+      console.log(`🔒 SECURITY SUMMARY: ${transformedAlerts.length} total alerts, ${authorizedAlerts.length} authorized, ${transformedAlerts.length - authorizedAlerts.length} blocked`);
+      
+      set({ alerts: authorizedAlerts });
     } catch (error) {
-      console.error('Failed to fetch alerts:', error);
+      console.error('🔒 SECURITY: Failed to fetch alerts:', error);
       set({ alerts: [] });
     }
   }

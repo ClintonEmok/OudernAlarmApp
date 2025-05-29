@@ -36,6 +36,7 @@ export interface ContactState {
 
 export interface AlertState {
   alerts: Alert[];
+  authorizedDevicePhones?: Set<string>;
 }
 
 export interface LoadingState {
