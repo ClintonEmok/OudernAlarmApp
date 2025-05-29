@@ -1,5 +1,5 @@
 import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
@@ -15,59 +15,76 @@ const AlertList = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [securityWarnings, setSecurityWarnings] = useState<string[]>([]);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const loadAlerts = async () => {
-      setIsLoading(true);
-      try {
-        console.log('🔒 Loading alerts with security checks...');
-        await fetchAlerts();
-        console.log('🔒 Alerts loaded successfully, count:', alerts.length);
+  // Memoized load function to prevent recreating on every render
+  const loadAlerts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      console.log('🔒 Loading alerts with security checks...');
+      await fetchAlerts();
+      console.log('🔒 Alerts loaded successfully, count:', alerts.length);
+      
+      // Additional frontend security validation
+      const unauthorizedAlerts = alerts.filter(alert => 
+        !authorizedDevicePhones.has(alert.device_phone || '')
+      );
+      
+      if (unauthorizedAlerts.length > 0) {
+        console.error('🚨 SECURITY: Found unauthorized alerts in frontend:', unauthorizedAlerts);
+        setSecurityWarnings([
+          `Verdachte activiteit gedetecteerd: ${unauthorizedAlerts.length} alarm(en) van ongeautoriseerde apparaten zijn geblokkeerd.`
+        ]);
         
-        // Additional frontend security validation
-        const unauthorizedAlerts = alerts.filter(alert => 
-          !authorizedDevicePhones.has(alert.device_phone || '')
-        );
-        
-        if (unauthorizedAlerts.length > 0) {
-          console.error('🚨 SECURITY: Found unauthorized alerts in frontend:', unauthorizedAlerts);
-          setSecurityWarnings([
-            `Verdachte activiteit gedetecteerd: ${unauthorizedAlerts.length} alarm(en) van ongeautoriseerde apparaten zijn geblokkeerd.`
-          ]);
-          
-          toast({
-            title: "🔒 Beveiligingswaarschuwing",
-            description: "Sommige alarmen zijn geblokkeerd vanwege toegangsrechten.",
-            variant: "destructive"
-          });
-        } else {
-          setSecurityWarnings([]);
-        }
-        
-      } catch (error) {
-        console.error('🔒 Failed to fetch alerts:', error);
         toast({
-          title: "Laden Mislukt",
-          description: "Kon alarmen niet laden. Probeer opnieuw.",
+          title: "🔒 Beveiligingswaarschuwing",
+          description: "Sommige alarmen zijn geblokkeerd vanwege toegangsrechten.",
           variant: "destructive"
         });
-      } finally {
-        setIsLoading(false);
+      } else {
+        setSecurityWarnings([]);
       }
-    };
+      
+    } catch (error) {
+      console.error('🔒 Failed to fetch alerts:', error);
+      toast({
+        title: "Laden Mislukt",
+        description: "Kon alarmen niet laden. Probeer opnieuw.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchAlerts, toast]);
 
+  // Initial load effect - only depends on loadAlerts function
+  useEffect(() => {
     loadAlerts();
-    
-    // Increased polling frequency for faster updates (every 10 seconds)
-    const interval = setInterval(() => {
+  }, [loadAlerts]);
+
+  // Separate effect for polling - doesn't depend on authorizedDevicePhones
+  useEffect(() => {
+    // Clear any existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    // Set up polling interval (increased to 30 seconds to reduce server load)
+    pollingIntervalRef.current = setInterval(() => {
       console.log('🔒 Auto-refreshing alerts with security checks...');
       loadAlerts();
-    }, 10000);
-    
-    return () => clearInterval(interval);
-  }, [fetchAlerts, toast, authorizedDevicePhones]);
+    }, 30000); // 30 seconds instead of 10
 
-  // Log alerts and security info for debugging
+    // Cleanup function
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [loadAlerts]);
+
+  // Separate effect for logging changes - doesn't trigger polling
   useEffect(() => {
     console.log('🔒 Current alerts in component:', alerts);
     console.log('🔒 Authorized device phones:', Array.from(authorizedDevicePhones));
@@ -176,7 +193,10 @@ const AlertList = () => {
     }
   };
 
-  const handleRefresh = async () => {
+  // Debounced refresh function to prevent rapid clicking
+  const handleRefresh = useCallback(async () => {
+    if (isLoading) return; // Prevent multiple simultaneous refreshes
+    
     setIsLoading(true);
     try {
       console.log('Manual refresh triggered');
@@ -195,7 +215,7 @@ const AlertList = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchAlerts, toast, isLoading]);
 
   if (isLoading && alerts.length === 0) {
     return (
@@ -239,7 +259,7 @@ const AlertList = () => {
           <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
           <p className="text-sm text-gray-600">
             {alerts.length === 0 ? 'Geen actieve alarmen' : `${alerts.length} alarm${alerts.length !== 1 ? 'en' : ''}`}
-            <span className="text-xs text-gray-400 ml-2">(Updates elke 10 sec)</span>
+            <span className="text-xs text-gray-400 ml-2">(Updates elke 30 sec)</span>
           </p>
           {authorizedDevicePhones.size > 0 && (
             <p className="text-xs text-gray-400">

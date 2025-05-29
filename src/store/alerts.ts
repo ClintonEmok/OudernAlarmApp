@@ -58,6 +58,14 @@ const isDeviceAuthorized = (devicePhone: string, authorizedDevices: Set<string>)
   return isAuthorized;
 };
 
+// Helper function to compare arrays for changes
+const arraysEqual = (a: string[], b: string[]): boolean => {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, index) => val === sortedB[index]);
+};
+
 export const createAlertSlice: StateCreator<
   AlertSlice,
   [],
@@ -70,9 +78,16 @@ export const createAlertSlice: StateCreator<
   setAlerts: (alerts) => set({ alerts }),
   
   setAuthorizedDevices: (devicePhones) => {
-    const authorizedSet = new Set(devicePhones);
-    console.log('🔒 Setting authorized devices:', Array.from(authorizedSet));
-    set({ authorizedDevicePhones: authorizedSet });
+    const currentDevices = Array.from(get().authorizedDevicePhones);
+    
+    // Only update if the devices have actually changed
+    if (!arraysEqual(currentDevices, devicePhones)) {
+      const authorizedSet = new Set(devicePhones);
+      console.log('🔒 Setting authorized devices (changed):', Array.from(authorizedSet));
+      set({ authorizedDevicePhones: authorizedSet });
+    } else {
+      console.log('🔒 Authorized devices unchanged, skipping update');
+    }
   },
   
   fetchAlerts: async () => {
@@ -98,7 +113,7 @@ export const createAlertSlice: StateCreator<
       
       console.log('🔒 SECURITY: Authorized device phones:', authorizedDevicePhones);
       
-      // Update authorized devices in store
+      // Update authorized devices in store (with change detection)
       get().setAuthorizedDevices(authorizedDevicePhones);
       
       // Now fetch alerts
