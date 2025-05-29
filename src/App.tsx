@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { capacitorService } from "./services/capacitor-service";
 import { pushNotificationService } from "./services/push-notification-service";
+import { pwaNavigationService } from "./services/pwa-navigation-service";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import BottomNavigation from "./components/Layout/BottomNavigation";
@@ -44,6 +45,10 @@ const App = () => {
     // Initialize platform detection and log info
     capacitorService.logPlatformInfo();
     
+    // Log PWA status
+    const pwaInfo = pwaNavigationService.getPlatformInfo();
+    console.log('PWA Navigation Service initialized:', pwaInfo);
+    
     // Initialize native features on app start
     const initializeNativeFeatures = async () => {
       try {
@@ -68,7 +73,7 @@ const App = () => {
               <main className="flex-1 overflow-hidden">
                 <Routes>
                   {/* Public routes */}
-                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   

@@ -1,0 +1,29 @@
+
+{
+  "name": "Ouderen Alarmeringen",
+  "short_name": "Ouderen Alarm",
+  "description": "Ouderen Alarmeringen - Veiligheid en monitoring voor ouderen",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#DBEAFE",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "lang": "nl",
+  "dir": "ltr"
+}
