@@ -1,10 +1,13 @@
 
 import { httpClient } from './http-client';
+import { tokenManager } from './token-manager';
 
 interface LoginResponse {
   access_token: string;
   user?: any;
   message?: string;
+  expires_at?: number;
+  refresh_token?: string;
 }
 
 class AuthService {
@@ -22,10 +25,14 @@ class AuthService {
       // First attempt with normal CSRF handling
       const response = await httpClient.post('/login', { email, password }, false) as LoginResponse;
       
-      // Store access token if login is successful
+      // Store tokens if login is successful
       if (response && response.access_token) {
-        localStorage.setItem('access_token', response.access_token);
-        console.log('Access token stored successfully');
+        tokenManager.setTokens({
+          access_token: response.access_token,
+          expires_at: response.expires_at,
+          refresh_token: response.refresh_token
+        });
+        console.log('Login successful, tokens stored');
       }
       
       return response;
@@ -37,10 +44,14 @@ class AuthService {
         await new Promise(resolve => setTimeout(resolve, 500));
         const retryResponse = await httpClient.post('/login', { email, password }, false) as LoginResponse;
         
-        // Store access token on retry success
+        // Store tokens on retry success
         if (retryResponse && retryResponse.access_token) {
-          localStorage.setItem('access_token', retryResponse.access_token);
-          console.log('Access token stored successfully on retry');
+          tokenManager.setTokens({
+            access_token: retryResponse.access_token,
+            expires_at: retryResponse.expires_at,
+            refresh_token: retryResponse.refresh_token
+          });
+          console.log('Login successful on retry, tokens stored');
         }
         
         return retryResponse;
@@ -52,15 +63,15 @@ class AuthService {
   async logout() {
     try {
       const response = await httpClient.post('/logout');
-      // Clear access token on successful logout
-      localStorage.removeItem('access_token');
-      console.log('Access token cleared on logout');
+      // Clear tokens on successful logout
+      tokenManager.clearTokens();
+      console.log('Logout successful, tokens cleared');
       return response;
     } catch (error) {
       // If logout fails due to CSRF, still clear local state
       console.warn('Logout request failed, but clearing local state:', error);
-      localStorage.removeItem('access_token');
-      console.log('Access token cleared after failed logout');
+      tokenManager.clearTokens();
+      console.log('Tokens cleared after failed logout');
       return null;
     }
   }
@@ -71,14 +82,18 @@ class AuthService {
 
   // Helper method to check if user has valid token
   hasValidToken(): boolean {
-    const token = localStorage.getItem('access_token');
-    return !!token;
+    return tokenManager.hasValidToken();
+  }
+
+  // Helper method to get valid token (with automatic refresh)
+  async getValidToken(): Promise<string | null> {
+    return tokenManager.getValidToken();
   }
 
   // Helper method to clear token (for manual logout or token expiry)
   clearToken(): void {
-    localStorage.removeItem('access_token');
-    console.log('Access token manually cleared');
+    tokenManager.clearTokens();
+    console.log('Tokens manually cleared');
   }
 }
 
