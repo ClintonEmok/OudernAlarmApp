@@ -1,13 +1,14 @@
-import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../store/useStore';
-import { Card, CardContent, CardHeader } from '../ui/card';
-import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '../ui/badge';
-import { formatDistanceToNow, format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import AlertCard from './AlertCard';
+import AlertHeader from './AlertHeader';
+import AlertLoadingSkeleton from './AlertLoadingSkeleton';
+import AlertEmptyState from './AlertEmptyState';
+import SecurityWarnings from './SecurityWarnings';
+import { Alert } from '../../types';
 
 const AlertList = () => {
   useAuth();
@@ -90,52 +91,6 @@ const AlertList = () => {
     console.log('🔒 Authorized device phones:', Array.from(authorizedDevicePhones));
   }, [alerts, authorizedDevicePhones]);
 
-  const getAlertIcon = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'sos':
-      case 'emergency':
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      case 'fall':
-        return <AlertTriangle className="h-5 w-5 text-orange-500" />;
-      case 'low_battery':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-      case 'offline':
-        return <AlertTriangle className="h-5 w-5 text-gray-500" />;
-      default:
-        return <AlertTriangle className="h-5 w-5 text-blue-500" />;
-    }
-  };
-
-  const getAlertColor = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'sos':
-      case 'emergency':
-        return 'border-red-200 bg-red-50';
-      case 'fall':
-        return 'border-orange-200 bg-orange-50';
-      case 'low_battery':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'offline':
-        return 'border-gray-200 bg-gray-50';
-      default:
-        return 'border-blue-200 bg-blue-50';
-    }
-  };
-
-  const getAlertBadgeVariant = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'sos':
-      case 'emergency':
-        return 'destructive';
-      case 'fall':
-        return 'destructive';
-      case 'low_battery':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
   const handleCallUser = (phoneNumber: string) => {
     // Additional security check before allowing call
     if (!authorizedDevicePhones.has(phoneNumber)) {
@@ -159,7 +114,7 @@ const AlertList = () => {
     }
   };
 
-  const handleViewLocation = (alert: any) => {
+  const handleViewLocation = (alert: Alert) => {
     if (alert.location?.latitude && alert.location?.longitude) {
       const url = `https://maps.google.com/maps?q=${alert.location.latitude},${alert.location.longitude}`;
       window.open(url, '_blank');
@@ -218,172 +173,32 @@ const AlertList = () => {
   }, [fetchAlerts, toast, isLoading]);
 
   if (isLoading && alerts.length === 0) {
-    return (
-      <div className="p-4 space-y-6">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
-          <p className="text-sm text-gray-600">Laden van alarmen...</p>
-        </div>
-        
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <AlertLoadingSkeleton />;
   }
 
   return (
     <div className="p-4 space-y-6">
-      {/* Security warnings */}
-      {securityWarnings.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-sm font-medium text-red-800">Beveiligingswaarschuwing</span>
-          </div>
-          {securityWarnings.map((warning, index) => (
-            <p key={index} className="text-sm text-red-700 mt-1">{warning}</p>
-          ))}
-        </div>
-      )}
+      <SecurityWarnings warnings={securityWarnings} />
 
-      <div className="flex items-center justify-between">
-        <div className="text-center flex-1">
-          <h2 className="text-xl font-bold text-gray-900">Alarmen</h2>
-          <p className="text-sm text-gray-600">
-            {alerts.length === 0 ? 'Geen actieve alarmen' : `${alerts.length} alarm${alerts.length !== 1 ? 'en' : ''}`}
-            <span className="text-xs text-gray-400 ml-2">(Updates elke 30 sec)</span>
-          </p>
-          {authorizedDevicePhones.size > 0 && (
-            <p className="text-xs text-gray-400">
-              🔒 {authorizedDevicePhones.size} geautoriseerde apparaten
-            </p>
-          )}
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Laden...' : 'Ververs'}
-        </Button>
-      </div>
+      <AlertHeader 
+        alertCount={alerts.length}
+        authorizedDeviceCount={authorizedDevicePhones.size}
+        isLoading={isLoading}
+        onRefresh={handleRefresh}
+      />
 
       {alerts.length === 0 ? (
-        <Card className="text-center py-8">
-          <CardContent>
-            <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Alles is in orde
-            </h3>
-            <p className="text-gray-600">
-              Er zijn momenteel geen actieve alarmen.
-            </p>
-          </CardContent>
-        </Card>
+        <AlertEmptyState />
       ) : (
         <div className="space-y-3">
           {alerts.map((alert) => (
-            <Card key={alert.id} className={`${getAlertColor(alert.type)} border-l-4`}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {getAlertIcon(alert.type)}
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {alert.title || `${alert.type} Alarm`}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Apparaat: {alert.device_nickname || alert.device_phone || 'Onbekend'}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={getAlertBadgeVariant(alert.type)}>
-                    {alert.type?.toUpperCase() || 'ALARM'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-700">
-                    {alert.description || alert.message || 'Geen beschrijving beschikbaar'}
-                  </p>
-                  
-                  <div className="flex flex-col space-y-2 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <Clock size={14} />
-                      <span>
-                        {alert.created_at 
-                          ? formatDistanceToNow(new Date(alert.created_at), { 
-                              addSuffix: true, 
-                              locale: nl 
-                            })
-                          : 'Onbekend tijdstip'
-                        }
-                      </span>
-                    </div>
-                    
-                    {alert.created_at && (
-                      <div className="text-xs text-gray-400 pl-5">
-                        Exacte tijd: {format(new Date(alert.created_at), 'dd-MM-yyyy HH:mm:ss', { locale: nl })}
-                      </div>
-                    )}
-                    
-                    {alert.location && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin size={14} />
-                        <span>Locatie beschikbaar</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex space-x-2 pt-2">
-                    {alert.device_phone && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleCallUser(alert.device_phone)}
-                        className="flex-1"
-                      >
-                        <Phone size={14} className="mr-1" />
-                        Bellen
-                      </Button>
-                    )}
-                    
-                    {alert.location && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleViewLocation(alert)}
-                        className="flex-1"
-                      >
-                        <MapPin size={14} className="mr-1" />
-                        Locatie
-                      </Button>
-                    )}
-                    
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={() => handleMarkAsResolved(alert.id)}
-                      className="flex-1"
-                    >
-                      <CheckCircle size={14} className="mr-1" />
-                      Opgelost
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AlertCard
+              key={alert.id}
+              alert={alert}
+              onCall={handleCallUser}
+              onViewLocation={handleViewLocation}
+              onMarkAsResolved={handleMarkAsResolved}
+            />
           ))}
         </div>
       )}
