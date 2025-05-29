@@ -1,11 +1,12 @@
-
 import { authService } from './auth-service';
 import { userService } from './user-service';
 import { caregiverService } from './caregiver-service';
 import { deviceService } from './device-service';
+import { notificationApiService, PushTokenRegistration, NotificationPreferences } from './notification-api-service';
 
 // Re-export all interfaces
 export type { ApiError, DeviceConflictError } from './http-client';
+export type { PushTokenRegistration, NotificationPreferences } from './notification-api-service';
 
 class ApiService {
   // Authentication
@@ -120,6 +121,27 @@ class ApiService {
 
   async requestDeviceAccess(phone_number: string, message?: string) {
     return deviceService.requestDeviceAccess(phone_number, message);
+  }
+
+  // Notification Management
+  async registerPushToken(data: PushTokenRegistration) {
+    return notificationApiService.registerPushToken(data);
+  }
+
+  async updateNotificationPreferences(preferences: NotificationPreferences) {
+    return notificationApiService.updateNotificationPreferences(preferences);
+  }
+
+  async getNotificationPreferences() {
+    return notificationApiService.getNotificationPreferences();
+  }
+
+  async getNotificationHistory() {
+    return notificationApiService.getNotificationHistory();
+  }
+
+  async markNotificationAsRead(notificationId: number) {
+    return notificationApiService.markNotificationAsRead(notificationId);
   }
 }
 

@@ -1,6 +1,7 @@
 import { PushNotifications, PushNotificationSchema, ActionPerformed, Token } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { capacitorService } from './capacitor-service';
+import { apiService } from './api';
 
 export interface NotificationPayload {
   title: string;
@@ -174,10 +175,21 @@ class PushNotificationService {
       localStorage.setItem('push_token', token);
       console.log('Push token stored:', token);
       
-      // TODO: Send to your backend API
-      // await apiService.registerPushToken(token);
+      // Send to backend API
+      await apiService.registerPushToken({
+        token,
+        platform: capacitorService.isNative() ? 
+          (capacitorService.getPlatform() === 'ios' ? 'ios' : 'android') : 'web',
+        device_info: {
+          model: capacitorService.getPlatform(),
+          os_version: navigator.userAgent
+        }
+      });
+      
+      console.log('Push token registered with backend');
     } catch (error) {
-      console.error('Failed to store push token:', error);
+      console.error('Failed to register push token with backend:', error);
+      // Still store locally even if backend fails
     }
   }
 

@@ -4,13 +4,16 @@ import { capacitorService } from '../services/capacitor-service';
 import { useNativeFeatures } from '../hooks/useNativeFeatures';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Smartphone } from 'lucide-react';
+import { Smartphone, Bell } from 'lucide-react';
 import LocationControls from '../components/NativeFeatures/LocationControls';
 import NotificationControls from '../components/NativeFeatures/NotificationControls';
 import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
+import NotificationSettings from '../components/NotificationSettings/NotificationSettings';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
 import { pushNotificationService } from '../services/push-notification-service';
+import { notificationMonitorService } from '../services/notification-monitor-service';
+
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
     platform: '',
@@ -36,6 +39,8 @@ const Device = () => {
     requestLocationPermissions,
     sendTestNotification
   } = useNativeFeatures();
+  const { devices, selectedDevice } = useStore();
+
   useEffect(() => {
     setPlatformInfo({
       platform: capacitorService.getPlatform(),
@@ -54,6 +59,18 @@ const Device = () => {
     };
     checkNotificationPermissions();
   }, []);
+
+  useEffect(() => {
+    if (selectedDevice) {
+      // Monitor the selected device for notification triggers
+      const monitorInterval = setInterval(() => {
+        notificationMonitorService.monitorDevice(selectedDevice);
+      }, 30000); // Check every 30 seconds
+
+      return () => clearInterval(monitorInterval);
+    }
+  }, [selectedDevice]);
+
   const handleGetLocation = async () => {
     try {
       if (!locationPermission) {
@@ -64,6 +81,7 @@ const Device = () => {
       console.error('Failed to get location:', error);
     }
   };
+
   const handleToggleTracking = async () => {
     try {
       if (isTracking) {
@@ -78,6 +96,7 @@ const Device = () => {
       console.error('Failed to toggle tracking:', error);
     }
   };
+
   const handleRequestNotificationPermission = async () => {
     try {
       const permissions = await pushNotificationService.requestPermissions();
@@ -87,6 +106,7 @@ const Device = () => {
       throw error;
     }
   };
+
   const handleRefresh = async () => {
     try {
       console.log('Refreshing device data...');
@@ -108,7 +128,28 @@ const Device = () => {
       });
     }
   };
-  return <div className="min-h-screen bg-blue-50 pb-20">
+
+  const handleTestAlarm = async () => {
+    if (selectedDevice) {
+      try {
+        await notificationMonitorService.triggerAlarm(selectedDevice, 'test');
+        toast({
+          title: "Test Alarm Verzonden",
+          description: "Controleer je notificaties",
+        });
+      } catch (error) {
+        console.error('Failed to send test alarm:', error);
+        toast({
+          title: "Fout bij test alarm",
+          description: "Probeer het opnieuw",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-blue-50 pb-20">
       {/* Platform info for debugging */}
       {process.env.NODE_ENV === 'development'}
       
@@ -124,14 +165,56 @@ const Device = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <LocationControls locationPermission={locationPermission} currentLocation={currentLocation} isTracking={isTracking} onGetLocation={handleGetLocation} onToggleTracking={handleToggleTracking} />
+            <LocationControls 
+              locationPermission={locationPermission}
+              currentLocation={currentLocation}
+              isTracking={isTracking}
+              onGetLocation={handleGetLocation}
+              onToggleTracking={handleToggleTracking}
+            />
 
-            <NotificationControls isNative={isNative} hasPermission={notificationPermission} onSendTestNotification={sendTestNotification} onRequestPermission={handleRequestNotificationPermission} />
+            <NotificationControls 
+              isNative={isNative}
+              hasPermission={notificationPermission}
+              onSendTestNotification={sendTestNotification}
+              onRequestPermission={handleRequestNotificationPermission}
+            />
 
             <SecurityStatus />
           </CardContent>
         </Card>
+
+        {/* Notification Settings */}
+        <NotificationSettings />
+
+        {/* Testing Section - only in development */}
+        {process.env.NODE_ENV === 'development' && selectedDevice && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Bell className="h-5 w-5 text-orange-600" />
+                <span>Notificatie Tests</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  onClick={handleTestAlarm}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Test Alarm Notificatie
+                </Button>
+                <p className="text-sm text-gray-500">
+                  Voor ontwikkeling: test alarm notificaties
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Device;
