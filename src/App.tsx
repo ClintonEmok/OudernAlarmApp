@@ -64,74 +64,72 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="min-h-screen bg-blue-50 w-full overflow-x-hidden">
-              <div className="min-h-screen flex flex-col">
-                <main className="flex-1 pb-safe">
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Navigate to="/login" replace />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    
-                    {/* Protected routes */}
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute>
-                        <Home />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/alerts" element={
-                      <ProtectedRoute>
-                        <Alerts />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/contacts" element={
-                      <ProtectedRoute>
-                        <Contacts />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/device" element={
-                      <ProtectedRoute>
-                        <Device />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/settings" element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    } />
-                    
-                    {/* Protected settings sub-pages */}
-                    <Route path="/settings/profile" element={
-                      <ProtectedRoute>
-                        <ProfileSettings />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/settings/password" element={
-                      <ProtectedRoute>
-                        <PasswordSettings />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/settings/device-pairing" element={
-                      <ProtectedRoute>
-                        <DevicePairing />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/settings/invitations" element={
-                      <ProtectedRoute>
-                        <Invitations />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/settings/support" element={
-                      <ProtectedRoute>
-                        <SupportTicket />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
-                <BottomNavigation />
-              </div>
+            <div className="flex flex-col h-screen bg-blue-50 overflow-hidden">
+              <main className="flex-1 overflow-hidden">
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected routes */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Home />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/alerts" element={
+                    <ProtectedRoute>
+                      <Alerts />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/contacts" element={
+                    <ProtectedRoute>
+                      <Contacts />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/device" element={
+                    <ProtectedRoute>
+                      <Device />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Protected settings sub-pages */}
+                  <Route path="/settings/profile" element={
+                    <ProtectedRoute>
+                      <ProfileSettings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/password" element={
+                    <ProtectedRoute>
+                      <PasswordSettings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/device-pairing" element={
+                    <ProtectedRoute>
+                      <DevicePairing />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/invitations" element={
+                    <ProtectedRoute>
+                      <Invitations />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/support" element={
+                    <ProtectedRoute>
+                      <SupportTicket />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <BottomNavigation />
             </div>
           </BrowserRouter>
         </TooltipProvider>

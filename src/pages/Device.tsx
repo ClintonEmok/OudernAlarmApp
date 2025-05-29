@@ -117,40 +117,42 @@ const Device = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 safe-area-pt">
-      {/* Platform info for debugging */}
-      {process.env.NODE_ENV === 'development'}
-      
-      <DeviceStatus onRefresh={handleRefresh} />
+    <div className="h-full bg-blue-50 overflow-y-auto">
+      <div className="safe-area-pt">
+        {/* Platform info for debugging */}
+        {process.env.NODE_ENV === 'development'}
+        
+        <DeviceStatus onRefresh={handleRefresh} />
 
-      {/* Native Features Section */}
-      <div className="p-4 space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Smartphone className="h-5 w-5 text-blue-600" />
-              <span>Native Features</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <LocationControls 
-              locationPermission={locationPermission} 
-              currentLocation={currentLocation} 
-              isTracking={isTracking} 
-              onGetLocation={handleGetLocation} 
-              onToggleTracking={handleToggleTracking} 
-            />
+        {/* Native Features Section */}
+        <div className="p-4 space-y-4 pb-20">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Smartphone className="h-5 w-5 text-blue-600" />
+                <span>Native Features</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <LocationControls 
+                locationPermission={locationPermission} 
+                currentLocation={currentLocation} 
+                isTracking={isTracking} 
+                onGetLocation={handleGetLocation} 
+                onToggleTracking={handleToggleTracking} 
+              />
 
-            <NotificationControls 
-              isNative={isNative} 
-              hasPermission={notificationPermission} 
-              onSendTestNotification={sendTestNotification} 
-              onRequestPermission={handleRequestNotificationPermission} 
-            />
+              <NotificationControls 
+                isNative={isNative} 
+                hasPermission={notificationPermission} 
+                onSendTestNotification={sendTestNotification} 
+                onRequestPermission={handleRequestNotificationPermission} 
+              />
 
-            <SecurityStatus />
-          </CardContent>
-        </Card>
+              <SecurityStatus />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
