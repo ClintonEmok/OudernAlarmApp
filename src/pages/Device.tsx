@@ -1,3 +1,4 @@
+
 import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
 import DebugInfo from '../components/DebugInfo/DebugInfo';
 import { capacitorService } from '../services/capacitor-service';
@@ -11,6 +12,7 @@ import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
 import { pushNotificationService } from '../services/push-notification-service';
+
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
     platform: '',
@@ -36,6 +38,7 @@ const Device = () => {
     requestLocationPermissions,
     sendTestNotification
   } = useNativeFeatures();
+
   useEffect(() => {
     setPlatformInfo({
       platform: capacitorService.getPlatform(),
@@ -54,6 +57,7 @@ const Device = () => {
     };
     checkNotificationPermissions();
   }, []);
+
   const handleGetLocation = async () => {
     try {
       if (!locationPermission) {
@@ -64,6 +68,7 @@ const Device = () => {
       console.error('Failed to get location:', error);
     }
   };
+
   const handleToggleTracking = async () => {
     try {
       if (isTracking) {
@@ -78,6 +83,7 @@ const Device = () => {
       console.error('Failed to toggle tracking:', error);
     }
   };
+
   const handleRequestNotificationPermission = async () => {
     try {
       const permissions = await pushNotificationService.requestPermissions();
@@ -87,6 +93,7 @@ const Device = () => {
       throw error;
     }
   };
+
   const handleRefresh = async () => {
     try {
       console.log('Refreshing device data...');
@@ -108,7 +115,9 @@ const Device = () => {
       });
     }
   };
-  return <div className="min-h-screen bg-blue-50 pb-20">
+
+  return (
+    <div className="min-h-screen bg-blue-50 safe-area-pt">
       {/* Platform info for debugging */}
       {process.env.NODE_ENV === 'development'}
       
@@ -124,14 +133,27 @@ const Device = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <LocationControls locationPermission={locationPermission} currentLocation={currentLocation} isTracking={isTracking} onGetLocation={handleGetLocation} onToggleTracking={handleToggleTracking} />
+            <LocationControls 
+              locationPermission={locationPermission} 
+              currentLocation={currentLocation} 
+              isTracking={isTracking} 
+              onGetLocation={handleGetLocation} 
+              onToggleTracking={handleToggleTracking} 
+            />
 
-            <NotificationControls isNative={isNative} hasPermission={notificationPermission} onSendTestNotification={sendTestNotification} onRequestPermission={handleRequestNotificationPermission} />
+            <NotificationControls 
+              isNative={isNative} 
+              hasPermission={notificationPermission} 
+              onSendTestNotification={sendTestNotification} 
+              onRequestPermission={handleRequestNotificationPermission} 
+            />
 
             <SecurityStatus />
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Device;

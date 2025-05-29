@@ -1,3 +1,4 @@
+
 import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -84,9 +85,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-20">
+    <div className="min-h-screen bg-blue-50 safe-area-pt">
       <div className="p-4 space-y-6">
-        <div className="text-center">
+        <div className="text-center pt-safe">
           <h2 className="text-xl font-bold text-gray-900">Instellingen</h2>
           <p className="text-sm text-gray-600">Beheer uw account en apparaten</p>
         </div>
@@ -124,7 +125,7 @@ const Settings = () => {
                 {category.items.map((item, itemIndex) => (
                   <div
                     key={itemIndex}
-                    className="p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors active:bg-gray-100"
                     onClick={() => handleSettingClick(item.name)}
                   >
                     <div className="flex items-center justify-between">
