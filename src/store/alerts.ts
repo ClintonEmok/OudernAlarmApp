@@ -11,6 +11,12 @@ export interface AlertActions {
 
 export type AlertSlice = AlertState & AlertActions;
 
+// Define the API response structure
+interface ApiAlertResponse {
+  data?: any[];
+  [key: string]: any;
+}
+
 // Transform API response to match our Alert interface
 const transformApiAlert = (apiAlert: any): Alert => {
   console.log('Transforming API alert:', apiAlert);
@@ -56,7 +62,7 @@ export const createAlertSlice: StateCreator<
   fetchAlerts: async () => {
     try {
       console.log('Fetching alerts from API...');
-      const response = await apiService.getDeviceAlarms();
+      const response = await apiService.getDeviceAlarms() as ApiAlertResponse;
       console.log('Raw API response:', response);
       
       // Handle paginated response - extract data array

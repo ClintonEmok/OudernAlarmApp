@@ -1,3 +1,4 @@
+
 import { AlertTriangle, Phone, MapPin, Clock, CheckCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
@@ -6,7 +7,7 @@ import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 const AlertList = () => {
@@ -246,7 +247,7 @@ const AlertList = () => {
                     {alert.description || alert.message || 'Geen beschrijving beschikbaar'}
                   </p>
                   
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex flex-col space-y-2 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Clock size={14} />
                       <span>
@@ -259,6 +260,12 @@ const AlertList = () => {
                         }
                       </span>
                     </div>
+                    
+                    {alert.created_at && (
+                      <div className="text-xs text-gray-400 pl-5">
+                        Exacte tijd: {format(new Date(alert.created_at), 'dd-MM-yyyy HH:mm:ss', { locale: nl })}
+                      </div>
+                    )}
                     
                     {alert.location && (
                       <div className="flex items-center space-x-1">
