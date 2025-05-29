@@ -11,6 +11,7 @@ import NotificationControls from '../components/NativeFeatures/NotificationContr
 import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
+import { pushNotificationService } from '../services/push-notification-service';
 
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
@@ -18,6 +19,8 @@ const Device = () => {
     isNative: false,
     isMobile: false
   });
+
+  const [notificationPermission, setNotificationPermission] = useState(false);
 
   const { fetchDevices } = useStore();
   const { toast } = useToast();
@@ -41,6 +44,18 @@ const Device = () => {
       isNative: capacitorService.isNative(),
       isMobile: capacitorService.isMobile()
     });
+
+    // Check notification permissions
+    const checkNotificationPermissions = async () => {
+      try {
+        const permissions = await pushNotificationService.checkPermissions();
+        setNotificationPermission(permissions.receive === 'granted');
+      } catch (error) {
+        console.error('Failed to check notification permissions:', error);
+      }
+    };
+
+    checkNotificationPermissions();
   }, []);
 
   const handleGetLocation = async () => {
@@ -66,6 +81,16 @@ const Device = () => {
       }
     } catch (error) {
       console.error('Failed to toggle tracking:', error);
+    }
+  };
+
+  const handleRequestNotificationPermission = async () => {
+    try {
+      const permissions = await pushNotificationService.requestPermissions();
+      setNotificationPermission(permissions.receive === 'granted');
+    } catch (error) {
+      console.error('Failed to request notification permissions:', error);
+      throw error;
     }
   };
 
@@ -124,7 +149,9 @@ const Device = () => {
 
             <NotificationControls
               isNative={isNative}
+              hasPermission={notificationPermission}
               onSendTestNotification={sendTestNotification}
+              onRequestPermission={handleRequestNotificationPermission}
             />
 
             <SecurityStatus />

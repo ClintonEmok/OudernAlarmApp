@@ -5,7 +5,7 @@ import { LucideIcon } from 'lucide-react';
 interface NativeFeatureCardProps {
   icon: LucideIcon;
   iconColor: string;
-  title: string;
+  title: string | React.ReactNode;
   description: string;
   actions?: React.ReactNode;
   statusIndicator?: React.ReactNode;
@@ -24,12 +24,14 @@ const NativeFeatureCard: React.FC<NativeFeatureCardProps> = ({
       <div className="flex items-center space-x-3">
         <Icon className={`h-5 w-5 ${iconColor}`} />
         <div>
-          <p className="font-medium">{title}</p>
+          <div className="font-medium flex items-center gap-2">
+            {title}
+            {statusIndicator}
+          </div>
           <p className="text-sm text-gray-600">{description}</p>
         </div>
       </div>
       {actions && <div className="flex space-x-2">{actions}</div>}
-      {statusIndicator && statusIndicator}
     </div>
   );
 };

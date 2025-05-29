@@ -1,4 +1,3 @@
-
 import { PushNotifications, PushNotificationSchema, ActionPerformed, Token } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { capacitorService } from './capacitor-service';
@@ -13,6 +12,13 @@ export interface NotificationPermissionStatus {
   receive: 'granted' | 'denied' | 'prompt';
   local: 'granted' | 'denied' | 'prompt';
 }
+
+// Helper function to normalize permission states
+const normalizePermissionState = (state: string): 'granted' | 'denied' | 'prompt' => {
+  if (state === 'granted') return 'granted';
+  if (state === 'denied') return 'denied';
+  return 'prompt'; // includes 'prompt-with-rationale' and other states
+};
 
 class PushNotificationService {
   private isInitialized = false;
@@ -40,7 +46,7 @@ class PushNotificationService {
       if (this.permissionStatus.receive !== 'granted') {
         const permissionResult = await PushNotifications.requestPermissions();
         console.log('Push notification permission:', permissionResult);
-        this.permissionStatus.receive = permissionResult.receive;
+        this.permissionStatus.receive = normalizePermissionState(permissionResult.receive);
       }
 
       if (this.permissionStatus.receive === 'granted') {
@@ -69,14 +75,15 @@ class PushNotificationService {
         const localPermissions = await LocalNotifications.checkPermissions();
         
         this.permissionStatus = {
-          receive: pushPermissions.receive,
-          local: localPermissions.display
+          receive: normalizePermissionState(pushPermissions.receive),
+          local: normalizePermissionState(localPermissions.display)
         };
       } else {
         // Web notification permission check
         if ('Notification' in window) {
-          this.permissionStatus.receive = Notification.permission as any;
-          this.permissionStatus.local = Notification.permission as any;
+          const permission = normalizePermissionState(Notification.permission);
+          this.permissionStatus.receive = permission;
+          this.permissionStatus.local = permission;
         }
       }
       
@@ -95,15 +102,16 @@ class PushNotificationService {
         const localPermissions = await LocalNotifications.requestPermissions();
         
         this.permissionStatus = {
-          receive: pushPermissions.receive,
-          local: localPermissions.display
+          receive: normalizePermissionState(pushPermissions.receive),
+          local: normalizePermissionState(localPermissions.display)
         };
       } else {
         // Web notification permission request
         if ('Notification' in window) {
           const permission = await Notification.requestPermission();
-          this.permissionStatus.receive = permission as any;
-          this.permissionStatus.local = permission as any;
+          const normalizedPermission = normalizePermissionState(permission);
+          this.permissionStatus.receive = normalizedPermission;
+          this.permissionStatus.local = normalizedPermission;
         }
       }
       

@@ -108,14 +108,10 @@ const NotificationControls: React.FC<NotificationControlsProps> = ({
     <NativeFeatureCard
       icon={Bell}
       iconColor={getIconColor()}
-      title={
-        <div className="flex items-center gap-2">
-          Push Notificaties
-          {getStatusIcon()}
-        </div>
-      }
+      title="Push Notificaties"
       description={getDescription()}
       actions={actions}
+      statusIndicator={getStatusIcon()}
     />
   );
 };
