@@ -1,5 +1,5 @@
 
-import { User, Smartphone, Users, MapPin } from 'lucide-react';
+import { User, Smartphone, Users, MapPin, Bell } from 'lucide-react';
 
 export const settingsCategories = [
   {
@@ -14,6 +14,11 @@ export const settingsCategories = [
   {
     title: 'Kaart & Locatie',
     icon: MapPin,
+    items: []
+  },
+  {
+    title: 'Notificaties',
+    icon: Bell,
     items: []
   },
   {

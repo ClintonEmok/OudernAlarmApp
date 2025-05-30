@@ -15,6 +15,14 @@ interface SettingsCategoryProps {
   items: SettingItem[];
   showUserLocationOnMap?: boolean;
   onToggleUserLocation?: (value: boolean) => void;
+  notificationsEnabled?: boolean;
+  alarmNotificationsEnabled?: boolean;
+  batteryNotificationsEnabled?: boolean;
+  locationNotificationsEnabled?: boolean;
+  onToggleNotifications?: (value: boolean) => void;
+  onToggleAlarmNotifications?: (value: boolean) => void;
+  onToggleBatteryNotifications?: (value: boolean) => void;
+  onToggleLocationNotifications?: (value: boolean) => void;
   onSettingClick: (settingName: string) => void;
 }
 
@@ -24,6 +32,14 @@ const SettingsCategory = ({
   items, 
   showUserLocationOnMap,
   onToggleUserLocation,
+  notificationsEnabled,
+  alarmNotificationsEnabled,
+  batteryNotificationsEnabled,
+  locationNotificationsEnabled,
+  onToggleNotifications,
+  onToggleAlarmNotifications,
+  onToggleBatteryNotifications,
+  onToggleLocationNotifications,
   onSettingClick 
 }: SettingsCategoryProps) => {
   return (
@@ -49,6 +65,67 @@ const SettingsCategory = ({
                 />
               </div>
             </div>
+          )}
+
+          {/* Special handling for Notificaties category */}
+          {title === 'Notificaties' && (
+            <>
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Push Notificaties</h4>
+                    <p className="text-sm text-gray-600">Ontvang notificaties van de app</p>
+                  </div>
+                  <Switch
+                    checked={notificationsEnabled || false}
+                    onCheckedChange={onToggleNotifications}
+                  />
+                </div>
+              </div>
+              
+              {notificationsEnabled && (
+                <>
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Alarm Meldingen</h4>
+                        <p className="text-sm text-gray-600">Notificaties bij noodoproepen en vallen</p>
+                      </div>
+                      <Switch
+                        checked={alarmNotificationsEnabled || false}
+                        onCheckedChange={onToggleAlarmNotifications}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Batterij Waarschuwingen</h4>
+                        <p className="text-sm text-gray-600">Meldingen bij lage batterij</p>
+                      </div>
+                      <Switch
+                        checked={batteryNotificationsEnabled || false}
+                        onCheckedChange={onToggleBatteryNotifications}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 border-b border-gray-100 last:border-b-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Locatie Updates</h4>
+                        <p className="text-sm text-gray-600">Meldingen bij locatie wijzigingen</p>
+                      </div>
+                      <Switch
+                        checked={locationNotificationsEnabled || false}
+                        onCheckedChange={onToggleLocationNotifications}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
           )}
           
           {items.map((item, itemIndex) => (
