@@ -4,7 +4,7 @@ import { useStore } from '../../../store/useStore';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAlertLoading = () => {
-  const { alerts, fetchAlerts, authorizedDevicePhones } = useStore();
+  const { alerts, fetchAlerts, authorizedDevicePhones, refreshAll } = useStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [securityWarnings, setSecurityWarnings] = useState<string[]>([]);
@@ -83,29 +83,29 @@ export const useAlertLoading = () => {
     console.log('🔒 Authorized device phones:', Array.from(authorizedDevicePhones));
   }, [alerts, authorizedDevicePhones]);
 
-  // Debounced refresh function to prevent rapid clicking
+  // Use central refresh function for consistency
   const handleRefresh = useCallback(async () => {
     if (isLoading) return; // Prevent multiple simultaneous refreshes
     
     setIsLoading(true);
     try {
-      console.log('Manual refresh triggered');
-      await fetchAlerts();
+      console.log('Manual refresh triggered - using central refresh');
+      await refreshAll(); // Use central refresh for both devices and alerts
       toast({
         title: "✓ Ververst",
-        description: "Alarmen zijn bijgewerkt.",
+        description: "Alarmen en apparaten zijn bijgewerkt.",
       });
     } catch (error) {
-      console.error('Failed to refresh alerts:', error);
+      console.error('Failed to refresh:', error);
       toast({
         title: "Verversen Mislukt",
-        description: "Kon alarmen niet verversen.",
+        description: "Kon gegevens niet verversen.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  }, [fetchAlerts, toast, isLoading]);
+  }, [refreshAll, toast, isLoading]);
 
   return {
     alerts,

@@ -18,6 +18,8 @@ interface AppState extends
   setLoading: (loading: boolean) => void;
   // Device info actions
   setDeviceInfo: (info: DeviceInfo) => void;
+  // Central refresh function
+  refreshAll: () => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get, api) => ({
@@ -42,6 +44,26 @@ export const useStore = create<AppState>((set, get, api) => ({
   
   // Device info actions
   setDeviceInfo: (info) => set({ deviceInfo: info }),
+  
+  // Central refresh function that updates both devices and alerts
+  refreshAll: async () => {
+    console.log('🔄 Starting central refresh for devices and alerts...');
+    set({ isLoading: true });
+    
+    try {
+      // Fetch devices and alerts in parallel
+      await Promise.all([
+        get().fetchDevices(),
+        get().fetchAlerts()
+      ]);
+      console.log('✅ Central refresh completed successfully');
+    } catch (error) {
+      console.error('❌ Central refresh failed:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
   
   // Auth slice
   ...createAuthSlice(set, get, api),
