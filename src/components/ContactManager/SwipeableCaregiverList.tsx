@@ -1,17 +1,17 @@
-
 import React, { useState, useRef } from 'react';
 import { Phone, Edit, Star, Trash2, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Contact } from '../../types';
-
 interface SwipeableCaregiverListProps {
   caregivers: Contact[];
-  onUpdatePriorities: (caregivers: Array<{ user_id: number; priority: number }>) => Promise<void>;
+  onUpdatePriorities: (caregivers: Array<{
+    user_id: number;
+    priority: number;
+  }>) => Promise<void>;
   onRemoveCaregiver: (caregiver: Contact) => void;
   onEditCaregiver: (caregiverId: number, priority: number) => void;
 }
-
 const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
   caregivers,
   onUpdatePriorities,
@@ -21,39 +21,32 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOver, setDraggedOver] = useState<number | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
-
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedItem(index);
     e.dataTransfer.effectAllowed = 'move';
-    
+
     // Style the dragged element
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
     }
   };
-
   const handleDragEnd = (e: React.DragEvent) => {
     // Reset opacity
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '1';
     }
-    
     setDraggedItem(null);
     setDraggedOver(null);
   };
-
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     setDraggedOver(index);
   };
-
   const handleDragLeave = () => {
     setDraggedOver(null);
   };
-
   const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
-    
     if (draggedItem === null || draggedItem === dropIndex) {
       setDraggedItem(null);
       setDraggedOver(null);
@@ -63,7 +56,7 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
     // Create new array with reordered items
     const newCaregivers = [...caregivers];
     const draggedCaregiver = newCaregivers[draggedItem];
-    
+
     // Remove dragged item and insert at new position
     newCaregivers.splice(draggedItem, 1);
     newCaregivers.splice(dropIndex, 0, draggedCaregiver);
@@ -73,34 +66,16 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
       user_id: parseInt(caregiver.id),
       priority: index + 1
     }));
-
     try {
       await onUpdatePriorities(updatedCaregivers);
     } catch (error) {
       console.error('Failed to update priorities:', error);
     }
-
     setDraggedItem(null);
     setDraggedOver(null);
   };
-
-  return (
-    <div className="space-y-3">
-      {caregivers.map((caregiver, index) => (
-        <Card 
-          key={caregiver.id} 
-          className={`border-blue-100 transition-all duration-200 ${
-            draggedOver === index ? 'border-blue-300 shadow-md' : ''
-          } ${
-            draggedItem === index ? 'opacity-50' : ''
-          }`}
-          draggable
-          onDragStart={(e) => handleDragStart(e, index)}
-          onDragEnd={handleDragEnd}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, index)}
-        >
+  return <div className="space-y-3">
+      {caregivers.map((caregiver, index) => <Card key={caregiver.id} className={`border-blue-100 transition-all duration-200 ${draggedOver === index ? 'border-blue-300 shadow-md' : ''} ${draggedItem === index ? 'opacity-50' : ''}`} draggable onDragStart={e => handleDragStart(e, index)} onDragEnd={handleDragEnd} onDragOver={e => handleDragOver(e, index)} onDragLeave={handleDragLeave} onDrop={e => handleDrop(e, index)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -118,11 +93,7 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
                 
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-lg">
-                      {caregiver.name.charAt(0)}
-                    </span>
-                  </div>
+                  
                 </div>
                 
                 <div>
@@ -133,41 +104,24 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
                     </div>
                   </div>
                   <p className="text-sm text-gray-600">{caregiver.email}</p>
-                  {caregiver.phone_number && (
-                    <p className="text-sm text-gray-500">{caregiver.phone_number}</p>
-                  )}
+                  {caregiver.phone_number && <p className="text-sm text-gray-500">{caregiver.phone_number}</p>}
                 </div>
               </div>
               
               <div className="flex space-x-2">
-                {caregiver.phone_number && (
-                  <Button size="sm" variant="outline" className="p-2">
+                {caregiver.phone_number && <Button size="sm" variant="outline" className="p-2">
                     <Phone size={16} />
-                  </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="p-2" 
-                  onClick={() => onEditCaregiver(parseInt(caregiver.id), caregiver.priority)}
-                >
+                  </Button>}
+                <Button size="sm" variant="outline" className="p-2" onClick={() => onEditCaregiver(parseInt(caregiver.id), caregiver.priority)}>
                   <Edit size={16} />
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="p-2 text-red-600 border-red-300 hover:bg-red-50" 
-                  onClick={() => onRemoveCaregiver(caregiver)}
-                >
+                <Button size="sm" variant="outline" className="p-2 text-red-600 border-red-300 hover:bg-red-50" onClick={() => onRemoveCaregiver(caregiver)}>
                   <Trash2 size={16} />
                 </Button>
               </div>
             </div>
           </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+        </Card>)}
+    </div>;
 };
-
 export default SwipeableCaregiverList;
