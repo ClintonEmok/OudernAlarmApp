@@ -150,11 +150,7 @@ const Device = () => {
                   onRequestPermission={handleRequestNotificationPermission}
                 />
                 
-                <SecurityStatus
-                  isInitialized={isInitialized}
-                  locationPermission={locationPermission}
-                  notificationPermission={notificationPermission}
-                />
+                <SecurityStatus />
               </CardContent>
             </Card>
           </div>
