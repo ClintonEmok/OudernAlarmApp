@@ -75,9 +75,9 @@ const MapView = () => {
           showUserLocation={showUserLocation} 
         />
 
-        {/* Floating Location Card */}
+        {/* Floating Location Card - positioned lower for iPhone */}
         {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-4 left-4 right-4 z-10">
+          <div className="absolute top-20 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <div>
