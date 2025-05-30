@@ -11,7 +11,6 @@ import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
 import { pushNotificationService } from '../services/push-notification-service';
-
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
     platform: '',
@@ -37,7 +36,6 @@ const Device = () => {
     requestLocationPermissions,
     sendTestNotification
   } = useNativeFeatures();
-
   useEffect(() => {
     setPlatformInfo({
       platform: capacitorService.getPlatform(),
@@ -56,7 +54,6 @@ const Device = () => {
     };
     checkNotificationPermissions();
   }, []);
-
   const handleGetLocation = async () => {
     try {
       if (!locationPermission) {
@@ -67,7 +64,6 @@ const Device = () => {
       console.error('Failed to get location:', error);
     }
   };
-
   const handleToggleTracking = async () => {
     try {
       if (isTracking) {
@@ -82,7 +78,6 @@ const Device = () => {
       console.error('Failed to toggle tracking:', error);
     }
   };
-
   const handleRequestNotificationPermission = async () => {
     try {
       const permissions = await pushNotificationService.requestPermissions();
@@ -92,7 +87,6 @@ const Device = () => {
       throw error;
     }
   };
-
   const handleRefresh = async () => {
     try {
       console.log('Refreshing device data...');
@@ -114,9 +108,7 @@ const Device = () => {
       });
     }
   };
-
-  return (
-    <div className="h-full bg-blue-50 flex flex-col">
+  return <div className="h-full bg-blue-50 flex flex-col">
       <div className="flex-1 overflow-y-auto pt-safe">
         {/* Platform info for debugging */}
         {process.env.NODE_ENV === 'development'}
@@ -124,37 +116,8 @@ const Device = () => {
         <DeviceStatus onRefresh={handleRefresh} />
 
         {/* Native Features Section */}
-        <div className="p-4 space-y-4 pb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Smartphone className="h-5 w-5 text-blue-600" />
-                <span>Native Features</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <LocationControls 
-                locationPermission={locationPermission} 
-                currentLocation={currentLocation} 
-                isTracking={isTracking} 
-                onGetLocation={handleGetLocation} 
-                onToggleTracking={handleToggleTracking} 
-              />
-
-              <NotificationControls 
-                isNative={isNative} 
-                hasPermission={notificationPermission} 
-                onSendTestNotification={sendTestNotification} 
-                onRequestPermission={handleRequestNotificationPermission} 
-              />
-
-              <SecurityStatus />
-            </CardContent>
-          </Card>
-        </div>
+        
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Device;
