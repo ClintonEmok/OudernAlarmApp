@@ -79,7 +79,7 @@ const MapView = () => {
         {selectedDevice && selectedDevice.location && (
           <div className="absolute top-4 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <div>
                   <h3 className="text-sm text-gray-500 font-medium mb-1">Huidige locatie</h3>
                   <div className="flex items-center space-x-2">
@@ -121,19 +121,20 @@ const MapView = () => {
                 </div>
               </div>
 
-              {/* Controls */}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1">
-                    <Battery size={16} className="text-green-600" />
-                    <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
-                  </div>
-                  <div className="flex items-center space-x-1 text-green-600">
-                    <Shield size={16} />
-                    <span className="text-sm font-medium">Veilig</span>
-                  </div>
+              {/* Status indicators */}
+              <div className="flex items-center space-x-4 mb-3">
+                <div className="flex items-center space-x-1">
+                  <Battery size={16} className="text-green-600" />
+                  <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
                 </div>
-                
+                <div className="flex items-center space-x-1 text-green-600">
+                  <Shield size={16} />
+                  <span className="text-sm font-medium">Veilig</span>
+                </div>
+              </div>
+
+              {/* Controls at the bottom */}
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <div className="flex items-center space-x-2">
                   {/* Device refresh button */}
                   <Button 
@@ -141,10 +142,11 @@ const MapView = () => {
                     size="sm" 
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="p-1 h-8 w-8" 
+                    className="px-3 py-2" 
                     title="Ververs apparaat locatie"
                   >
                     <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                    <span className="ml-1 text-xs">Ververs</span>
                   </Button>
                   
                   {/* User location toggle */}
@@ -152,10 +154,13 @@ const MapView = () => {
                     variant={showUserLocation ? "default" : "outline"} 
                     size="sm" 
                     onClick={handleToggleUserLocation} 
-                    className="p-1 h-8 w-8" 
+                    className="px-3 py-2" 
                     title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
                   >
                     {showUserLocation ? <User size={14} /> : <UserX size={14} />}
+                    <span className="ml-1 text-xs">
+                      {showUserLocation ? "Verberg" : "Toon"}
+                    </span>
                   </Button>
                 </div>
               </div>
