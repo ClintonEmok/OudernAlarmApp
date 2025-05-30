@@ -66,83 +66,78 @@ const MapView = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Full Screen Map */}
-      <div className="flex-1 relative">
-        <InteractiveMap 
-          device={selectedDevice} 
-          mapboxToken={DEFAULT_MAPBOX_TOKEN} 
-          userLocation={currentLocation} 
-          showUserLocation={showUserLocation} 
-        />
-        
-        {/* Floating Location Card - only show when device is selected */}
-        {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-4 left-4 right-4 z-10">
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-4 max-w-md">
-              {/* Controls Row */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1">
-                    <Battery size={16} className="text-green-600" />
-                    <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
-                  </div>
-                  <div className="flex items-center space-x-1 text-green-600">
-                    <Shield size={16} />
-                    <span className="text-sm font-medium">Veilig</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  {/* Device refresh button */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="p-1 h-8 w-8" 
-                    title="Ververs apparaat locatie"
-                  >
-                    <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-                  </Button>
-                  
-                  {/* User location toggle */}
-                  <Button 
-                    variant={showUserLocation ? "default" : "outline"} 
-                    size="sm" 
-                    onClick={handleToggleUserLocation} 
-                    className="p-1 h-8 w-8" 
-                    title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
-                  >
-                    {showUserLocation ? <User size={14} /> : <UserX size={14} />}
-                  </Button>
-                </div>
+      {/* Clean Status Bar - only show when device is selected */}
+      {selectedDevice && (
+        <div className="bg-white p-4 border-b border-blue-100 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                <Battery size={16} className="text-green-600" />
+                <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 text-green-600">
+                <Shield size={16} />
+                <span className="text-sm font-medium">Veilig</span>
               </div>
               
-              {/* Location Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
+              {/* Device refresh button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="p-1 h-8 w-8" 
+                title="Ververs apparaat locatie"
+              >
+                <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+              </Button>
+              
+              {/* User location toggle */}
+              <Button 
+                variant={showUserLocation ? "default" : "outline"} 
+                size="sm" 
+                onClick={handleToggleUserLocation} 
+                className="p-1 h-8 w-8" 
+                title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
+              >
+                {showUserLocation ? <User size={14} /> : <UserX size={14} />}
+              </Button>
+            </div>
+          </div>
+          
+          {selectedDevice.location && (
+            <div className="space-y-3">
+              {/* Location Title and Time */}
+              <div className="flex items-center justify-between">
+                <div>
                   <h3 className="text-sm text-gray-500 font-medium">Huidige locatie</h3>
-                  {addressLoading ? (
-                    <span className="text-lg font-semibold text-gray-900">Laden...</span>
-                  ) : address ? (
-                    <span className="text-lg font-semibold text-gray-900">
-                      {address.components.city || 'Thuis'}
-                    </span>
-                  ) : addressError ? (
-                    <span className="text-lg font-semibold text-red-600">Onbekend</span>
-                  ) : (
-                    <span className="text-lg font-semibold text-gray-900">Thuis</span>
-                  )}
-                  {addressError && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={refetch} 
-                      className="p-1 h-6 w-6"
-                    >
-                      <RotateCcw size={12} />
-                    </Button>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    <MapPin size={16} className="text-blue-600" />
+                    {addressLoading ? (
+                      <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span>
+                    ) : address ? (
+                      <span className="text-lg font-semibold text-gray-900">
+                        {address.components.city || address.shortAddress || 'Thuis'}
+                      </span>
+                    ) : addressError ? (
+                      <span className="text-lg font-semibold text-red-600">Locatie onbekend</span>
+                    ) : (
+                      <span className="text-lg font-semibold text-gray-900">Thuis</span>
+                    )}
+                    {addressError && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={refetch} 
+                        className="p-1 h-6 w-6"
+                      >
+                        <RotateCcw size={12} />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">Laatste update</span>
@@ -156,7 +151,7 @@ const MapView = () => {
               </div>
               
               {/* Coordinates */}
-              <div className="text-sm text-gray-500 mb-2">
+              <div className="text-sm text-gray-500">
                 {selectedDevice.location.latitude.toFixed(4)}, {selectedDevice.location.longitude.toFixed(4)}
               </div>
 
@@ -170,8 +165,18 @@ const MapView = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
+
+      {/* Full Screen Map */}
+      <div className="flex-1 relative">
+        <InteractiveMap 
+          device={selectedDevice} 
+          mapboxToken={DEFAULT_MAPBOX_TOKEN} 
+          userLocation={currentLocation} 
+          showUserLocation={showUserLocation} 
+        />
       </div>
     </div>
   );
