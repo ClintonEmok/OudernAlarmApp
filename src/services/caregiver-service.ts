@@ -14,6 +14,10 @@ class CaregiverService {
     return httpClient.post('/user/caregivers/update', { caregivers });
   }
 
+  async reorderCaregivers(caregiver_ids: number[]) {
+    return httpClient.patch('/caregivers/reorder', { caregiver_ids });
+  }
+
   async inviteCaregiver(email: string) {
     return httpClient.post('/caregivers/invite', { email });
   }
@@ -33,6 +37,10 @@ class CaregiverService {
 
   async getPendingInvites() {
     return httpClient.get('/caregivers/invites/pending');
+  }
+
+  async validateInvite(token: string) {
+    return httpClient.get(`/invites/validate?token=${token}`, false);
   }
 }
 

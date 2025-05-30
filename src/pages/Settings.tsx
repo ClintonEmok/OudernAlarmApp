@@ -39,6 +39,9 @@ const Settings = () => {
       case 'Apparaat Ontkoppelen':
         navigate('/settings/device-unpairing');
         break;
+      case 'Apparaattoegang Aanvragen':
+        navigate('/settings/device-access-request');
+        break;
       case 'Hulp & Ondersteuning':
         navigate('/settings/support');
         break;
@@ -76,7 +79,8 @@ const Settings = () => {
       items: [
         { name: 'Mijn Apparaten', description: 'Gekoppelde alarm apparaten' },
         { name: 'Apparaat Koppelen', description: 'Nieuw apparaat toevoegen' },
-        { name: 'Apparaat Ontkoppelen', description: 'Apparaat verwijderen' }
+        { name: 'Apparaat Ontkoppelen', description: 'Apparaat verwijderen' },
+        { name: 'Apparaattoegang Aanvragen', description: 'Toegang tot ander apparaat' }
       ]
     }
   ];

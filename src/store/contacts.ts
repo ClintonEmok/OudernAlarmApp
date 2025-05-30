@@ -14,6 +14,7 @@ export interface ContactActions {
   removeCaregiver: (userId: number) => Promise<void>;
   acceptCaregiverInvite: (data: { token: string; name: string; password: string; password_confirmation: string }) => Promise<void>;
   updateCaregiverPriorities: (caregivers: Array<{ user_id: number; priority: number }>) => Promise<void>;
+  reorderCaregivers: (caregiver_ids: number[]) => Promise<void>;
 }
 
 export type ContactSlice = ContactState & ContactActions;
@@ -97,6 +98,16 @@ export const createContactSlice: StateCreator<
       await get().fetchCaregivers();
     } catch (error) {
       console.error('Failed to update caregiver priorities:', error);
+      throw error;
+    }
+  },
+
+  reorderCaregivers: async (caregiver_ids) => {
+    try {
+      await apiService.reorderCaregivers(caregiver_ids);
+      await get().fetchCaregivers();
+    } catch (error) {
+      console.error('Failed to reorder caregivers:', error);
       throw error;
     }
   }

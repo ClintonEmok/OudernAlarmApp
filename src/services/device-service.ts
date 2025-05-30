@@ -7,6 +7,11 @@ class DeviceService {
     return httpClient.get('/my-devices/own');
   }
 
+  async getAllMyDevices() {
+    // New endpoint that returns both own and caregiving devices
+    return httpClient.get('/my-devices');
+  }
+
   async getOwnDevices() {
     return httpClient.get('/my-devices/own');
   }

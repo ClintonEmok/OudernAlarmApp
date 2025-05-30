@@ -27,7 +27,7 @@ class ApiService {
   }
 
   async validateInvite(token: string) {
-    return authService.validateInvite(token);
+    return caregiverService.validateInvite(token);
   }
 
   // User Management
@@ -64,6 +64,10 @@ class ApiService {
     return caregiverService.updateCaregiverPriorities(caregivers);
   }
 
+  async reorderCaregivers(caregiver_ids: number[]) {
+    return caregiverService.reorderCaregivers(caregiver_ids);
+  }
+
   async inviteCaregiver(email: string) {
     return caregiverService.inviteCaregiver(email);
   }
@@ -88,6 +92,10 @@ class ApiService {
   // Device Management
   async getMyDevices() {
     return deviceService.getMyDevices();
+  }
+
+  async getAllMyDevices() {
+    return deviceService.getAllMyDevices();
   }
 
   async getOwnDevices() {
