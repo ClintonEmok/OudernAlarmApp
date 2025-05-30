@@ -76,7 +76,7 @@ const MapView = () => {
 
         {/* Floating Location Card - POSITION AANPASSEN: wijzig 'top-16' naar gewenste waarde */}
         {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-13 left-4 right-4 z-10">
+          <div className="absolute top-16 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <div>
