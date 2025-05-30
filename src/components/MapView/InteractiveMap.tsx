@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -219,8 +220,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Clean map style selector */}
-      <div className="absolute top-4 left-4 z-10">
+      {/* Clean map style selector - moved to bottom left */}
+      <div className="absolute bottom-4 left-4 z-10">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-2">
           <select 
             value={mapStyle} 
