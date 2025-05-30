@@ -1,7 +1,6 @@
-import { toZonedTime } from 'date-fns-tz';
-import { Alert } from '../../types';
 
-const AMSTERDAM_TIMEZONE = 'Europe/Amsterdam';
+import { Alert } from '../../types';
+import { toAmsterdamTime } from '../../utils/timezone';
 
 // Transform API response to match our Alert interface
 export const transformApiAlert = (apiAlert: any): Alert => {
@@ -17,21 +16,13 @@ export const transformApiAlert = (apiAlert: any): Alert => {
 
   const mappedType = typeMapping[apiAlert.triggered_alerts] || 'emergency';
   
-  // Convert UTC timestamp to Amsterdam timezone
-  const convertToAmsterdamTime = (utcTimestamp: string): Date => {
-    try {
-      const utcDate = new Date(utcTimestamp);
-      return toZonedTime(utcDate, AMSTERDAM_TIMEZONE);
-    } catch (error) {
-      console.error('Error converting timestamp to Amsterdam time:', error);
-      return new Date(utcTimestamp); // Fallback to original timestamp
-    }
-  };
+  // Convert UTC timestamp to Amsterdam timezone using central utility
+  const amsterdamTime = toAmsterdamTime(apiAlert.created_at);
   
   return {
     id: apiAlert.id.toString(),
     type: mappedType,
-    timestamp: convertToAmsterdamTime(apiAlert.created_at),
+    timestamp: amsterdamTime,
     isFalseAlarm: false,
     status: 'Active',
     // Map device information
@@ -40,7 +31,7 @@ export const transformApiAlert = (apiAlert: any): Alert => {
     title: `${apiAlert.triggered_alerts} Alarm`,
     description: `Alarm ontvangen van ${apiAlert.device?.user?.name || 'onbekend apparaat'}`,
     message: `${apiAlert.triggered_alerts} - ${apiAlert.device?.connection_number || 'Onbekend'}`,
-    created_at: apiAlert.created_at, // Keep original UTC timestamp for API consistency
+    created_at: apiAlert.created_at, // Keep original UTC timestamp for Amsterdam timezone conversion
     // Add location if available (the API might provide this in other endpoints)
     location: undefined
   };

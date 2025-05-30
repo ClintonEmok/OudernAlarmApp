@@ -1,11 +1,10 @@
+
 import { AlertTriangle, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { formatDistanceToNow, format } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
-import { nl } from 'date-fns/locale';
 import { Alert } from '../../types';
+import { getFormattedAmsterdamTime } from '../../utils/timezone';
 
 interface AlertCardProps {
   alert: Alert;
@@ -13,8 +12,6 @@ interface AlertCardProps {
   onViewLocation: (alert: Alert) => void;
   onMarkAsResolved: (alertId: string) => void;
 }
-
-const AMSTERDAM_TIMEZONE = 'Europe/Amsterdam';
 
 const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCardProps) => {
   const getAlertIcon = (type: string) => {
@@ -63,30 +60,15 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
     }
   };
 
-  const formatTimeInAmsterdam = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      
-      // Format relative time using Amsterdam timezone
-      const relativeTime = formatDistanceToNow(date, { 
-        addSuffix: true, 
-        locale: nl 
-      });
-
-      // Format exact time in Amsterdam timezone
-      const exactTime = formatInTimeZone(
-        date, 
-        AMSTERDAM_TIMEZONE, 
-        'dd-MM-yyyy HH:mm:ss', 
-        { locale: nl }
-      );
-
-      return { relativeTime, exactTime };
-    } catch (error) {
-      console.error('Error formatting time:', error);
-      return { relativeTime: 'Onbekend tijdstip', exactTime: 'Onbekend' };
+  // Use the central timezone utility for consistent time formatting
+  const getTimeInfo = () => {
+    if (alert.created_at) {
+      return getFormattedAmsterdamTime(alert.created_at);
     }
+    return { relativeTime: 'Onbekend tijdstip', exactTime: 'Onbekend' };
   };
+
+  const timeInfo = getTimeInfo();
 
   return (
     <Card className={`${getAlertColor(alert.type)} border-l-4`}>
@@ -118,19 +100,12 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
           <div className="flex flex-col space-y-2 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
               <Clock size={14} />
-              <span>
-                {alert.created_at 
-                  ? formatTimeInAmsterdam(alert.created_at).relativeTime
-                  : 'Onbekend tijdstip'
-                }
-              </span>
+              <span>{timeInfo.relativeTime}</span>
             </div>
             
-            {alert.created_at && (
-              <div className="text-xs text-gray-400 pl-5">
-                Exacte tijd: {formatTimeInAmsterdam(alert.created_at).exactTime}
-              </div>
-            )}
+            <div className="text-xs text-gray-400 pl-5">
+              Exacte tijd: {timeInfo.exactTime}
+            </div>
             
             {alert.location && (
               <div className="flex items-center space-x-1">
