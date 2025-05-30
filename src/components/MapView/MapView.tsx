@@ -66,52 +66,60 @@ const MapView = () => {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Clean Status Bar - only show when device is selected */}
-      {selectedDevice && (
-        <div className="bg-white p-4 border-b border-blue-100 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Battery size={16} className="text-green-600" />
-                <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 text-green-600">
-                <Shield size={16} />
-                <span className="text-sm font-medium">Veilig</span>
+      {/* Full Screen Map */}
+      <div className="flex-1 relative">
+        <InteractiveMap 
+          device={selectedDevice} 
+          mapboxToken={DEFAULT_MAPBOX_TOKEN} 
+          userLocation={currentLocation} 
+          showUserLocation={showUserLocation} 
+        />
+        
+        {/* Floating Location Card - only show when device is selected */}
+        {selectedDevice && selectedDevice.location && (
+          <div className="absolute top-4 left-4 right-4 z-10">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-4 max-w-md">
+              {/* Controls Row */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1">
+                    <Battery size={16} className="text-green-600" />
+                    <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <Shield size={16} />
+                    <span className="text-sm font-medium">Veilig</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {/* Device refresh button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="p-1 h-8 w-8" 
+                    title="Ververs apparaat locatie"
+                  >
+                    <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                  </Button>
+                  
+                  {/* User location toggle */}
+                  <Button 
+                    variant={showUserLocation ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={handleToggleUserLocation} 
+                    className="p-1 h-8 w-8" 
+                    title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
+                  >
+                    {showUserLocation ? <User size={14} /> : <UserX size={14} />}
+                  </Button>
+                </div>
               </div>
               
-              {/* Device refresh button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="p-1 h-8 w-8" 
-                title="Ververs apparaat locatie"
-              >
-                <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-              </Button>
-              
-              {/* User location toggle */}
-              <Button 
-                variant={showUserLocation ? "default" : "outline"} 
-                size="sm" 
-                onClick={handleToggleUserLocation} 
-                className="p-1 h-8 w-8" 
-                title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
-              >
-                {showUserLocation ? <User size={14} /> : <UserX size={14} />}
-              </Button>
-            </div>
-          </div>
-          
-          {selectedDevice.location && (
-            <div className="space-y-3">
-              {/* Restored original location header layout */}
-              <div className="flex items-center justify-between">
+              {/* Location Header */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm text-gray-500 font-medium">Huidige locatie</h3>
                   {addressLoading ? (
@@ -148,7 +156,7 @@ const MapView = () => {
               </div>
               
               {/* Coordinates */}
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 mb-2">
                 {selectedDevice.location.latitude.toFixed(4)}, {selectedDevice.location.longitude.toFixed(4)}
               </div>
 
@@ -162,18 +170,8 @@ const MapView = () => {
                 </div>
               )}
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Full Screen Map */}
-      <div className="flex-1 relative">
-        <InteractiveMap 
-          device={selectedDevice} 
-          mapboxToken={DEFAULT_MAPBOX_TOKEN} 
-          userLocation={currentLocation} 
-          showUserLocation={showUserLocation} 
-        />
+          </div>
+        )}
       </div>
     </div>
   );
