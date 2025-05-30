@@ -1,5 +1,5 @@
 
-import { AlertTriangle, Phone, MapPin, Clock, CheckCircle } from 'lucide-react';
+import { AlertTriangle, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -115,41 +115,19 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
             )}
           </div>
           
-          <div className="flex space-x-2 pt-2">
-            {alert.device_phone && (
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => onCall(alert.device_phone!)}
-                className="flex-1"
-              >
-                <Phone size={14} className="mr-1" />
-                Bellen
-              </Button>
-            )}
-            
-            {alert.location && (
+          {alert.location && (
+            <div className="pt-2">
               <Button 
                 size="sm" 
                 variant="outline"
                 onClick={() => onViewLocation(alert)}
-                className="flex-1"
+                className="w-full"
               >
                 <MapPin size={14} className="mr-1" />
-                Locatie
+                Bekijk Locatie
               </Button>
-            )}
-            
-            <Button 
-              size="sm" 
-              variant="default"
-              onClick={() => onMarkAsResolved(alert.id)}
-              className="flex-1"
-            >
-              <CheckCircle size={14} className="mr-1" />
-              Opgelost
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
