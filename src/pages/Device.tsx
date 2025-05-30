@@ -118,17 +118,7 @@ const Device = () => {
         {/* Platform info for debugging */}
         {process.env.NODE_ENV === 'development' && (
           <div className="p-4">
-            <DebugInfo 
-              platformInfo={platformInfo}
-              nativeFeatures={{
-                isInitialized,
-                isNative,
-                currentLocation,
-                locationPermission,
-                isTracking,
-                notificationPermission
-              }}
-            />
+            <DebugInfo />
           </div>
         )}
         
@@ -151,13 +141,13 @@ const Device = () => {
                   isTracking={isTracking}
                   onGetLocation={handleGetLocation}
                   onToggleTracking={handleToggleTracking}
-                  onRequestPermissions={requestLocationPermissions}
                 />
                 
                 <NotificationControls
-                  notificationPermission={notificationPermission}
-                  onRequestPermissions={handleRequestNotificationPermission}
-                  onSendTest={sendTestNotification}
+                  isNative={isNative}
+                  hasPermission={notificationPermission}
+                  onSendTestNotification={sendTestNotification}
+                  onRequestPermission={handleRequestNotificationPermission}
                 />
                 
                 <SecurityStatus
