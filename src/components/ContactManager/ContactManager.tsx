@@ -1,244 +1,231 @@
-import { Phone, Edit, Star, Shield, UserPlus, Trash2, Save, X, AlertCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useStore } from '../../store/useStore';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
-import SwipeableCaregiverList from './SwipeableCaregiverList';
 
-const ContactManager = () => {
-  useAuth();
-  const {
-    caregivers,
-    patients,
-    fetchCaregivers,
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { useStore } from '../../store/useStore';
+import { useToast } from '../../hooks/use-toast';
+import SwipeableCaregiverList from './SwipeableCaregiverList';
+import { Contact } from '../../types';
+
+const ContactManager: React.FC = () => {
+  const { 
+    caregivers, 
+    patients, 
+    pendingInvites,
+    fetchCaregivers, 
     fetchPatients,
-    inviteCaregiver,
+    fetchPendingInvites,
+    inviteCaregiver, 
     removeCaregiver,
-    updateCaregiverPriorities
+    updateCaregiverPriorities,
+    reorderCaregivers
   } = useStore();
+
   const { toast } = useToast();
-  
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [isInviting, setIsInviting] = useState(false);
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [editingCaregiver, setEditingCaregiver] = useState<number | null>(null);
-  const [editPriority, setEditPriority] = useState<number>(1);
-  const [removeDialog, setRemoveDialog] = useState<{
-    isOpen: boolean;
-    caregiver: any;
-  }>({
-    isOpen: false,
-    caregiver: null
-  });
-  const [patientsError, setPatientsError] = useState<boolean>(false);
+  const [newCaregiverEmail, setNewCaregiverEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
-      await fetchCaregivers();
       try {
-        await fetchPatients();
-        setPatientsError(false);
+        await Promise.all([
+          fetchCaregivers(),
+          fetchPatients(),
+          fetchPendingInvites()
+        ]);
       } catch (error) {
-        console.error('Failed to fetch patients:', error);
-        setPatientsError(true);
+        console.error('Failed to load contact data:', error);
       }
     };
+
     loadData();
-  }, [fetchCaregivers, fetchPatients]);
+  }, [fetchCaregivers, fetchPatients, fetchPendingInvites]);
 
   const handleInviteCaregiver = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
-    setIsInviting(true);
+    if (!newCaregiverEmail.trim()) return;
+
+    setIsLoading(true);
     try {
-      await inviteCaregiver(inviteEmail);
-      setInviteEmail('');
-      setShowInviteForm(false);
+      await inviteCaregiver(newCaregiverEmail);
+      setNewCaregiverEmail('');
       toast({
-        title: "✓ Uitnodiging Verstuurd",
-        description: `Uitnodiging is verstuurd naar ${inviteEmail}`
+        title: "Uitnodiging verzonden",
+        description: `Een uitnodiging is verzonden naar ${newCaregiverEmail}`,
       });
-    } catch (error: any) {
-      console.error('Failed to invite caregiver:', error);
-      let errorMessage = "Er is een fout opgetreden bij het versturen van de uitnodiging.";
-      if (error.message?.includes('409') || error.message?.includes('conflict')) {
-        errorMessage = "Deze persoon heeft al een uitnodiging ontvangen of is al gekoppeld.";
-      } else if (error.message?.includes('422')) {
-        errorMessage = "Ongeldig email adres of gebruiker bestaat niet.";
-      } else if (error.message?.includes('400')) {
-        errorMessage = "Controleer het email adres en probeer opnieuw.";
-      }
+    } catch (error) {
       toast({
-        title: "Uitnodiging Mislukt",
-        description: errorMessage,
-        variant: "destructive"
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het verzenden van de uitnodiging.",
+        variant: "destructive",
       });
     } finally {
-      setIsInviting(false);
+      setIsLoading(false);
     }
   };
 
-  const handleRemoveCaregiver = async () => {
-    if (!removeDialog.caregiver) return;
+  const handleRemoveCaregiver = async (caregiver: Contact) => {
     try {
-      await removeCaregiver(removeDialog.caregiver.id);
+      await removeCaregiver(parseInt(caregiver.id));
       toast({
-        title: "✓ Zorgverlener Verwijderd",
-        description: `${removeDialog.caregiver.name} is verwijderd uit uw contacten.`
+        title: "Zorgverlener verwijderd",
+        description: `${caregiver.name} is verwijderd uit uw zorgverleners.`,
       });
-      setRemoveDialog({ isOpen: false, caregiver: null });
     } catch (error) {
-      console.error('Failed to remove caregiver:', error);
       toast({
-        title: "Verwijderen Mislukt",
-        description: "Er is een fout opgetreden bij het verwijderen.",
-        variant: "destructive"
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het verwijderen van de zorgverlener.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleUpdatePriority = async (caregiverId: number, newPriority: number) => {
-    try {
-      const updatedCaregivers = caregivers.map(c => 
-        c.id === caregiverId.toString() 
-          ? { user_id: parseInt(c.id), priority: newPriority }
-          : { user_id: parseInt(c.id), priority: c.priority }
-      );
-      await updateCaregiverPriorities(updatedCaregivers);
-      setEditingCaregiver(null);
-      toast({
-        title: "✓ Prioriteit Bijgewerkt",
-        description: "De prioriteit is succesvol aangepast."
-      });
-    } catch (error) {
-      console.error('Failed to update priority:', error);
-      toast({
-        title: "Update Mislukt", 
-        description: "Er is een fout opgetreden bij het bijwerken van de prioriteit.",
-        variant: "destructive"
-      });
-    }
+  const handleEditCaregiver = (caregiverId: number, priority: number) => {
+    console.log('Edit caregiver:', caregiverId, priority);
+    // Implement edit functionality
   };
+
+  const filteredCaregivers = caregivers.filter(caregiver =>
+    caregiver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    caregiver.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredPatients = patients.filter(patient =>
+    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <>
-      <div className="p-4 space-y-6">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900">Contacten</h2>
-          <p className="text-sm text-gray-600">Beheer uw zorgverleners en gekoppelde accounts</p>
-        </div>
-
-        {/* Caregivers */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <Shield size={20} className="text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Zorgverleners</h3>
-            </div>
-            <Button size="sm" onClick={() => setShowInviteForm(!showInviteForm)}>
-              <UserPlus size={16} className="mr-1" />
-              Uitnodigen
-            </Button>
-          </div>
-
-          {/* Invite Form */}
-          {showInviteForm && (
-            <Card className="mb-3 border-blue-200">
-              <CardContent className="p-4">
-                <form onSubmit={handleInviteCaregiver} className="space-y-3">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email adres
-                    </label>
-                    <input 
-                      id="email" 
-                      type="email" 
-                      value={inviteEmail} 
-                      onChange={(e) => setInviteEmail(e.target.value)} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                      placeholder="zorgverlener@email.com" 
-                      required 
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button type="submit" size="sm" disabled={isInviting}>
-                      {isInviting ? 'Uitnodigen...' : 'Verstuur Uitnodiging'}
-                    </Button>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setShowInviteForm(false)}>
-                      Annuleren
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Swipeable Caregiver List */}
-          {caregivers.length > 0 ? (
-            <SwipeableCaregiverList
-              caregivers={caregivers}
-              onUpdatePriorities={updateCaregiverPriorities}
-              onRemoveCaregiver={(caregiver) => setRemoveDialog({ isOpen: true, caregiver })}
-              onEditCaregiver={(caregiverId, priority) => {
-                setEditingCaregiver(caregiverId);
-                setEditPriority(priority);
-              }}
-            />
-          ) : (
-            <Card className="text-center py-8">
-              <CardContent>
-                <Shield size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Geen Zorgverleners
-                </h3>
-                <p className="text-gray-600">
-                  Gebruik de uitnodiging functie om zorgverleners toe te voegen.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Patients / Gekoppelde Accounts */}
-        
+    <div className="space-y-6">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Input
+          placeholder="Zoek contacten..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
-      {/* Remove Confirmation Dialog */}
-      <Dialog open={removeDialog.isOpen} onOpenChange={(open) => !open && setRemoveDialog({ isOpen: false, caregiver: null })}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Trash2 className="h-5 w-5 text-red-500" />
-              <span>Zorgverlener Verwijderen</span>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <p className="text-gray-600">
-              Weet u zeker dat u <strong>{removeDialog.caregiver?.name}</strong> wilt verwijderen uit uw contacten?
-            </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-sm text-yellow-800">
-                Deze actie kan niet ongedaan gemaakt worden. De zorgverlener verliest toegang tot uw apparaten en alarmen.
-              </p>
+      {/* Pending Invites Alert */}
+      {pendingInvites.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <AlertCircle size={20} className="text-yellow-600" />
+              <div>
+                <h4 className="font-medium text-yellow-800">Openstaande uitnodigingen</h4>
+                <p className="text-sm text-yellow-700">
+                  U heeft {pendingInvites.length} openstaande uitnodiging(en) voor zorgverleners.
+                </p>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <DialogFooter className="flex space-x-2">
-            <Button variant="outline" onClick={() => setRemoveDialog({ isOpen: false, caregiver: null })}>
-              Annuleren
+      {/* Add New Caregiver */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Plus size={20} className="text-blue-600" />
+            <span>Zorgverlener Uitnodigen</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleInviteCaregiver} className="space-y-4">
+            <div>
+              <Label htmlFor="email">E-mailadres</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="zorgverlener@voorbeeld.nl"
+                value={newCaregiverEmail}
+                onChange={(e) => setNewCaregiverEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? 'Uitnodiging versturen...' : 'Uitnodiging versturen'}
             </Button>
-            <Button variant="destructive" onClick={handleRemoveCaregiver}>
-              <Trash2 size={16} className="mr-2" />
-              Verwijderen
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Caregivers List */}
+      {filteredCaregivers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SwipeableCaregiverList
+              caregivers={filteredCaregivers}
+              onUpdatePriorities={updateCaregiverPriorities}
+              onReorderCaregivers={reorderCaregivers}
+              onRemoveCaregiver={handleRemoveCaregiver}
+              onEditCaregiver={handleEditCaregiver}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Patients List */}
+      {filteredPatients.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Mijn Patiënten ({filteredPatients.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {filteredPatients.map((patient) => (
+                <Card key={patient.id} className="border-green-100">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{patient.name}</h4>
+                        <p className="text-sm text-gray-600">{patient.email}</p>
+                        {patient.phone_number && (
+                          <p className="text-sm text-gray-500">{patient.phone_number}</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {filteredCaregivers.length === 0 && filteredPatients.length === 0 && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-gray-400 mb-4">
+              <Search size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen contacten gevonden</h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm 
+                ? `Geen contacten gevonden voor "${searchTerm}"`
+                : "U heeft nog geen zorgverleners of patiënten."
+              }
+            </p>
+            {!searchTerm && (
+              <p className="text-sm text-gray-500">
+                Nodig een zorgverlener uit met het formulier hierboven.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

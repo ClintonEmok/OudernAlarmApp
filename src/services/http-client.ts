@@ -127,6 +127,20 @@ class HttpClient {
     return this.handleResponse(response);
   }
 
+  async patch(endpoint: string, data?: any, requireAuth = true) {
+    const requestOptions = await this.buildRequest(
+      endpoint, 
+      { 
+        method: 'PATCH',
+        body: data ? JSON.stringify(data) : undefined
+      }, 
+      requireAuth
+    );
+    
+    const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
+    return this.handleResponse(response);
+  }
+
   async delete(endpoint: string, data?: any, requireAuth = true) {
     const requestOptions = await this.buildRequest(
       endpoint, 
