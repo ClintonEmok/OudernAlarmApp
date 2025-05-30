@@ -1,14 +1,17 @@
 
-import { Settings as SettingsIcon, User, Smartphone, Users } from 'lucide-react';
+import { Settings as SettingsIcon, User, Smartphone, Users, MapPin } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Switch } from '../components/ui/switch';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { useState } from 'react';
 
 const Settings = () => {
   const { user, logout } = useStore();
   const navigate = useNavigate();
+  const [showUserLocationOnMap, setShowUserLocationOnMap] = useState(false);
 
   const handleSettingClick = (settingName: string) => {
     switch (settingName) {
@@ -53,6 +56,11 @@ const Settings = () => {
         { name: 'Wachtwoord Wijzigen', description: 'Account beveiliging' },
         { name: 'Account Verwijderen', description: 'Permanente verwijdering' }
       ]
+    },
+    {
+      title: 'Kaart & Locatie',
+      icon: <MapPin size={20} className="text-blue-600" />,
+      items: []
     },
     {
       title: 'Zorgverlening',
@@ -123,6 +131,22 @@ const Settings = () => {
               
               <Card>
                 <CardContent className="p-0">
+                  {/* Special handling for Kaart & Locatie category */}
+                  {category.title === 'Kaart & Locatie' && (
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Toon mijn locatie op kaart</h4>
+                          <p className="text-sm text-gray-600">Laat jouw huidige positie zien op de kaart</p>
+                        </div>
+                        <Switch
+                          checked={showUserLocationOnMap}
+                          onCheckedChange={setShowUserLocationOnMap}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   {category.items.map((item, itemIndex) => (
                     <div
                       key={itemIndex}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX, RefreshCw } from 'lucide-react';
+import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useAddressLookup } from '../../hooks/useAddressLookup';
 import { useLocationService } from '../../hooks/useLocationService';
@@ -76,7 +76,7 @@ const MapView = () => {
 
         {/* Floating Location Card - POSITION AANPASSEN: wijzig 'top-16' naar gewenste waarde */}
         {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-12 left-4 right-4 z-10">
+          <div className="absolute top-16 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -129,38 +129,6 @@ const MapView = () => {
                 <div className="flex items-center space-x-1 text-green-600">
                   <Shield size={16} />
                   <span className="text-sm font-medium">Veilig</span>
-                </div>
-              </div>
-
-              {/* Controls at the bottom */}
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div className="flex items-center space-x-2">
-                  {/* Device refresh button */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="px-3 py-2" 
-                    title="Ververs apparaat locatie"
-                  >
-                    <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-                    <span className="ml-1 text-xs">Ververs</span>
-                  </Button>
-                  
-                  {/* User location toggle */}
-                  <Button 
-                    variant={showUserLocation ? "default" : "outline"} 
-                    size="sm" 
-                    onClick={handleToggleUserLocation} 
-                    className="px-3 py-2" 
-                    title={showUserLocation ? "Verberg mijn locatie" : "Toon mijn locatie"}
-                  >
-                    {showUserLocation ? <User size={14} /> : <UserX size={14} />}
-                    <span className="ml-1 text-xs">
-                      {showUserLocation ? "Verberg" : "Toon"}
-                    </span>
-                  </Button>
                 </div>
               </div>
 
