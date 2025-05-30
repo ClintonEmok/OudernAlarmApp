@@ -110,34 +110,31 @@ const MapView = () => {
           
           {selectedDevice.location && (
             <div className="space-y-3">
-              {/* Location Title and Time */}
+              {/* Restored original location header layout */}
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex items-center space-x-2">
                   <h3 className="text-sm text-gray-500 font-medium">Huidige locatie</h3>
-                  <div className="flex items-center space-x-2">
-                    <MapPin size={16} className="text-blue-600" />
-                    {addressLoading ? (
-                      <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span>
-                    ) : address ? (
-                      <span className="text-lg font-semibold text-gray-900">
-                        {address.components.city || address.shortAddress || 'Thuis'}
-                      </span>
-                    ) : addressError ? (
-                      <span className="text-lg font-semibold text-red-600">Locatie onbekend</span>
-                    ) : (
-                      <span className="text-lg font-semibold text-gray-900">Thuis</span>
-                    )}
-                    {addressError && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={refetch} 
-                        className="p-1 h-6 w-6"
-                      >
-                        <RotateCcw size={12} />
-                      </Button>
-                    )}
-                  </div>
+                  {addressLoading ? (
+                    <span className="text-lg font-semibold text-gray-900">Laden...</span>
+                  ) : address ? (
+                    <span className="text-lg font-semibold text-gray-900">
+                      {address.components.city || 'Thuis'}
+                    </span>
+                  ) : addressError ? (
+                    <span className="text-lg font-semibold text-red-600">Onbekend</span>
+                  ) : (
+                    <span className="text-lg font-semibold text-gray-900">Thuis</span>
+                  )}
+                  {addressError && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={refetch} 
+                      className="p-1 h-6 w-6"
+                    >
+                      <RotateCcw size={12} />
+                    </Button>
+                  )}
                 </div>
                 <div className="text-right">
                   <span className="text-sm text-gray-500">Laatste update</span>
