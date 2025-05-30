@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -48,16 +47,16 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       attributionControl: false,
     });
 
-    // Add navigation controls
+    // Add navigation controls to bottom-right
     map.current.addControl(
       new mapboxgl.NavigationControl({
         visualizePitch: true,
       }),
-      'top-right'
+      'bottom-right'
     );
 
-    // Add fullscreen control
-    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    // Add fullscreen control to bottom-right
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
     // Create device marker if device exists
     if (device?.location) {
