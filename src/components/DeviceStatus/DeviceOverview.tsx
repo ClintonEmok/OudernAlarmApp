@@ -21,7 +21,13 @@ const DeviceOverview: React.FC<DeviceOverviewProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Smartphone size={24} className="text-purple-600" />
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="/lovable-uploads/1274f645-756b-4a0a-ba61-6ebae9af82e6.png" 
+                alt="Alarm Apparaat"
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div>
               <h3 className="font-semibold text-gray-900">
                 {device.nickname || 'Ouderen Alarm Apparaat'}
