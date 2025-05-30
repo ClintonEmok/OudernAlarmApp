@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX } from 'lucide-react';
 import { useStore } from '../../store/useStore';
@@ -74,12 +75,12 @@ const MapView = () => {
           showUserLocation={showUserLocation} 
         />
 
-        {/* Floating Location Card - POSITION AANPASSEN: wijzig 'top-16' naar gewenste waarde */}
+        {/* Floating Location Card */}
         {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-16 left-4 right-4 z-10">
+          <div className="absolute top-12 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-sm text-gray-500 font-medium mb-1">Huidige locatie</h3>
                   <div className="flex items-center space-x-2">
                     {addressLoading ? (
