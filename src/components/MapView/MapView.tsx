@@ -79,7 +79,7 @@ const MapView = () => {
         {selectedDevice && selectedDevice.location && (
           <div className="absolute top-12 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="text-sm text-gray-500 font-medium mb-1">Huidige locatie</h3>
                   <div className="flex items-center space-x-2">
