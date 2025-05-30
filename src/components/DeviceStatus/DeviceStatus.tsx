@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useAuth } from '../../hooks/useAuth';
@@ -9,7 +10,6 @@ import { AlertTriangle, Unlink, Smartphone } from 'lucide-react';
 import DeviceAssignment from '../DeviceAssignment/DeviceAssignment';
 import DeviceOverview from './DeviceOverview';
 import DeviceMetrics from './DeviceMetrics';
-import DeviceConnectionDetails from './DeviceConnectionDetails';
 import DeviceStatusIndicators from './DeviceStatusIndicators';
 
 interface DeviceStatusProps {
@@ -108,8 +108,6 @@ const DeviceStatus = ({ onRefresh }: DeviceStatusProps) => {
         />
 
         <DeviceMetrics device={selectedDevice} />
-
-        <DeviceConnectionDetails device={selectedDevice} />
 
         <DeviceStatusIndicators />
 

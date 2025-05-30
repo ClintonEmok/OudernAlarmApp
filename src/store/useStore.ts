@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { createAuthSlice, AuthSlice } from './auth';
 import { createDeviceSlice, DeviceSlice } from './devices';
@@ -31,8 +30,6 @@ export const useStore = create<AppState>((set, get, api) => ({
   
   deviceInfo: {
     batteryLevel: 85,
-    connectionType: '4G',
-    signalStrength: 4,
     lastUpdate: new Date()
   },
   

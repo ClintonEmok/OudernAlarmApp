@@ -32,8 +32,6 @@ export interface Device {
   phone_number: string;
   nickname?: string;
   batteryLevel: number;
-  signalStrength: number | null;
-  connectionType: string | null;
   lastUpdate: Date;
   firmwareVersion: string | null;
   status?: any;

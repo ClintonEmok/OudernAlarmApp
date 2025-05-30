@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -95,7 +94,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         <div class="p-2">
           <h3 class="font-semibold text-gray-900">${device.nickname || 'Ouderen Alarm'}</h3>
           <p class="text-sm text-gray-600">Batterij: ${device.batteryLevel}%</p>
-          <p class="text-sm text-gray-600">Signaal: ${device.signalStrength}/5</p>
           <p class="text-xs text-gray-500">
             Laatste update: ${new Date(device.lastUpdate).toLocaleTimeString('nl-NL', { 
               hour: '2-digit', 

@@ -1,10 +1,7 @@
-
 import { Alert, Contact, Device, User } from '../types';
 
 export interface DeviceInfo {
   batteryLevel: number;
-  connectionType: '5G' | '4G' | 'WiFi';
-  signalStrength: number;
   lastUpdate: Date;
 }
 

@@ -8,9 +8,13 @@ import AlertEmptyState from './AlertEmptyState';
 import SecurityWarnings from './SecurityWarnings';
 import { useAlertLoading } from './hooks/useAlertLoading';
 import { useAlertHandlers } from './utils/alertHandlers';
+import { useAlarmHandler } from '../../hooks/useAlarmHandler';
 
 const AlertList = () => {
   useAuth();
+  
+  // Use the alarm handler to trigger native features on new alarms
+  useAlarmHandler();
   
   const {
     alerts,
