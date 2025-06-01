@@ -67,7 +67,7 @@ const SupportTicket = () => {
 
       {/* Scrollable Content */}
       <ScrollArea className="flex-1">
-        <div className="p-4 pb-safe space-y-6">
+        <div className="px-4 pb-safe space-y-6">
           {/* Support Form */}
           <Card>
             <CardHeader>
@@ -151,16 +151,28 @@ const SupportTicket = () => {
           </Card>
 
           {/* Contact Info */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Andere contactmogelijkheden</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>📞 Telefoon: 085 - 123 4567</p>
-                <p>✉️ Email: support@ouderen-alarmering.nl</p>
-                <p>🕒 Bereikbaar: Ma-Vr 09:00 - 17:00</p>
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Andere contactmogelijkheden</h3>
+              <div className="space-y-3 text-sm text-gray-600">
+                <p className="flex items-center space-x-2">
+                  <span>📞</span>
+                  <span>Telefoon: 085 - 123 4567</span>
+                </p>
+                <p className="flex items-center space-x-2">
+                  <span>✉️</span>
+                  <span>Email: support@ouderen-alarmering.nl</span>
+                </p>
+                <p className="flex items-center space-x-2">
+                  <span>🕒</span>
+                  <span>Bereikbaar: Ma-Vr 09:00 - 17:00</span>
+                </p>
               </div>
             </CardContent>
           </Card>
+
+          {/* Extra whitespace for iPhone safe area */}
+          <div className="h-8"></div>
         </div>
       </ScrollArea>
     </div>
