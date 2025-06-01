@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { useToast } from '../../hooks/use-toast';
@@ -9,6 +8,7 @@ import CaregiversList from './CaregiversList';
 import CaregiverInviteForm from './CaregiverInviteForm';
 import PatientsList from './PatientsList';
 import EmptyContactsState from './EmptyContactsState';
+import { logger } from '../../utils/logger';
 
 const ContactManager: React.FC = () => {
   const { 
@@ -36,7 +36,7 @@ const ContactManager: React.FC = () => {
           fetchPendingInvites()
         ]);
       } catch (error) {
-        console.error('Failed to load contact data:', error);
+        logger.error('Failed to load contact data', error);
       }
     };
 
@@ -60,7 +60,7 @@ const ContactManager: React.FC = () => {
   };
 
   const handleEditCaregiver = (caregiverId: number, priority: number) => {
-    console.log('Edit caregiver:', caregiverId, priority);
+    logger.debug('Edit caregiver', { caregiverId, priority });
     // Implement edit functionality
   };
 
