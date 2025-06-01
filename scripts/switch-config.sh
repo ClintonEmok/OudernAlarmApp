@@ -1,11 +1,22 @@
 
+#!/bin/bash
+
+if [ "$1" = "dev" ]; then
+    echo "🔄 Switching to development configuration..."
+    cp capacitor.config.dev.ts capacitor.config.ts
+    echo "✅ Development configuration active"
+    echo "   - Hot reload enabled"
+    echo "   - Connected to Lovable sandbox"
+elif [ "$1" = "prod" ]; then
+    echo "🔄 Switching to production configuration..."
+    cp capacitor.config.ts capacitor.config.prod.ts 2>/dev/null || true
+    cat > capacitor.config.ts << 'EOF'
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.20e6451330784d2184e7e778b8320a52',
   appName: 'Ouderen Alarm',
   webDir: 'dist',
-  // Remove server configuration for production builds
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -51,3 +62,13 @@ const config: CapacitorConfig = {
 };
 
 export default config;
+EOF
+    echo "✅ Production configuration active"
+    echo "   - Standalone app mode"
+    echo "   - Ready for store deployment"
+else
+    echo "Usage: ./scripts/switch-config.sh [dev|prod]"
+    echo ""
+    echo "dev  - Switch to development configuration (hot reload)"
+    echo "prod - Switch to production configuration (standalone)"
+fi

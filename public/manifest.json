@@ -1,8 +1,9 @@
 
 {
-  "name": "Ouderen Alarmeringen",
+  "name": "Ouderen Alarm - Veiligheid en Monitoring",
   "short_name": "Ouderen Alarm",
-  "description": "Ouderen Alarmeringen - Veiligheid en monitoring voor ouderen",
+  "description": "Professionele alarmering en monitoring app voor ouderen met GPS tracking, noodknop functionaliteit en caregiver notificaties",
+  "version": "1.0.0",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#DBEAFE",
@@ -23,7 +24,16 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "medical", "lifestyle"],
-  "lang": "nl",
-  "dir": "ltr"
+  "categories": ["health", "medical", "lifestyle", "utilities"],
+  "lang": "nl-NL",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
 }

@@ -3,9 +3,12 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.20e6451330784d2184e7e778b8320a52',
-  appName: 'Ouderen Alarm',
+  appName: 'Ouderen Alarm (Dev)',
   webDir: 'dist',
-  // Remove server configuration for production builds
+  server: {
+    url: 'https://20e64513-3078-4d21-84e7-e778b8320a52.lovableproject.com?forceHideBadge=true',
+    cleartext: true
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -45,7 +48,7 @@ const config: CapacitorConfig = {
       keystorePassword: undefined,
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
-      releaseType: 'AAB'
+      releaseType: 'APK'
     }
   }
 };
