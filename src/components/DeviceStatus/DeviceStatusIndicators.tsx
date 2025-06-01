@@ -25,8 +25,6 @@ const DeviceStatusIndicators: React.FC = () => {
     isActive: true,
     color: 'bg-green-500'
   }];
-  return <Card>
-      
-    </Card>;
+  return;
 };
 export default DeviceStatusIndicators;
