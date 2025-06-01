@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Phone, Edit, Star, Trash2, GripVertical } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -25,7 +25,10 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
 }) => {
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOver, setDraggedOver] = useState<number | null>(null);
-  const dragRef = useRef<HTMLDivElement>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Calculate priority based on index if not set
   const getCaregiverWithPriority = (caregiver: Contact, index: number) => ({
@@ -33,23 +36,81 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
     priority: caregiver.priority || index + 1
   });
 
+  // Touch event handlers for mobile drag-and-drop
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    const touch = e.touches[0];
+    setTouchStartY(touch.clientY);
+    
+    // Start long press timer for drag mode
+    const timer = setTimeout(() => {
+      setIsDragging(true);
+      setDraggedItem(index);
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 500); // 500ms long press
+    
+    setLongPressTimer(timer);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent, index: number) => {
+    if (!isDragging || draggedItem === null) {
+      // Allow normal scrolling if not in drag mode
+      return;
+    }
+    
+    // Prevent default scrolling when dragging
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const cardElement = element?.closest('[data-caregiver-index]');
+    
+    if (cardElement) {
+      const targetIndex = parseInt(cardElement.getAttribute('data-caregiver-index') || '0');
+      if (targetIndex !== draggedItem) {
+        setDraggedOver(targetIndex);
+      }
+    }
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+
+    if (isDragging && draggedItem !== null && draggedOver !== null && draggedItem !== draggedOver) {
+      await handleReorder(draggedItem, draggedOver);
+    }
+
+    // Reset all drag states
+    setIsDragging(false);
+    setDraggedItem(null);
+    setDraggedOver(null);
+    setTouchStartY(null);
+  };
+
+  // Desktop drag handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedItem(index);
+    setIsDragging(true);
     e.dataTransfer.effectAllowed = 'move';
 
-    // Style the dragged element
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
     }
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
-    // Reset opacity
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '1';
     }
     setDraggedItem(null);
     setDraggedOver(null);
+    setIsDragging(false);
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
@@ -57,35 +118,34 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
     setDraggedOver(index);
   };
 
-  const handleDragLeave = () => {
-    setDraggedOver(null);
-  };
-
   const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     if (draggedItem === null || draggedItem === dropIndex) {
       setDraggedItem(null);
       setDraggedOver(null);
+      setIsDragging(false);
       return;
     }
 
-    // Create new array with reordered items
+    await handleReorder(draggedItem, dropIndex);
+    setDraggedItem(null);
+    setDraggedOver(null);
+    setIsDragging(false);
+  };
+
+  const handleReorder = async (fromIndex: number, toIndex: number) => {
     const newCaregivers = [...caregivers];
-    const draggedCaregiver = newCaregivers[draggedItem];
+    const draggedCaregiver = newCaregivers[fromIndex];
 
-    // Remove dragged item and insert at new position
-    newCaregivers.splice(draggedItem, 1);
-    newCaregivers.splice(dropIndex, 0, draggedCaregiver);
+    newCaregivers.splice(fromIndex, 1);
+    newCaregivers.splice(toIndex, 0, draggedCaregiver);
 
-    // Create ordered list of caregiver IDs for the new reorder endpoint
     const reorderedIds = newCaregivers.map(caregiver => parseInt(caregiver.id));
 
     try {
-      // Use the new reorder endpoint
       await onReorderCaregivers(reorderedIds);
     } catch (error) {
       console.error('Failed to reorder caregivers:', error);
-      // Fallback to old priority update method if reorder fails
       try {
         const updatedCaregivers = newCaregivers.map((caregiver, index) => ({
           user_id: parseInt(caregiver.id),
@@ -96,34 +156,54 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
         console.error('Failed to update priorities as fallback:', fallbackError);
       }
     }
-
-    setDraggedItem(null);
-    setDraggedOver(null);
   };
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
+
   return (
-    <div className="space-y-3">
+    <div 
+      ref={listRef}
+      className="space-y-3 touch-manipulation"
+      style={{ 
+        touchAction: isDragging ? 'none' : 'pan-y',
+        overflowY: isDragging ? 'hidden' : 'auto'
+      }}
+    >
       {caregivers.map((caregiver, index) => {
         const caregiverWithPriority = getCaregiverWithPriority(caregiver, index);
         
         return (
           <Card
             key={caregiver.id}
+            data-caregiver-index={index}
             className={`border-blue-100 transition-all duration-200 ${
               draggedOver === index ? 'border-blue-300 shadow-md' : ''
-            } ${draggedItem === index ? 'opacity-50' : ''}`}
-            draggable
+            } ${draggedItem === index ? 'opacity-50 scale-105' : ''} ${
+              isDragging && draggedItem === index ? 'z-50' : ''
+            }`}
+            draggable={!isDragging}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragEnd={handleDragEnd}
             onDragOver={(e) => handleDragOver(e, index)}
-            onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, index)}
+            onTouchStart={(e) => handleTouchStart(e, index)}
+            onTouchMove={(e) => handleTouchMove(e, index)}
+            onTouchEnd={handleTouchEnd}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {/* Drag handle */}
-                  <div className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                  <div className={`flex-shrink-0 text-gray-400 hover:text-gray-600 ${
+                    isDragging && draggedItem === index ? 'text-blue-600' : ''
+                  }`}>
                     <GripVertical size={20} />
                   </div>
                   
@@ -176,6 +256,12 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
           </Card>
         );
       })}
+      
+      {isDragging && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm z-50">
+          Sleep om opnieuw te rangschikken
+        </div>
+      )}
     </div>
   );
 };
