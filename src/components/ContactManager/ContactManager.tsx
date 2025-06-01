@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { ScrollArea } from '../ui/scroll-area';
 import { useStore } from '../../store/useStore';
 import { useToast } from '../../hooks/use-toast';
 import SwipeableCaregiverList from './SwipeableCaregiverList';
@@ -101,134 +100,133 @@ const ContactManager: React.FC = () => {
   );
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-4 pb-20">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <Input
-            placeholder="Zoek contacten..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Input
+          placeholder="Zoek contacten..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
 
-        {/* Pending Invites Alert */}
-        {pendingInvites.length > 0 && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <AlertCircle size={20} className="text-yellow-600" />
-                <div>
-                  <h4 className="font-medium text-yellow-800">Openstaande uitnodigingen</h4>
-                  <p className="text-sm text-yellow-700">
-                    U heeft {pendingInvites.length} openstaande uitnodiging(en) voor zorgverleners.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Add New Caregiver */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Plus size={20} className="text-blue-600" />
-              <span>Zorgverlener Uitnodigen</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleInviteCaregiver} className="space-y-4">
+      {/* Pending Invites Alert */}
+      {pendingInvites.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <AlertCircle size={20} className="text-yellow-600" />
               <div>
-                <Label htmlFor="email">E-mailadres</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="zorgverlener@voorbeeld.nl"
-                  value={newCaregiverEmail}
-                  onChange={(e) => setNewCaregiverEmail(e.target.value)}
-                  required
-                />
+                <h4 className="font-medium text-yellow-800">Openstaande uitnodigingen</h4>
+                <p className="text-sm text-yellow-700">
+                  U heeft {pendingInvites.length} openstaande uitnodiging(en) voor zorgverleners.
+                </p>
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? 'Uitnodiging versturen...' : 'Uitnodiging versturen'}
-              </Button>
-            </form>
+            </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Caregivers List */}
-        {filteredCaregivers.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SwipeableCaregiverList
-                caregivers={filteredCaregivers}
-                onUpdatePriorities={updateCaregiverPriorities}
-                onReorderCaregivers={reorderCaregivers}
-                onRemoveCaregiver={handleRemoveCaregiver}
-                onEditCaregiver={handleEditCaregiver}
+      {/* Add New Caregiver */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center space-x-2">
+            <Plus size={20} className="text-blue-600" />
+            <span>Zorgverlener Uitnodigen</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleInviteCaregiver} className="space-y-4">
+            <div>
+              <Label htmlFor="email">E-mailadres</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="zorgverlener@voorbeeld.nl"
+                value={newCaregiverEmail}
+                onChange={(e) => setNewCaregiverEmail(e.target.value)}
+                required
               />
-            </CardContent>
-          </Card>
-        )}
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? 'Uitnodiging versturen...' : 'Uitnodiging versturen'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-        {/* Patients List */}
-        {filteredPatients.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Mijn Patiënten ({filteredPatients.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {filteredPatients.map((patient) => (
-                  <Card key={patient.id} className="border-green-100">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{patient.name}</h4>
-                          <p className="text-sm text-gray-600">{patient.email}</p>
-                          {patient.phone_number && (
-                            <p className="text-sm text-gray-500">{patient.phone_number}</p>
-                          )}
-                        </div>
+      {/* Caregivers List */}
+      {filteredCaregivers.length > 0 && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Houd een zorgverlener lang ingedrukt om te verslepen</p>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <SwipeableCaregiverList
+              caregivers={filteredCaregivers}
+              onUpdatePriorities={updateCaregiverPriorities}
+              onReorderCaregivers={reorderCaregivers}
+              onRemoveCaregiver={handleRemoveCaregiver}
+              onEditCaregiver={handleEditCaregiver}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Patients List */}
+      {filteredPatients.length > 0 && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle>Mijn Patiënten ({filteredPatients.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {filteredPatients.map((patient) => (
+                <Card key={patient.id} className="border-green-100">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{patient.name}</h4>
+                        <p className="text-sm text-gray-600">{patient.email}</p>
+                        {patient.phone_number && (
+                          <p className="text-sm text-gray-500">{patient.phone_number}</p>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Empty State */}
-        {filteredCaregivers.length === 0 && filteredPatients.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <Search size={48} className="mx-auto" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen contacten gevonden</h3>
-              <p className="text-gray-600 mb-4">
-                {searchTerm 
-                  ? `Geen contacten gevonden voor "${searchTerm}"`
-                  : "U heeft nog geen zorgverleners of patiënten."
-                }
+      {/* Empty State */}
+      {filteredCaregivers.length === 0 && filteredPatients.length === 0 && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="text-gray-400 mb-4">
+              <Search size={48} className="mx-auto" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen contacten gevonden</h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm 
+                ? `Geen contacten gevonden voor "${searchTerm}"`
+                : "U heeft nog geen zorgverleners of patiënten."
+              }
+            </p>
+            {!searchTerm && (
+              <p className="text-sm text-gray-500">
+                Nodig een zorgverlener uit met het formulier hierboven.
               </p>
-              {!searchTerm && (
-                <p className="text-sm text-gray-500">
-                  Nodig een zorgverlener uit met het formulier hierboven.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

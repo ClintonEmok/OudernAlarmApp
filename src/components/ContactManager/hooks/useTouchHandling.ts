@@ -17,20 +17,27 @@ export const useTouchHandling = ({
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const [hasMoved, setHasMoved] = useState(false);
+  const [isDragMode, setIsDragMode] = useState(false);
+
+  const LONG_PRESS_DURATION = 500; // Reduced from 800ms
+  const MOVE_THRESHOLD = 10; // Pixels to consider as movement
 
   const handleTouchStart = (e: React.TouchEvent, index: number) => {
     const touch = e.touches[0];
     setTouchStartPos({ x: touch.clientX, y: touch.clientY });
     setHasMoved(false);
+    setIsDragMode(false);
     
     const timer = setTimeout(() => {
       if (!hasMoved) {
+        setIsDragMode(true);
         onStartDrag(index);
+        // Haptic feedback if available
         if (navigator.vibrate) {
           navigator.vibrate(50);
         }
       }
-    }, 800);
+    }, LONG_PRESS_DURATION);
     
     setLongPressTimer(timer);
   };
@@ -42,27 +49,28 @@ export const useTouchHandling = ({
     const deltaX = Math.abs(touch.clientX - touchStartPos.x);
     const deltaY = Math.abs(touch.clientY - touchStartPos.y);
     
-    if (deltaX > 10 || deltaY > 10) {
+    // Check if user has moved beyond threshold
+    if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
       setHasMoved(true);
       
-      if (longPressTimer && !isDragging) {
+      // Cancel long press if not in drag mode yet
+      if (longPressTimer && !isDragMode) {
         clearTimeout(longPressTimer);
         setLongPressTimer(null);
       }
     }
 
-    if (!isDragging) {
-      return;
-    }
-    
-    e.preventDefault();
-    
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    const cardElement = element?.closest('[data-caregiver-index]');
-    
-    if (cardElement) {
-      const targetIndex = parseInt(cardElement.getAttribute('data-caregiver-index') || '0');
-      onUpdateDragTarget(targetIndex);
+    // Only prevent default if we're actually dragging
+    if (isDragging && isDragMode) {
+      e.preventDefault();
+      
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const cardElement = element?.closest('[data-caregiver-index]');
+      
+      if (cardElement) {
+        const targetIndex = parseInt(cardElement.getAttribute('data-caregiver-index') || '0');
+        onUpdateDragTarget(targetIndex);
+      }
     }
   };
 
@@ -72,9 +80,13 @@ export const useTouchHandling = ({
       setLongPressTimer(null);
     }
 
-    onEndDrag();
+    if (isDragMode) {
+      onEndDrag();
+    }
+    
     setTouchStartPos(null);
     setHasMoved(false);
+    setIsDragMode(false);
   };
 
   useEffect(() => {

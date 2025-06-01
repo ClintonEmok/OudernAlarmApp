@@ -100,39 +100,41 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
   });
 
   return (
-    <div 
-      ref={listRef}
-      className="space-y-3"
-      style={{ 
-        touchAction: isDragging ? 'none' : 'auto'
-      }}
-    >
-      {caregivers.map((caregiver, index) => {
-        const caregiverWithPriority = getCaregiverWithPriority(caregiver, index);
-        
-        return (
-          <CaregiverCard
-            key={caregiver.id}
-            caregiver={caregiver}
-            index={index}
-            priority={caregiverWithPriority.priority}
-            isDragging={isDragging}
-            draggedItem={draggedItem}
-            draggedOver={draggedOver}
-            onEditCaregiver={onEditCaregiver}
-            onRemoveCaregiver={onRemoveCaregiver}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          />
-        );
-      })}
-      
+    <div className="relative">
       <DragIndicator isDragging={isDragging} />
+      
+      <div 
+        ref={listRef}
+        className="space-y-3"
+        style={{ 
+          touchAction: isDragging ? 'none' : 'pan-y pinch-zoom'
+        }}
+      >
+        {caregivers.map((caregiver, index) => {
+          const caregiverWithPriority = getCaregiverWithPriority(caregiver, index);
+          
+          return (
+            <CaregiverCard
+              key={caregiver.id}
+              caregiver={caregiver}
+              index={index}
+              priority={caregiverWithPriority.priority}
+              isDragging={isDragging}
+              draggedItem={draggedItem}
+              draggedOver={draggedOver}
+              onEditCaregiver={onEditCaregiver}
+              onRemoveCaregiver={onRemoveCaregiver}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
