@@ -24,7 +24,7 @@
   /* iPhone X series and newer */
   @media screen and (min-height: 812px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 78px;
+      height: 58px;
       padding-bottom: max(env(safe-area-inset-bottom), 20px);
     }
   }
@@ -43,40 +43,4 @@
   .container {
     @apply px-4;
   }
-
-  /* Touch optimizations for mobile drag and drop */
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-
-  /* Prevent text selection during drag operations */
-  .dragging * {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  /* Smooth scrolling for mobile */
-  .mobile-scroll {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
-
-  /* Better touch target sizes */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* Long press feedback */
-@keyframes long-press-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.long-press-active {
-  animation: long-press-pulse 0.5s ease-in-out;
 }
