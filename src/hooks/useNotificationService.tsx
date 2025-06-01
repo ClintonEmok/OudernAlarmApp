@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { pushNotificationService } from '../services/push-notification-service';
+import { pushNotificationService } from '../services/push-notifications';
 import { logger } from '../utils/logger';
 
 export const useNotificationService = () => {

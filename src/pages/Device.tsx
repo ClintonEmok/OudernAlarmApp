@@ -1,3 +1,4 @@
+
 import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
 import DebugInfo from '../components/DebugInfo/DebugInfo';
 import { capacitorService } from '../services/capacitor-service';
@@ -10,7 +11,7 @@ import NotificationControls from '../components/NativeFeatures/NotificationContr
 import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
-import { pushNotificationService } from '../services/push-notification-service';
+import { pushNotificationService } from '../services/push-notifications';
 import { logger } from '../utils/logger';
 
 const Device = () => {

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { pushNotificationService } from '../services/push-notification-service';
+import { pushNotificationService } from '../services/push-notifications';
 import { capacitorService } from '../services/capacitor-service';
 import { useLocationService } from './useLocationService';
 import { useNotificationService } from './useNotificationService';
