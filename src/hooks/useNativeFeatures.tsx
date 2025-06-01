@@ -4,6 +4,7 @@ import { pushNotificationService } from '../services/push-notification-service';
 import { capacitorService } from '../services/capacitor-service';
 import { useLocationService } from './useLocationService';
 import { useNotificationService } from './useNotificationService';
+import { logger } from '../utils/logger';
 
 export interface NativeFeaturesStatus {
   isInitialized: boolean;
@@ -37,7 +38,7 @@ export const useNativeFeatures = () => {
       const errors: string[] = [];
       
       try {
-        console.log('Initializing native features...');
+        logger.debug('Initializing native features...');
         capacitorService.logPlatformInfo();
         
         // Initialize push notifications
@@ -53,7 +54,7 @@ export const useNativeFeatures = () => {
             }
           }));
         } catch (error) {
-          console.error('Failed to initialize notifications:', error);
+          logger.error('Failed to initialize notifications', error);
           errors.push('Notificaties kunnen niet worden geïnitialiseerd');
         }
         
@@ -68,7 +69,7 @@ export const useNativeFeatures = () => {
             }
           }));
         } catch (error) {
-          console.error('Failed to check location permissions:', error);
+          logger.error('Failed to check location permissions', error);
           errors.push('Locatie permissies kunnen niet worden gecontroleerd');
         }
         
@@ -78,9 +79,9 @@ export const useNativeFeatures = () => {
           errors
         }));
         
-        console.log('Native features initialized successfully');
+        logger.info('Native features initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize native features:', error);
+        logger.error('Failed to initialize native features', error);
         errors.push('Native functies kunnen niet worden geïnitialiseerd');
         
         setStatus(prev => ({
@@ -97,7 +98,7 @@ export const useNativeFeatures = () => {
   // Request all permissions
   const requestAllPermissions = async (): Promise<void> => {
     try {
-      console.log('Requesting all permissions...');
+      logger.debug('Requesting all permissions...');
       
       // Request notification permissions
       const notificationPermissions = await pushNotificationService.requestPermissions();
@@ -113,12 +114,12 @@ export const useNativeFeatures = () => {
         }
       }));
       
-      console.log('Permissions updated:', {
+      logger.debug('Permissions updated', {
         location: hasLocationPermission,
         notifications: notificationPermissions.receive === 'granted'
       });
     } catch (error) {
-      console.error('Failed to request permissions:', error);
+      logger.error('Failed to request permissions', error);
       throw error;
     }
   };

@@ -48,15 +48,15 @@ const App = () => {
     
     // Log PWA status
     const pwaInfo = pwaNavigationService.getPlatformInfo();
-    console.log('PWA Navigation Service initialized:', pwaInfo);
+    logger.debug('PWA Navigation Service initialized', pwaInfo);
     
     // Initialize native features on app start
     const initializeNativeFeatures = async () => {
       try {
         await pushNotificationService.initialize();
-        console.log('Native features initialized in App.tsx');
+        logger.info('Native features initialized in App.tsx');
       } catch (error) {
-        console.error('Failed to initialize native features in App.tsx:', error);
+        logger.error('Failed to initialize native features in App.tsx', error);
       }
     };
 

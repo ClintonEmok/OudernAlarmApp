@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { geolocationService, LocationCoordinates } from '../services/geolocation-service';
+import { logger } from '../utils/logger';
 
 export const useLocationService = () => {
   const [currentLocation, setCurrentLocation] = useState<LocationCoordinates | null>(null);
@@ -14,7 +15,7 @@ export const useLocationService = () => {
       setCurrentLocation(location);
       return location;
     } catch (error) {
-      console.error('Failed to get current location:', error);
+      logger.error('Failed to get current location', error);
       throw error;
     }
   }, []);
@@ -27,7 +28,7 @@ export const useLocationService = () => {
       });
       setIsTracking(true);
     } catch (error) {
-      console.error('Failed to start location tracking:', error);
+      logger.error('Failed to start location tracking', error);
       throw error;
     }
   }, []);
@@ -38,7 +39,7 @@ export const useLocationService = () => {
       await geolocationService.stopLocationTracking();
       setIsTracking(false);
     } catch (error) {
-      console.error('Failed to stop location tracking:', error);
+      logger.error('Failed to stop location tracking', error);
     }
   }, []);
 
@@ -49,7 +50,7 @@ export const useLocationService = () => {
       setLocationPermission(granted);
       return granted;
     } catch (error) {
-      console.error('Failed to request location permissions:', error);
+      logger.error('Failed to request location permissions', error);
       return false;
     }
   }, []);

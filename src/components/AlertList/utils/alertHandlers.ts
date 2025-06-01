@@ -2,6 +2,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../../../store/useStore';
 import { Alert } from '../../../types';
+import { logger } from '../../../utils/logger';
 
 export const useAlertHandlers = () => {
   const { toast } = useToast();
@@ -10,7 +11,7 @@ export const useAlertHandlers = () => {
   const handleCallUser = (phoneNumber: string) => {
     // Additional security check before allowing call
     if (!authorizedDevicePhones.has(phoneNumber)) {
-      console.warn('🚨 SECURITY: Blocked call attempt to unauthorized device:', phoneNumber);
+      logger.security(`Blocked call attempt to unauthorized device: ${phoneNumber}`);
       toast({
         title: "🔒 Toegang Geweigerd",
         description: "U heeft geen toestemming om dit apparaat te bellen.",
@@ -55,7 +56,7 @@ export const useAlertHandlers = () => {
       // Refresh alerts
       await fetchAlerts();
     } catch (error) {
-      console.error('Failed to resolve alert:', error);
+      logger.error('Failed to resolve alert', error);
       toast({
         title: "Actie Mislukt",
         description: "Kon het alarm niet markeren als opgelost.",

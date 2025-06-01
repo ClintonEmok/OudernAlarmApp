@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '../utils/logger';
 
 export const useDevicePolling = () => {
   const { fetchDevices, refreshAll } = useStore();
@@ -15,14 +16,14 @@ export const useDevicePolling = () => {
     
     setIsRefreshing(true);
     try {
-      console.log('🔄 Manual device refresh triggered');
+      logger.debug('Manual device refresh triggered');
       await refreshAll();
       toast({
         title: "✓ Bijgewerkt",
         description: "Apparaten en locaties zijn ververst.",
       });
     } catch (error) {
-      console.error('Failed to refresh devices:', error);
+      logger.error('Failed to refresh devices', error);
       toast({
         title: "Verversen Mislukt",
         description: "Kon apparaten niet verversen.",
@@ -42,7 +43,7 @@ export const useDevicePolling = () => {
 
     // Set up polling interval (60 seconds for devices to reduce server load)
     pollingIntervalRef.current = setInterval(() => {
-      console.log('🔄 Auto-refreshing devices...');
+      logger.debug('Auto-refreshing devices...');
       fetchDevices();
     }, 60000); // 60 seconds
 

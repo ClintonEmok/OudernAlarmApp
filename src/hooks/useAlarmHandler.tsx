@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { useNativeFeatures } from './useNativeFeatures';
 import { Alert } from '../types';
+import { logger } from '../utils/logger';
 
 export const useAlarmHandler = () => {
   const { alerts } = useStore();
@@ -26,11 +27,11 @@ export const useAlarmHandler = () => {
 
       if (newAlarms.length === 0) return;
 
-      console.log('🚨 New alarms detected:', newAlarms.length);
+      logger.info(`New alarms detected: ${newAlarms.length}`);
 
       for (const alarm of newAlarms) {
         try {
-          console.log('🚨 Processing alarm:', alarm.id, alarm.type, alarm.device_nickname);
+          logger.info(`Processing alarm: ${alarm.id} - ${alarm.type} - ${alarm.device_nickname}`);
           
           // Mark as processed immediately to avoid duplicate processing
           processedAlerts.current.add(alarm.id);
@@ -40,30 +41,30 @@ export const useAlarmHandler = () => {
           const alarmType = getAlarmTypeDisplayName(alarm.type);
           
           await sendAlarmNotification(deviceName, alarmType);
-          console.log('✅ Alarm notification sent for:', deviceName);
+          logger.info(`Alarm notification sent for: ${deviceName}`);
 
           // Request location permissions if not granted
           if (!locationPermission) {
-            console.log('📍 Requesting location permissions due to alarm...');
+            logger.debug('Requesting location permissions due to alarm...');
             await requestLocationPermissions();
           }
 
           // Start location tracking to help with emergency response
           try {
             await getCurrentLocation();
-            console.log('📍 Current location obtained for alarm response');
+            logger.debug('Current location obtained for alarm response');
             
             // Start continuous tracking for emergency situations
             if (alarm.type === 'SOS' || alarm.type === 'Fall' || alarm.type === 'emergency') {
               await startLocationTracking();
-              console.log('📍 Location tracking started for emergency alarm');
+              logger.info('Location tracking started for emergency alarm');
             }
           } catch (locationError) {
-            console.warn('⚠️ Could not obtain location for alarm:', locationError);
+            logger.warn('Could not obtain location for alarm', locationError);
           }
 
         } catch (error) {
-          console.error('❌ Failed to process alarm:', alarm.id, error);
+          logger.error(`Failed to process alarm: ${alarm.id}`, error);
         }
       }
     };

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../../../store/useStore';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '../../../utils/logger';
 
 export const useAlertLoading = () => {
   const { alerts, fetchAlerts, authorizedDevicePhones, refreshAll } = useStore();
@@ -14,9 +15,9 @@ export const useAlertLoading = () => {
   const loadAlerts = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log('🔒 Loading alerts with security checks...');
+      logger.security('Loading alerts with security checks');
       await fetchAlerts();
-      console.log('🔒 Alerts loaded successfully, count:', alerts.length);
+      logger.debug(`Alerts loaded successfully, count: ${alerts.length}`);
       
       // Additional frontend security validation
       const unauthorizedAlerts = alerts.filter(alert => 
@@ -24,7 +25,7 @@ export const useAlertLoading = () => {
       );
       
       if (unauthorizedAlerts.length > 0) {
-        console.error('🚨 SECURITY: Found unauthorized alerts in frontend:', unauthorizedAlerts);
+        logger.security(`Found unauthorized alerts in frontend: ${unauthorizedAlerts.length} alerts from unauthorized devices blocked`, unauthorizedAlerts);
         setSecurityWarnings([
           `Verdachte activiteit gedetecteerd: ${unauthorizedAlerts.length} alarm(en) van ongeautoriseerde apparaten zijn geblokkeerd.`
         ]);
@@ -39,7 +40,7 @@ export const useAlertLoading = () => {
       }
       
     } catch (error) {
-      console.error('🔒 Failed to fetch alerts:', error);
+      logger.error('Failed to fetch alerts', error);
       toast({
         title: "Laden Mislukt",
         description: "Kon alarmen niet laden. Probeer opnieuw.",
@@ -64,7 +65,7 @@ export const useAlertLoading = () => {
 
     // Set up polling interval (30 seconds to reduce server load)
     pollingIntervalRef.current = setInterval(() => {
-      console.log('🔒 Auto-refreshing alerts with security checks...');
+      logger.debug('Auto-refreshing alerts with security checks...');
       loadAlerts();
     }, 30000); // 30 seconds
 
@@ -79,8 +80,7 @@ export const useAlertLoading = () => {
 
   // Separate effect for logging changes - doesn't trigger polling
   useEffect(() => {
-    console.log('🔒 Current alerts in component:', alerts);
-    console.log('🔒 Authorized device phones:', Array.from(authorizedDevicePhones));
+    logger.debug('Current alerts in component', { alertCount: alerts.length, authorizedDevices: Array.from(authorizedDevicePhones) });
   }, [alerts, authorizedDevicePhones]);
 
   // Use central refresh function for consistency
@@ -89,14 +89,14 @@ export const useAlertLoading = () => {
     
     setIsLoading(true);
     try {
-      console.log('Manual refresh triggered - using central refresh');
+      logger.debug('Manual refresh triggered - using central refresh');
       await refreshAll(); // Use central refresh for both devices and alerts
       toast({
         title: "✓ Ververst",
         description: "Alarmen en apparaten zijn bijgewerkt.",
       });
     } catch (error) {
-      console.error('Failed to refresh:', error);
+      logger.error('Failed to refresh', error);
       toast({
         title: "Verversen Mislukt",
         description: "Kon gegevens niet verversen.",
