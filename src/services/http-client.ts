@@ -1,5 +1,6 @@
 
-import { env, securityUtils } from '../utils/env';
+import { env } from '../utils/env';
+import { logger } from '../utils/logger';
 import { tokenManager } from './token-manager';
 
 interface RequestOptions {
@@ -55,7 +56,7 @@ class HttpClient {
   }
 
   private async handleResponse(response: Response) {
-    securityUtils.log(`Response status: ${response.status}`);
+    logger.debug(`API Response: ${response.status}`);
     
     if (response.status === 401) {
       tokenManager.clearTokens();
@@ -72,7 +73,7 @@ class HttpClient {
       
       if (!response.ok) {
         const errorMessage = data.message || data.error || `HTTP ${response.status}`;
-        securityUtils.error('API Error:', errorMessage);
+        logger.error('API Error', errorMessage);
         
         if (response.status === 409) {
           throw new DeviceConflictError(errorMessage);
@@ -81,7 +82,7 @@ class HttpClient {
         throw new ApiError(errorMessage, response.status);
       }
 
-      securityUtils.log('Response data received');
+      logger.debug('Response data received');
       return data;
     }
 
@@ -108,7 +109,7 @@ class HttpClient {
       requireAuth
     );
     
-    securityUtils.log(`POST ${endpoint}`);
+    logger.debug(`POST ${endpoint}`);
     const response = await fetch(`${this.baseURL}${endpoint}`, requestOptions);
     return this.handleResponse(response);
   }

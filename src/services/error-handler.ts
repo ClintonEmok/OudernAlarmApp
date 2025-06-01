@@ -1,5 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
+import { logger } from '../utils/logger';
 
 export class AppError extends Error {
   constructor(
@@ -42,7 +43,7 @@ export class ConflictError extends AppError {
 }
 
 export const handleApiError = (error: any, context?: string) => {
-  console.error(`[${context || 'API'}] Error:`, error);
+  logger.error(`API Error in ${context || 'Unknown'}`, error);
 
   // Extract meaningful error information
   let errorMessage = 'Er is een onbekende fout opgetreden.';

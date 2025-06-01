@@ -1,7 +1,7 @@
 
 import { httpClient } from './http-client';
 import { tokenManager } from './token-manager';
-import { securityUtils } from '../utils/env';
+import { logger } from '../utils/logger';
 
 interface LoginResponse {
   access_token: string;
@@ -31,13 +31,13 @@ class AuthService {
           expires_at: response.expires_at,
           refresh_token: response.refresh_token
         });
-        securityUtils.log('Login successful, tokens stored');
+        logger.debug('Login successful, tokens stored');
       }
       
       return response;
     } catch (error) {
       if (error instanceof Error && error.message.includes('CSRF')) {
-        securityUtils.log('CSRF error detected, retrying login...');
+        logger.debug('CSRF error detected, retrying login...');
         await new Promise(resolve => setTimeout(resolve, 500));
         const retryResponse = await httpClient.post('/login', { email, password }, false) as LoginResponse;
         
@@ -47,7 +47,7 @@ class AuthService {
             expires_at: retryResponse.expires_at,
             refresh_token: retryResponse.refresh_token
           });
-          securityUtils.log('Login successful on retry, tokens stored');
+          logger.debug('Login successful on retry, tokens stored');
         }
         
         return retryResponse;
@@ -60,12 +60,12 @@ class AuthService {
     try {
       const response = await httpClient.post('/logout');
       tokenManager.clearTokens();
-      securityUtils.log('Logout successful, tokens cleared');
+      logger.debug('Logout successful, tokens cleared');
       return response;
     } catch (error) {
-      securityUtils.error('Logout request failed, but clearing local state:', error);
+      logger.warn('Logout request failed, but clearing local state', error);
       tokenManager.clearTokens();
-      securityUtils.log('Tokens cleared after failed logout');
+      logger.debug('Tokens cleared after failed logout');
       return null;
     }
   }
@@ -84,7 +84,7 @@ class AuthService {
 
   clearToken(): void {
     tokenManager.clearTokens();
-    securityUtils.log('Tokens manually cleared');
+    logger.debug('Tokens manually cleared');
   }
 }
 

@@ -1,4 +1,6 @@
 
+import { logger } from './logger';
+
 // Environment configuration utility
 export const env = {
   // Mapbox configuration
@@ -16,19 +18,12 @@ export const env = {
 export const securityUtils = {
   // Safe logging that respects environment
   log: (message: string, data?: any) => {
-    if (env.IS_DEVELOPMENT) {
-      console.log(message, data);
-    }
+    logger.debug(message, data);
   },
   
   // Safe error logging
   error: (message: string, error?: any) => {
-    if (env.IS_DEVELOPMENT) {
-      console.error(message, error);
-    } else {
-      // In production, only log sanitized error messages
-      console.error(message);
-    }
+    logger.error(message, error);
   },
   
   // Sanitize sensitive data for logging

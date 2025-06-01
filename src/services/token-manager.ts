@@ -1,6 +1,6 @@
 
-import { authService } from './auth-service';
-import { securityUtils, env } from '../utils/env';
+import { logger } from '../utils/logger';
+import { env } from '../utils/env';
 
 interface TokenData {
   access_token: string;
@@ -26,7 +26,7 @@ class TokenManager {
       localStorage.setItem(TokenManager.EXPIRES_KEY, tokenData.expires_at.toString());
     }
     
-    securityUtils.log('Tokens stored successfully');
+    logger.debug('Tokens stored successfully');
   }
 
   getAccessToken(): string | null {
@@ -75,7 +75,7 @@ class TokenManager {
 
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
-      securityUtils.log('No refresh token available');
+      logger.debug('No refresh token available');
       this.clearTokens();
       return null;
     }
@@ -92,7 +92,7 @@ class TokenManager {
 
   private async performTokenRefresh(refreshToken: string): Promise<string | null> {
     try {
-      securityUtils.log('Attempting to refresh token...');
+      logger.debug('Attempting to refresh token...');
       
       // Implement actual token refresh with the API
       const response = await fetch(`${env.API_BASE_URL}/refresh`, {
@@ -109,13 +109,13 @@ class TokenManager {
       if (response.ok) {
         const tokenData = await response.json();
         this.setTokens(tokenData);
-        securityUtils.log('Token refresh successful');
+        logger.debug('Token refresh successful');
         return tokenData.access_token;
       } else {
-        securityUtils.error('Token refresh failed with status:', response.status);
+        logger.error('Token refresh failed with status', response.status);
       }
     } catch (error) {
-      securityUtils.error('Token refresh failed:', error);
+      logger.error('Token refresh failed', error);
     }
     
     this.clearTokens();
@@ -126,7 +126,7 @@ class TokenManager {
     localStorage.removeItem(TokenManager.TOKEN_KEY);
     localStorage.removeItem(TokenManager.REFRESH_TOKEN_KEY);
     localStorage.removeItem(TokenManager.EXPIRES_KEY);
-    securityUtils.log('Tokens cleared');
+    logger.debug('Tokens cleared');
   }
 
   hasValidToken(): boolean {
