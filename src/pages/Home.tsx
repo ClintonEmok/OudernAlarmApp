@@ -11,7 +11,7 @@ const Home = () => {
   }
 
   return (
-    <div className="h-full overflow-hidden flex flex-col">
+    <div className="h-full w-full overflow-hidden">
       <MapView />
     </div>
   );

@@ -44,7 +44,7 @@ const BottomNavigation = () => {
 
   return (
     <nav className="bg-white border-t border-blue-100 iphone-navbar flex-shrink-0">
-      <div className="flex justify-around items-center px-2 h-16">
+      <div className="flex justify-around items-center px-4 h-12">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -54,7 +54,7 @@ const BottomNavigation = () => {
               key={item.path}
               to={item.path}
               data-react-router-link="true"
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors touch-manipulation h-12 min-w-0 ${
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors touch-manipulation touch-target min-w-0 ${
                 isActive 
                   ? 'text-blue-600 bg-blue-50' 
                   : 'text-gray-500 hover:text-blue-600'

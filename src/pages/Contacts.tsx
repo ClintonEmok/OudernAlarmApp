@@ -8,21 +8,23 @@ const Contacts = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-20">
-      <div className="p-4 pb-0">
+    <div className="h-full flex flex-col bg-blue-50">
+      <div className="flex-shrink-0 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={() => navigate('/settings')}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 touch-target"
           >
             <ArrowLeft size={20} />
             <span>Terug</span>
           </Button>
         </div>
       </div>
-      <ContactManager />
+      <div className="flex-1 min-h-0">
+        <ContactManager />
+      </div>
     </div>
   );
 };
