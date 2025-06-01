@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { capacitorService } from "./services/capacitor-service";
-import { pushNotificationService } from "./services/push-notification-service";
+import { pushNotificationService } from "./services/push-notifications";
 import { pwaNavigationService } from "./services/pwa-navigation-service";
 import { logger } from "./utils/logger";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
