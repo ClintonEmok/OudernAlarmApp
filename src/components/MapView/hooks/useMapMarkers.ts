@@ -45,7 +45,11 @@ export const useMapMarkers = ({
         offset: 25,
         closeButton: false,
         closeOnClick: false
-      }).setHTML(createDevicePopupContent(device));
+      }).setHTML(createDevicePopupContent({
+        nickname: device.nickname,
+        batteryLevel: device.batteryLevel,
+        lastUpdate: device.lastUpdate.toISOString()
+      }));
 
       deviceMarker.current.setPopup(popup);
     }
