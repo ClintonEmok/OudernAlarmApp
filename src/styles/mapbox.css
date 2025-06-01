@@ -3,3 +3,41 @@
 .mapboxgl-ctrl-logo {
   display: none !important;
 }
+
+/* Position Mapbox controls within iPhone safe areas */
+.mapboxgl-ctrl-top-right {
+  top: max(env(safe-area-inset-top), 44px) !important;
+  right: max(env(safe-area-inset-right), 16px) !important;
+}
+
+.mapboxgl-ctrl-bottom-left {
+  bottom: max(env(safe-area-inset-bottom), 16px) !important;
+  left: max(env(safe-area-inset-left), 16px) !important;
+}
+
+/* Style the controls to match iPhone design */
+.mapboxgl-ctrl-group {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.mapboxgl-ctrl button {
+  background: transparent !important;
+  border: none !important;
+  color: #333 !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+}
+
+.mapboxgl-ctrl button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure touch targets meet iPhone guidelines */
+.mapboxgl-ctrl button {
+  touch-action: manipulation;
+}
