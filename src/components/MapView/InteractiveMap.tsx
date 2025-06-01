@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -153,8 +154,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       const userMarkerElement = document.createElement('div');
       userMarkerElement.className = 'user-marker';
       userMarkerElement.style.cssText = `
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         background-color: #10B981;
         border: 3px solid white;
         border-radius: 50%;
@@ -166,7 +167,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       `;
       
       userMarkerElement.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
           <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 3.5C14.5 3.5 14 3.9 14 4.4V6H10V4.4C10 3.9 9.5 3.5 9 3.5L3 7V9H1V11H3V17C3 18.1 3.9 19 5 19H9V12H11V19H15C16.1 19 17 18.1 17 17V11H19V9H21Z"/>
         </svg>
       `;
