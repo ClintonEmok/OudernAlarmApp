@@ -2,6 +2,7 @@
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { logger } from './logger';
 
 export const AMSTERDAM_TIMEZONE = 'Europe/Amsterdam';
 
@@ -13,7 +14,7 @@ export const toAmsterdamTime = (date: Date | string): Date => {
     const utcDate = typeof date === 'string' ? new Date(date) : date;
     return toZonedTime(utcDate, AMSTERDAM_TIMEZONE);
   } catch (error) {
-    console.error('Error converting to Amsterdam time:', error);
+    logger.error('Error converting to Amsterdam time', error);
     return typeof date === 'string' ? new Date(date) : date;
   }
 };
@@ -29,7 +30,7 @@ export const formatInAmsterdamTime = (
     const inputDate = typeof date === 'string' ? new Date(date) : date;
     return formatInTimeZone(inputDate, AMSTERDAM_TIMEZONE, formatString, { locale: nl });
   } catch (error) {
-    console.error('Error formatting Amsterdam time:', error);
+    logger.error('Error formatting Amsterdam time', error);
     return 'Onbekend';
   }
 };
@@ -43,7 +44,7 @@ export const getRelativeTimeInAmsterdam = (date: Date | string): string => {
     const amsterdamDate = toAmsterdamTime(inputDate);
     return formatDistanceToNow(amsterdamDate, { addSuffix: true, locale: nl });
   } catch (error) {
-    console.error('Error getting relative time:', error);
+    logger.error('Error getting relative time', error);
     return 'Onbekend tijdstip';
   }
 };

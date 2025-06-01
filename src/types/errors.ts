@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 export class ServiceError extends Error {
   constructor(
     message: string,
@@ -17,12 +19,12 @@ export interface ErrorHandler {
 
 export class DefaultErrorHandler implements ErrorHandler {
   handleError(error: Error, context = 'Unknown'): void {
-    console.error(`[${context}] Error:`, error);
+    logger.error(`[${context}] Error`, error);
     
     if (error instanceof ServiceError) {
-      console.error(`Service: ${error.service}, Operation: ${error.operation}`);
+      logger.error(`Service: ${error.service}, Operation: ${error.operation}`);
       if (error.originalError) {
-        console.error('Original error:', error.originalError);
+        logger.error('Original error', error.originalError);
       }
     }
   }

@@ -1,10 +1,11 @@
 
 import { Alert } from '../../types';
 import { toAmsterdamTime } from '../../utils/timezone';
+import { logger } from '../../utils/logger';
 
 // Transform API response to match our Alert interface
 export const transformApiAlert = (apiAlert: any): Alert => {
-  console.log('Transforming API alert:', apiAlert);
+  logger.debug('Transforming API alert', apiAlert);
   
   // Map Dutch alert types to English
   const typeMapping: { [key: string]: Alert['type'] } = {
@@ -41,7 +42,7 @@ export const transformApiAlert = (apiAlert: any): Alert => {
 // Security function to check if user has access to device
 export const isDeviceAuthorized = (devicePhone: string, authorizedDevices: Set<string>): boolean => {
   const isAuthorized = authorizedDevices.has(devicePhone);
-  console.log(`🔒 Device authorization check: ${devicePhone} -> ${isAuthorized ? 'AUTHORIZED' : 'DENIED'}`);
+  logger.debug(`Device authorization check: ${devicePhone} -> ${isAuthorized ? 'AUTHORIZED' : 'DENIED'}`);
   return isAuthorized;
 };
 
