@@ -9,14 +9,19 @@
     padding-top: max(env(safe-area-inset-top), 12px);
   }
 
-  /* iPhone-optimized navbar */
+  /* Standard top margin for all interface elements */
+  .interface-top-margin {
+    margin-top: 12px;
+  }
+
+  /* iPhone-optimized navbar with reduced bottom padding */
   .iphone-navbar {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid rgba(59, 130, 246, 0.1);
-    height: 72px;
-    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    height: 60px;
+    padding-bottom: max(env(safe-area-inset-bottom), 4px);
     flex-shrink: 0;
   }
 
