@@ -25,9 +25,10 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
 }) => {
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [draggedOver, setDraggedOver] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [hasMoved, setHasMoved] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   // Calculate priority based on index if not set
@@ -39,31 +40,50 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
   // Touch event handlers for mobile drag-and-drop
   const handleTouchStart = (e: React.TouchEvent, index: number) => {
     const touch = e.touches[0];
-    setTouchStartY(touch.clientY);
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setHasMoved(false);
     
     // Start long press timer for drag mode
     const timer = setTimeout(() => {
-      setIsDragging(true);
-      setDraggedItem(index);
-      // Add haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
+      if (!hasMoved) {
+        setIsDragging(true);
+        setDraggedItem(index);
+        // Add haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
       }
-    }, 500); // 500ms long press
+    }, 800); // Increased to 800ms for more reliable detection
     
     setLongPressTimer(timer);
   };
 
   const handleTouchMove = (e: React.TouchEvent, index: number) => {
+    if (!touchStartPos) return;
+
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+    const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+    
+    // If user has moved more than 10px, consider it a scroll/move gesture
+    if (deltaX > 10 || deltaY > 10) {
+      setHasMoved(true);
+      
+      // Clear long press timer if user is scrolling
+      if (longPressTimer && !isDragging) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
+    }
+
+    // Only handle drag if we're already in drag mode
     if (!isDragging || draggedItem === null) {
-      // Allow normal scrolling if not in drag mode
-      return;
+      return; // Allow normal scrolling
     }
     
-    // Prevent default scrolling when dragging
+    // Prevent default scrolling when actively dragging
     e.preventDefault();
     
-    const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     const cardElement = element?.closest('[data-caregiver-index]');
     
@@ -90,7 +110,8 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
     setIsDragging(false);
     setDraggedItem(null);
     setDraggedOver(null);
-    setTouchStartY(null);
+    setTouchStartPos(null);
+    setHasMoved(false);
   };
 
   // Desktop drag handlers
@@ -170,10 +191,9 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
   return (
     <div 
       ref={listRef}
-      className="space-y-3 touch-manipulation"
+      className="space-y-3"
       style={{ 
-        touchAction: isDragging ? 'none' : 'pan-y',
-        overflowY: isDragging ? 'hidden' : 'auto'
+        touchAction: isDragging ? 'none' : 'auto'
       }}
     >
       {caregivers.map((caregiver, index) => {
@@ -259,7 +279,7 @@ const SwipeableCaregiverList: React.FC<SwipeableCaregiverListProps> = ({
       
       {isDragging && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm z-50">
-          Sleep om opnieuw te rangschikken
+          Houd vast en sleep om opnieuw te rangschikken
         </div>
       )}
     </div>
