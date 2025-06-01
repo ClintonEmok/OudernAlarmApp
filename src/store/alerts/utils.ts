@@ -32,6 +32,7 @@ export const transformApiAlert = (apiAlert: any): Alert => {
     description: `Alarm ontvangen van ${apiAlert.device?.user?.name || 'onbekend apparaat'}`,
     message: `${apiAlert.triggered_alerts} - ${apiAlert.device?.connection_number || 'Onbekend'}`,
     created_at: apiAlert.created_at, // Keep original UTC timestamp for Amsterdam timezone conversion
+    caregivers_en_route: apiAlert.caregivers_en_route || '', // Map responder information
     // Add location if available (the API might provide this in other endpoints)
     location: undefined
   };

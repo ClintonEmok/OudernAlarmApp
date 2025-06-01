@@ -1,5 +1,5 @@
 
-import { AlertTriangle, MapPin, Clock } from 'lucide-react';
+import { AlertTriangle, MapPin, Clock, Car } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -70,6 +70,28 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
 
   const timeInfo = getTimeInfo();
 
+  // Parse responder information
+  const getResponderInfo = () => {
+    const caregivers = alert.caregivers_en_route?.trim();
+    
+    if (!caregivers) {
+      return { count: 0, names: [], display: 'Niemand onderweg' };
+    }
+
+    const names = caregivers.split(',').map(name => name.trim()).filter(name => name.length > 0);
+    const count = names.length;
+    
+    if (count === 0) {
+      return { count: 0, names: [], display: 'Niemand onderweg' };
+    } else if (count === 1) {
+      return { count: 1, names, display: `${names[0]} is onderweg` };
+    } else {
+      return { count, names, display: `${count} personen onderweg` };
+    }
+  };
+
+  const responderInfo = getResponderInfo();
+
   return (
     <Card className={`${getAlertColor(alert.type)} border-l-4`}>
       <CardHeader className="pb-2">
@@ -96,6 +118,23 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
           <p className="text-sm text-gray-700">
             {alert.description || alert.message || 'Geen beschrijving beschikbaar'}
           </p>
+          
+          {/* Responder Information */}
+          {responderInfo.count > 0 && (
+            <div className="flex items-center space-x-2 p-2 bg-green-100 rounded-lg">
+              <Car className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-green-800">
+                  {responderInfo.display}
+                </p>
+                {responderInfo.count > 1 && (
+                  <p className="text-xs text-green-600">
+                    {responderInfo.names.join(', ')}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col space-y-2 text-sm text-gray-500">
             <div className="flex items-center space-x-1">

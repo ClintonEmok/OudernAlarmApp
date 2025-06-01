@@ -16,6 +16,7 @@ export interface Alert {
   description?: string;
   message?: string;
   created_at?: string;
+  caregivers_en_route?: string; // Added field for responders
 }
 
 export interface Contact {
