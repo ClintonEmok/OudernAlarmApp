@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { useEffect } from "react";
 import { capacitorService } from "./services/capacitor-service";
 import { pushNotificationService } from "./services/push-notification-service";
 import { pwaNavigationService } from "./services/pwa-navigation-service";
+import { logger } from "./utils/logger";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import BottomNavigation from "./components/Layout/BottomNavigation";
