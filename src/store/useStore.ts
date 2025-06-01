@@ -1,8 +1,10 @@
+
 import { create } from 'zustand';
 import { createAuthSlice, AuthSlice } from './auth';
 import { createDeviceSlice, DeviceSlice } from './devices';
 import { createContactSlice, ContactSlice } from './contacts';
 import { createAlertSlice, AlertSlice } from './alerts';
+import { createSettingsSlice, SettingsSlice } from './settings';
 import { LocationState, LoadingState, DeviceInfo } from './types';
 import { authService } from '../services/auth-service';
 
@@ -10,7 +12,8 @@ interface AppState extends
   AuthSlice, 
   DeviceSlice, 
   ContactSlice, 
-  AlertSlice, 
+  AlertSlice,
+  SettingsSlice,
   LocationState, 
   LoadingState {
   // Loading actions
@@ -19,6 +22,8 @@ interface AppState extends
   setDeviceInfo: (info: DeviceInfo) => void;
   // Central refresh function
   refreshAll: () => Promise<void>;
+  // Initialize app
+  initializeApp: () => void;
 }
 
 export const useStore = create<AppState>((set, get, api) => ({
@@ -61,6 +66,11 @@ export const useStore = create<AppState>((set, get, api) => ({
       set({ isLoading: false });
     }
   },
+
+  // Initialize app - load settings from storage
+  initializeApp: () => {
+    get().loadSettingsFromStorage();
+  },
   
   // Auth slice
   ...createAuthSlice(set, get, api),
@@ -73,6 +83,9 @@ export const useStore = create<AppState>((set, get, api) => ({
   
   // Alert slice
   ...createAlertSlice(set, get, api),
+
+  // Settings slice
+  ...createSettingsSlice(set, get, api),
   
   // Override logout to clear all state and token
   logout: () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { apiService } from '../services/api';
@@ -11,16 +11,23 @@ import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import { useToast } from '../components/ui/use-toast';
 
 const Settings = () => {
-  const { user, logout } = useStore();
+  const { 
+    user, 
+    logout,
+    showUserLocationOnMap,
+    notificationsEnabled,
+    alarmNotificationsEnabled,
+    batteryNotificationsEnabled,
+    locationNotificationsEnabled,
+    setShowUserLocationOnMap,
+    setNotificationsEnabled,
+    setAlarmNotificationsEnabled,
+    setBatteryNotificationsEnabled,
+    setLocationNotificationsEnabled
+  } = useStore();
   const navigate = useNavigate();
   const { handleSettingClick } = useSettingsNavigation();
   const { toast } = useToast();
-  
-  const [showUserLocationOnMap, setShowUserLocationOnMap] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [alarmNotificationsEnabled, setAlarmNotificationsEnabled] = useState(true);
-  const [batteryNotificationsEnabled, setBatteryNotificationsEnabled] = useState(true);
-  const [locationNotificationsEnabled, setLocationNotificationsEnabled] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -39,12 +46,6 @@ const Settings = () => {
 
   const handleToggleNotifications = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
-    if (!enabled) {
-      // If notifications are disabled, disable all sub-notifications
-      setAlarmNotificationsEnabled(false);
-      setBatteryNotificationsEnabled(false);
-      setLocationNotificationsEnabled(false);
-    }
     
     toast({
       title: enabled ? "Notificaties ingeschakeld" : "Notificaties uitgeschakeld",

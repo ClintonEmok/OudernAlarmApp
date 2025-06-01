@@ -15,9 +15,9 @@ const MapView = () => {
   const {
     selectedDevice,
     deviceInfo,
-    fetchDevices
+    fetchDevices,
+    showUserLocationOnMap
   } = useStore();
-  const [showUserLocation, setShowUserLocation] = useState(false);
   
   // Use the new device polling hook
   const { isRefreshing, handleRefresh } = useDevicePolling();
@@ -44,25 +44,27 @@ const MapView = () => {
     fetchDevices();
   }, [fetchDevices]);
 
-  const handleToggleUserLocation = async () => {
-    if (!showUserLocation) {
-      try {
-        if (!locationPermission) {
-          const granted = await requestLocationPermissions();
-          if (!granted) {
-            console.log('Location permission denied');
-            return;
+  // Auto-enable user location if setting is on and we have permission
+  useEffect(() => {
+    if (showUserLocationOnMap && !currentLocation) {
+      const enableLocation = async () => {
+        try {
+          if (!locationPermission) {
+            const granted = await requestLocationPermissions();
+            if (!granted) {
+              console.log('Location permission denied');
+              return;
+            }
           }
+          await getCurrentLocation();
+        } catch (error) {
+          console.error('Failed to auto-enable user location:', error);
         }
-        await getCurrentLocation();
-        setShowUserLocation(true);
-      } catch (error) {
-        console.error('Failed to get user location:', error);
-      }
-    } else {
-      setShowUserLocation(false);
+      };
+      
+      enableLocation();
     }
-  };
+  }, [showUserLocationOnMap, locationPermission, currentLocation, requestLocationPermissions, getCurrentLocation]);
 
   return (
     <div className="h-full flex flex-col relative">
@@ -72,7 +74,7 @@ const MapView = () => {
           device={selectedDevice} 
           mapboxToken={DEFAULT_MAPBOX_TOKEN} 
           userLocation={currentLocation} 
-          showUserLocation={showUserLocation} 
+          showUserLocation={showUserLocationOnMap && !!currentLocation} 
         />
 
         {/* Floating Location Card */}
@@ -134,7 +136,7 @@ const MapView = () => {
               </div>
 
               {/* User location status */}
-              {showUserLocation && currentLocation && (
+              {showUserLocationOnMap && currentLocation && (
                 <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100 mt-2">
                   <User size={12} />
                   <span className="text-xs">
