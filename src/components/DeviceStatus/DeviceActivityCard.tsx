@@ -40,9 +40,9 @@ const DeviceActivityCard: React.FC<DeviceActivityCardProps> = ({ device }) => {
             {getStatusBadge(device)}
           </div>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <span className="text-sm text-gray-600">Laatste Update:</span>
-            <div className="flex items-center justify-end space-x-1 text-sm">
+            <div className="flex items-center space-x-1 text-sm text-right">
               <Clock size={14} className="text-gray-400" />
               <span>
                 {device.lastUpdate 
