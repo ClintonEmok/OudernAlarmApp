@@ -24,16 +24,16 @@
   /* iPhone X series and newer */
   @media screen and (min-height: 812px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 58px;
-      padding-bottom: max(env(safe-area-inset-bottom), 8px);
+      height: 56px;
+      padding-bottom: max(env(safe-area-inset-bottom), 4px);
     }
   }
 
   /* iPhone Pro Max and newer */
   @media screen and (min-height: 844px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 80px;
-      padding-bottom: max(env(safe-area-inset-bottom), 12px);
+      height: 64px;
+      padding-bottom: max(env(safe-area-inset-bottom), 6px);
     }
   }
 }
