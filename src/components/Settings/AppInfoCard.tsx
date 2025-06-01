@@ -1,5 +1,6 @@
 
 import { Settings as SettingsIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 
@@ -8,8 +9,10 @@ interface AppInfoCardProps {
 }
 
 const AppInfoCard = ({ onSupportClick }: AppInfoCardProps) => {
+  const navigate = useNavigate();
+
   const handlePrivacyPolicyClick = () => {
-    window.open('/privacy-policy.html', '_blank');
+    navigate('/settings/privacy');
   };
 
   return (

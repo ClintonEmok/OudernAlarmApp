@@ -36,6 +36,9 @@ export const useSettingsNavigation = () => {
       case 'Hulp & Ondersteuning':
         navigate('/settings/support');
         break;
+      case 'Privacy Beleid':
+        navigate('/settings/privacy');
+        break;
       default:
         console.log('Setting not implemented yet:', settingName);
     }

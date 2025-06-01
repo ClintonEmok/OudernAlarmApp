@@ -21,6 +21,7 @@ import PasswordSettings from "./pages/PasswordSettings";
 import DevicePairing from "./pages/DevicePairing";
 import Invitations from "./pages/Invitations";
 import SupportTicket from "./pages/SupportTicket";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
@@ -133,6 +134,11 @@ const App = () => {
                   <Route path="/settings/support" element={
                     <ProtectedRoute>
                       <SupportTicket />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings/privacy" element={
+                    <ProtectedRoute>
+                      <PrivacyPolicy />
                     </ProtectedRoute>
                   } />
                   
