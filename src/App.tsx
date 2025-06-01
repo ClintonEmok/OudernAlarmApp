@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import BottomNavigation from "./components/Layout/BottomNavigation";
 import Home from "./pages/Home";
 import Alerts from "./pages/Alerts";
+import AlertDetail from "./pages/AlertDetail";
 import Contacts from "./pages/Contacts";
 import Device from "./pages/Device";
 import Settings from "./pages/Settings";
@@ -86,6 +86,11 @@ const App = () => {
                   <Route path="/alerts" element={
                     <ProtectedRoute>
                       <Alerts />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/alerts/:alertId" element={
+                    <ProtectedRoute>
+                      <AlertDetail />
                     </ProtectedRoute>
                   } />
                   <Route path="/contacts" element={

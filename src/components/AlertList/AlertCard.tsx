@@ -1,5 +1,5 @@
-
 import { AlertTriangle, MapPin, Clock, Car } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -14,6 +14,12 @@ interface AlertCardProps {
 }
 
 const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCardProps) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/alerts/${alert.id}`);
+  };
+
   const getAlertIcon = (type: string) => {
     switch (type?.toLowerCase()) {
       case 'sos':
@@ -60,7 +66,6 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
     }
   };
 
-  // Use the central timezone utility for consistent time formatting
   const getTimeInfo = () => {
     if (alert.created_at) {
       return getFormattedAmsterdamTime(alert.created_at);
@@ -70,7 +75,6 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
 
   const timeInfo = getTimeInfo();
 
-  // Parse responder information
   const getResponderInfo = () => {
     const caregivers = alert.caregivers_en_route?.trim();
     
@@ -93,7 +97,10 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
   const responderInfo = getResponderInfo();
 
   return (
-    <Card className={`${getAlertColor(alert.type)} border-l-4`}>
+    <Card 
+      className={`${getAlertColor(alert.type)} border-l-4 cursor-pointer hover:shadow-md transition-shadow`}
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -159,7 +166,10 @@ const AlertCard = ({ alert, onCall, onViewLocation, onMarkAsResolved }: AlertCar
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => onViewLocation(alert)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click when clicking the button
+                  onViewLocation(alert);
+                }}
                 className="w-full"
               >
                 <MapPin size={14} className="mr-1" />
