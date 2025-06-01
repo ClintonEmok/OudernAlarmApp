@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
@@ -22,7 +24,7 @@ export class ResponseHandler {
       
       if (response.status === 419) {
         // CSRF token mismatch - clear token for retry
-        console.log('CSRF token mismatch detected');
+        logger.debug('CSRF token mismatch detected');
         throw new Error('CSRF token mismatch');
       }
       

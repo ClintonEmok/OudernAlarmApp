@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 class PWANavigationService {
   private isStandalone: boolean;
   private isIOS: boolean;
@@ -61,7 +63,7 @@ class PWANavigationService {
   private handleExternalLink(href: string) {
     // For external links in PWA, we could show a confirmation dialog
     // or open in a minimal browser view if needed
-    console.log('External link blocked in PWA:', href);
+    logger.debug('External link blocked in PWA:', href);
   }
 
   private optimizeTouchHandling() {

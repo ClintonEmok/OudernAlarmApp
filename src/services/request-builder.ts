@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 export class RequestBuilder {
   private getHeaders(includeAuth = true, includeCsrf = false, csrfToken: string | null = null): HeadersInit {
     const headers: HeadersInit = {
@@ -18,9 +20,9 @@ export class RequestBuilder {
     // Include XSRF token for SPA authentication (Laravel Sanctum) - only if available
     if (includeCsrf && csrfToken) {
       headers['X-XSRF-TOKEN'] = csrfToken;
-      console.log('Including X-XSRF-TOKEN in headers');
+      logger.debug('Including X-XSRF-TOKEN in headers');
     } else if (includeCsrf && !csrfToken) {
-      console.warn('CSRF token requested but not available - proceeding without CSRF protection');
+      logger.warn('CSRF token requested but not available - proceeding without CSRF protection');
     }
 
     return headers;

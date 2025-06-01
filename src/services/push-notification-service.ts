@@ -1,6 +1,8 @@
+
 import { PushNotifications, PushNotificationSchema, ActionPerformed, Token } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { capacitorService } from './capacitor-service';
+import { logger } from '../utils/logger';
 
 export interface NotificationPayload {
   title: string;
@@ -30,10 +32,10 @@ class PushNotificationService {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    console.log('Initializing push notifications...');
+    logger.debug('Initializing push notifications...');
 
     if (!capacitorService.isNative()) {
-      console.log('Running on web - using fallback notifications');
+      logger.debug('Running on web - using fallback notifications');
       await this.initializeWebNotifications();
       return;
     }
@@ -45,7 +47,7 @@ class PushNotificationService {
       // Request permission if needed
       if (this.permissionStatus.receive !== 'granted') {
         const permissionResult = await PushNotifications.requestPermissions();
-        console.log('Push notification permission:', permissionResult);
+        logger.debug('Push notification permission:', permissionResult);
         this.permissionStatus.receive = normalizePermissionState(permissionResult.receive);
       }
 
@@ -57,13 +59,13 @@ class PushNotificationService {
         this.setupListeners();
         
         this.isInitialized = true;
-        console.log('Push notifications initialized successfully');
+        logger.debug('Push notifications initialized successfully');
       } else {
-        console.warn('Push notification permission denied');
+        logger.warn('Push notification permission denied');
         throw new Error('Push notification permission denied');
       }
     } catch (error) {
-      console.error('Failed to initialize push notifications:', error);
+      logger.error('Failed to initialize push notifications:', error);
       throw error;
     }
   }
@@ -87,10 +89,10 @@ class PushNotificationService {
         }
       }
       
-      console.log('Current notification permissions:', this.permissionStatus);
+      logger.debug('Current notification permissions:', this.permissionStatus);
       return this.permissionStatus;
     } catch (error) {
-      console.error('Failed to check notification permissions:', error);
+      logger.error('Failed to check notification permissions:', error);
       return this.permissionStatus;
     }
   }
@@ -117,7 +119,7 @@ class PushNotificationService {
       
       return this.permissionStatus;
     } catch (error) {
-      console.error('Failed to request notification permissions:', error);
+      logger.error('Failed to request notification permissions:', error);
       throw error;
     }
   }
@@ -138,7 +140,7 @@ class PushNotificationService {
       
       this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize web notifications:', error);
+      logger.error('Failed to initialize web notifications:', error);
       throw error;
     }
   }
@@ -146,24 +148,24 @@ class PushNotificationService {
   private setupListeners(): void {
     // On success, we should be able to receive notifications
     PushNotifications.addListener('registration', (token: Token) => {
-      console.log('Push registration success, token: ' + token.value);
+      logger.debug('Push registration success, token: ' + token.value);
       this.sendTokenToServer(token.value);
     });
 
     // Some issue with our setup and push will not work
     PushNotifications.addListener('registrationError', (error: any) => {
-      console.error('Error on registration: ' + JSON.stringify(error));
+      logger.error('Error on registration: ' + JSON.stringify(error));
     });
 
     // Show us the notification payload if the app is open on our device
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-      console.log('Push notification received: ', notification);
+      logger.debug('Push notification received: ', notification);
       this.handleNotificationReceived(notification);
     });
 
     // Method called when tapping on a notification
     PushNotifications.addListener('pushNotificationActionPerformed', (notification: ActionPerformed) => {
-      console.log('Push notification action performed', notification);
+      logger.debug('Push notification action performed', notification);
       this.handleNotificationAction(notification);
     });
   }
@@ -172,17 +174,17 @@ class PushNotificationService {
     try {
       // Store token locally
       localStorage.setItem('push_token', token);
-      console.log('Push token stored:', token);
+      logger.debug('Push token stored:', token);
       
       // TODO: Send to your backend API
       // await apiService.registerPushToken(token);
     } catch (error) {
-      console.error('Failed to store push token:', error);
+      logger.error('Failed to store push token:', error);
     }
   }
 
   private handleNotificationReceived(notification: PushNotificationSchema): void {
-    console.log('Notification received in foreground:', notification);
+    logger.debug('Notification received in foreground:', notification);
     
     // Show local notification when app is in foreground
     if (capacitorService.isNative()) {
@@ -195,7 +197,7 @@ class PushNotificationService {
   }
 
   private handleNotificationAction(action: ActionPerformed): void {
-    console.log('Notification action:', action);
+    logger.debug('Notification action:', action);
     
     // Handle notification tap - navigate to relevant screen
     const data = action.notification.data;
@@ -241,7 +243,7 @@ class PushNotificationService {
         }
       }
     } catch (error) {
-      console.error('Failed to send local notification:', error);
+      logger.error('Failed to send local notification:', error);
       throw error;
     }
   }

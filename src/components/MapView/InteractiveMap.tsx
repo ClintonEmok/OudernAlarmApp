@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Device } from '../../types';
 import { LocationCoordinates } from '../../services/geolocation-service';
+import { logger } from '../../utils/logger';
 
 interface InteractiveMapProps {
   device: Device | null;
@@ -36,7 +37,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const lat = device?.location?.latitude || defaultLat;
     const lng = device?.location?.longitude || defaultLng;
 
-    console.log('Map initialized with location:', { lat, lng, device: device?.nickname });
+    logger.debug('Map initialized with location:', { lat, lng, device: device?.nickname });
 
     // Initialize map
     map.current = new mapboxgl.Map({
@@ -125,7 +126,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   useEffect(() => {
     if (map.current && deviceMarker.current && device?.location) {
       const { latitude, longitude } = device.location;
-      console.log('Updating device location to:', { latitude, longitude });
+      logger.debug('Updating device location to:', { latitude, longitude });
       
       // Fly to new location
       map.current.flyTo({
@@ -200,7 +201,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       .setLngLat([userLocation.longitude, userLocation.latitude])
       .addTo(map.current);
 
-    console.log('User location marker updated:', { 
+    logger.debug('User location marker updated:', { 
       latitude: userLocation.latitude, 
       longitude: userLocation.longitude 
     });
