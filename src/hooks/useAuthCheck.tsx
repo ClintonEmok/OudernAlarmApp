@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
+import { logger } from '../utils/logger';
 
 export const useAuthCheck = () => {
   const { isAuthenticated, user } = useStore();
@@ -10,7 +11,7 @@ export const useAuthCheck = () => {
   useEffect(() => {
     // Simple check: if no user and not authenticated, redirect to login
     if (!isAuthenticated && !user) {
-      console.log('Not authenticated, redirecting to login');
+      logger.debug('Not authenticated, redirecting to login');
       navigate('/login', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);

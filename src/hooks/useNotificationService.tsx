@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react';
 import { pushNotificationService } from '../services/push-notification-service';
+import { logger } from '../utils/logger';
 
 export const useNotificationService = () => {
   // Send test notification
@@ -12,7 +13,7 @@ export const useNotificationService = () => {
         data: { test: true }
       });
     } catch (error) {
-      console.error('Failed to send test notification:', error);
+      logger.error('Failed to send test notification', error);
       throw error;
     }
   }, []);
@@ -22,7 +23,7 @@ export const useNotificationService = () => {
     try {
       await pushNotificationService.sendAlarmNotification(deviceName, alarmType);
     } catch (error) {
-      console.error('Failed to send alarm notification:', error);
+      logger.error('Failed to send alarm notification', error);
       throw error;
     }
   }, []);
@@ -32,7 +33,7 @@ export const useNotificationService = () => {
     try {
       await pushNotificationService.sendLowBatteryNotification(deviceName, batteryLevel);
     } catch (error) {
-      console.error('Failed to send low battery notification:', error);
+      logger.error('Failed to send low battery notification', error);
       throw error;
     }
   }, []);

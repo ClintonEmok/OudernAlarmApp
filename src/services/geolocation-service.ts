@@ -1,6 +1,7 @@
 
 import { Geolocation, Position, PositionOptions } from '@capacitor/geolocation';
 import { capacitorService } from './capacitor-service';
+import { logger } from '../utils/logger';
 
 export interface LocationCoordinates {
   latitude: number;
@@ -24,7 +25,7 @@ class GeolocationService {
 
   async getCurrentLocation(options?: LocationOptions): Promise<LocationCoordinates> {
     try {
-      console.log('Getting current location...');
+      logger.debug('Getting current location...');
 
       if (!capacitorService.isNative() && !navigator.geolocation) {
         throw new Error('Geolocation not supported');
@@ -61,15 +62,15 @@ class GeolocationService {
       };
 
       this.lastKnownLocation = coordinates;
-      console.log('Location obtained:', coordinates);
+      logger.debug('Location obtained', coordinates);
 
       return coordinates;
     } catch (error) {
-      console.error('Failed to get location:', error);
+      logger.error('Failed to get location', error);
       
       // Return last known location if available
       if (this.lastKnownLocation) {
-        console.log('Returning last known location');
+        logger.debug('Returning last known location');
         return this.lastKnownLocation;
       }
       
@@ -97,7 +98,7 @@ class GeolocationService {
     options?: LocationOptions
   ): Promise<void> {
     try {
-      console.log('Starting location tracking...');
+      logger.debug('Starting location tracking...');
 
       if (this.watchId) {
         await this.stopLocationTracking();
@@ -118,7 +119,7 @@ class GeolocationService {
 
         this.watchId = await Geolocation.watchPosition(positionOptions, (position, err) => {
           if (err) {
-            console.error('Location tracking error:', err);
+            logger.error('Location tracking error', err);
             return;
           }
 
@@ -154,14 +155,14 @@ class GeolocationService {
             this.lastKnownLocation = coordinates;
             callback(coordinates);
           },
-          (error) => console.error('Web location tracking error:', error),
+          (error) => logger.error('Web location tracking error', error),
           positionOptions
         ).toString();
       }
 
-      console.log('Location tracking started with ID:', this.watchId);
+      logger.debug('Location tracking started', { watchId: this.watchId });
     } catch (error) {
-      console.error('Failed to start location tracking:', error);
+      logger.error('Failed to start location tracking', error);
       throw error;
     }
   }
@@ -170,7 +171,7 @@ class GeolocationService {
     if (!this.watchId) return;
 
     try {
-      console.log('Stopping location tracking...');
+      logger.debug('Stopping location tracking...');
 
       if (capacitorService.isNative()) {
         await Geolocation.clearWatch({ id: this.watchId });
@@ -179,9 +180,9 @@ class GeolocationService {
       }
 
       this.watchId = null;
-      console.log('Location tracking stopped');
+      logger.debug('Location tracking stopped');
     } catch (error) {
-      console.error('Failed to stop location tracking:', error);
+      logger.error('Failed to stop location tracking', error);
     }
   }
 
@@ -199,7 +200,7 @@ class GeolocationService {
         return 'geolocation' in navigator;
       }
     } catch (error) {
-      console.error('Failed to check location permissions:', error);
+      logger.error('Failed to check location permissions', error);
       return false;
     }
   }
@@ -214,7 +215,7 @@ class GeolocationService {
         return 'geolocation' in navigator;
       }
     } catch (error) {
-      console.error('Failed to request location permissions:', error);
+      logger.error('Failed to request location permissions', error);
       return false;
     }
   }

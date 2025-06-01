@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GeocodingService, GeocodeResult } from '../services/geocoding-service';
 import { Device } from '../types';
+import { logger } from '../utils/logger';
 
 interface UseAddressLookupProps {
   device: Device | null;
@@ -25,7 +26,7 @@ export const useAddressLookup = ({ device, mapboxToken }: UseAddressLookupProps)
       const result = await geocodingService.reverseGeocode(latitude, longitude);
       setAddress(result);
     } catch (err) {
-      console.error('Address lookup failed:', err);
+      logger.error('Address lookup failed', err);
       setError('Kon adres niet ophalen');
       setAddress(null);
     } finally {

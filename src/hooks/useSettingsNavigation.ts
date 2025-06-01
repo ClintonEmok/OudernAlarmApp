@@ -40,7 +40,8 @@ export const useSettingsNavigation = () => {
         navigate('/settings/privacy');
         break;
       default:
-        console.log('Setting not implemented yet:', settingName);
+        // Non-critical log removed - setting not implemented yet
+        break;
     }
   };
 
