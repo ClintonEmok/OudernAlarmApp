@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 interface AddressComponents {
   streetNumber?: string;
   streetName?: string;
@@ -81,7 +83,7 @@ class GeocodingService {
       
       return result;
     } catch (error) {
-      console.error('Reverse geocoding failed:', error);
+      logger.error('Reverse geocoding failed', error);
       return null;
     }
   }

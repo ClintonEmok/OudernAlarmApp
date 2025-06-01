@@ -1,23 +1,25 @@
 
+import { logger } from '../utils/logger';
+
 export class CsrfManager {
   private csrfToken: string | null = null;
   private isRetrying: boolean = false;
 
   private getCsrfTokenFromCookie(): string | null {
     const cookies = document.cookie.split(';');
-    console.log('Available cookies:', cookies);
+    logger.debug('Available cookies for CSRF', { cookieCount: cookies.length });
     
     // Laravel Sanctum sets XSRF-TOKEN cookie
     for (let cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === 'XSRF-TOKEN' && value) {
-        console.log('Found XSRF-TOKEN cookie');
+        logger.debug('Found XSRF-TOKEN cookie');
         // URL decode the token value as per Laravel Sanctum docs
         return decodeURIComponent(value);
       }
     }
     
-    console.log('No XSRF-TOKEN cookie found');
+    logger.debug('No XSRF-TOKEN cookie found');
     return null;
   }
 
@@ -36,7 +38,7 @@ export class CsrfManager {
   async getCsrfToken(): Promise<void> {
     // Prevent multiple simultaneous requests
     if (this.isRetrying) {
-      console.log('CSRF token request already in progress, waiting...');
+      logger.debug('CSRF token request already in progress, waiting...');
       // Wait for existing request to complete
       let attempts = 0;
       while (this.isRetrying && attempts < 20) {
@@ -48,7 +50,7 @@ export class CsrfManager {
 
     try {
       this.isRetrying = true;
-      console.log('Fetching CSRF token from /sanctum/csrf-cookie...');
+      logger.debug('Fetching CSRF token from /sanctum/csrf-cookie...');
       
       const response = await fetch('https://api.ouderen-alarmering.nl/sanctum/csrf-cookie', {
         method: 'GET',
@@ -60,23 +62,23 @@ export class CsrfManager {
       });
       
       if (!response.ok) {
-        console.error('Failed to fetch CSRF cookie:', response.status);
+        logger.error('Failed to fetch CSRF cookie', { status: response.status });
         this.csrfToken = null;
         return;
       }
       
-      console.log('CSRF cookie request successful, waiting for XSRF-TOKEN cookie...');
+      logger.debug('CSRF cookie request successful, waiting for XSRF-TOKEN cookie...');
       
       // Wait for XSRF-TOKEN cookie to be available in document.cookie
       this.csrfToken = await this.waitForCookie();
-      console.log('CSRF token obtained:', this.csrfToken ? 'Yes' : 'No');
+      logger.debug('CSRF token obtained', { hasToken: !!this.csrfToken });
       
       // If still no token, try to proceed without it
       if (!this.csrfToken) {
-        console.warn('Could not obtain CSRF token, proceeding without CSRF protection');
+        logger.warn('Could not obtain CSRF token, proceeding without CSRF protection');
       }
     } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
+      logger.error('Failed to fetch CSRF token', error);
       this.csrfToken = null;
     } finally {
       this.isRetrying = false;

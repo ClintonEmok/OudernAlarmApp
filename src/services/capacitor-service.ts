@@ -1,5 +1,6 @@
 
 import { Capacitor } from '@capacitor/core';
+import { logger } from '../utils/logger';
 
 class CapacitorService {
   /**
@@ -49,11 +50,12 @@ class CapacitorService {
    * Log platform info for debugging
    */
   logPlatformInfo(): void {
-    console.log('=== PLATFORM INFO ===');
-    console.log('Platform:', this.getPlatform());
-    console.log('Is Native:', this.isNative());
-    console.log('Is Mobile:', this.isMobile());
-    console.log('User Agent:', navigator.userAgent);
+    logger.debug('Platform info', {
+      platform: this.getPlatform(),
+      isNative: this.isNative(),
+      isMobile: this.isMobile(),
+      userAgent: navigator.userAgent
+    });
   }
 }
 
