@@ -8,6 +8,10 @@ interface AppInfoCardProps {
 }
 
 const AppInfoCard = ({ onSupportClick }: AppInfoCardProps) => {
+  const handlePrivacyPolicyClick = () => {
+    window.open('/privacy-policy.html', '_blank');
+  };
+
   return (
     <Card>
       <CardContent className="p-4 text-center">
@@ -25,7 +29,12 @@ const AppInfoCard = ({ onSupportClick }: AppInfoCardProps) => {
           >
             Hulp & Ondersteuning
           </Button>
-          <Button variant="outline" size="sm" className="w-full">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={handlePrivacyPolicyClick}
+          >
             Privacy Beleid
           </Button>
         </div>
