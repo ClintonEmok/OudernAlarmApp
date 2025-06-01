@@ -1,4 +1,3 @@
-
 import { ArrowLeft, Lock, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -51,67 +50,69 @@ const PasswordSettings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-20">
-      <div className="p-4 space-y-6">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h2 className="text-xl font-bold text-gray-900">Wachtwoord Wijzigen</h2>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Lock size={20} className="text-blue-600" />
-              <span>Beveiligingsinstellingen</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="current_password">Huidig wachtwoord</Label>
-              <Input
-                id="current_password"
-                type="password"
-                value={formData.current_password}
-                onChange={(e) => setFormData(prev => ({ ...prev, current_password: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="new_password">Nieuw wachtwoord</Label>
-              <Input
-                id="new_password"
-                type="password"
-                value={formData.new_password}
-                onChange={(e) => setFormData(prev => ({ ...prev, new_password: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="new_password_confirmation">Bevestig nieuw wachtwoord</Label>
-              <Input
-                id="new_password_confirmation"
-                type="password"
-                value={formData.new_password_confirmation}
-                onChange={(e) => setFormData(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
-              />
-            </div>
-
-            <Button 
-              onClick={handleSave} 
-              disabled={isLoading || !formData.current_password || !formData.new_password || !formData.new_password_confirmation}
-              className="w-full"
+    <div className="h-full bg-blue-50 overflow-y-auto">
+      <div className="safe-area-pt">
+        <div className="p-4 space-y-6 pb-20">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/settings')}
             >
-              <Save size={16} className="mr-2" />
-              {isLoading ? 'Opslaan...' : 'Wachtwoord wijzigen'}
+              <ArrowLeft size={20} />
             </Button>
-          </CardContent>
-        </Card>
+            <h2 className="text-xl font-bold text-gray-900">Wachtwoord Wijzigen</h2>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Lock size={20} className="text-blue-600" />
+                <span>Beveiligingsinstellingen</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="current_password">Huidig wachtwoord</Label>
+                <Input
+                  id="current_password"
+                  type="password"
+                  value={formData.current_password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, current_password: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="new_password">Nieuw wachtwoord</Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  value={formData.new_password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, new_password: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="new_password_confirmation">Bevestig nieuw wachtwoord</Label>
+                <Input
+                  id="new_password_confirmation"
+                  type="password"
+                  value={formData.new_password_confirmation}
+                  onChange={(e) => setFormData(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
+                />
+              </div>
+
+              <Button 
+                onClick={handleSave} 
+                disabled={isLoading || !formData.current_password || !formData.new_password || !formData.new_password_confirmation}
+                className="w-full"
+              >
+                <Save size={16} className="mr-2" />
+                {isLoading ? 'Opslaan...' : 'Wachtwoord wijzigen'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

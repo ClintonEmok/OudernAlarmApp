@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
@@ -86,10 +85,8 @@ const Settings = () => {
             <p className="text-sm text-gray-600">Beheer uw account en apparaten</p>
           </div>
 
-          {/* User Info */}
           {user && <UserInfoCard user={user} />}
 
-          {/* Settings Categories */}
           {settingsCategories.map((category, index) => (
             <SettingsCategory
               key={index}
@@ -110,10 +107,8 @@ const Settings = () => {
             />
           ))}
 
-          {/* Logout */}
           <LogoutCard onLogout={handleLogout} />
 
-          {/* App Info */}
           <AppInfoCard onSupportClick={handleSupportClick} />
         </div>
       </div>

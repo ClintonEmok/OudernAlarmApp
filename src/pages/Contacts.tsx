@@ -8,22 +8,21 @@ const Contacts = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full flex flex-col bg-blue-50">
-      <div className="flex-shrink-0 p-4 pb-2">
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/settings')}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft size={20} />
-            <span>Terug</span>
-          </Button>
+    <div className="h-full bg-blue-50 overflow-y-auto">
+      <div className="safe-area-pt">
+        <div className="p-4 space-y-6 pb-20">
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate('/settings')}
+            >
+              <ArrowLeft size={20} />
+            </Button>
+            <h2 className="text-xl font-bold text-gray-900">Zorgverleners</h2>
+          </div>
+          <ContactManager />
         </div>
-      </div>
-      <div className="flex-1 overflow-hidden">
-        <ContactManager />
       </div>
     </div>
   );

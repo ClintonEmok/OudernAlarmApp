@@ -6,7 +6,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding-top: max(env(safe-area-inset-top), 12px);
+    padding-top: max(env(safe-area-inset-top), 16px);
   }
 
   /* iPhone-optimized navbar */
@@ -16,7 +16,7 @@
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid rgba(59, 130, 246, 0.1);
     height: 72px;
-    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    padding-bottom: max(env(safe-area-inset-bottom), 4px);
     flex-shrink: 0;
   }
 
@@ -26,15 +26,16 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding-top: max(env(safe-area-inset-top), 16px);
   }
 
-  /* Legacy safe area utilities */
+  /* Universal safe area utilities */
   .safe-area-pb {
     padding-bottom: max(env(safe-area-inset-bottom), 8px);
   }
   
   .safe-area-pt {
-    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-top: max(env(safe-area-inset-top), 16px);
   }
   
   .safe-area-pl {
