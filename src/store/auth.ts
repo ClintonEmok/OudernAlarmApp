@@ -4,6 +4,7 @@ import { AuthState } from './types';
 import { User } from '../types';
 import { apiService } from '../services/api';
 import { authService } from '../services/auth-service';
+import { logger } from '../utils/logger';
 
 // Type guard to check if response is a valid User object
 const isValidUser = (userData: any): userData is User => {
@@ -55,7 +56,7 @@ export const createAuthSlice: StateCreator<
     try {
       // Check if we have a valid token before making the request
       if (!authService.hasValidToken()) {
-        console.log('No valid token found, user not authenticated');
+        logger.info('No valid token found, user not authenticated');
         set({ isAuthenticated: false, user: null });
         return;
       }
@@ -64,16 +65,17 @@ export const createAuthSlice: StateCreator<
       const userData = await apiService.getUser();
       if (isValidUser(userData)) {
         set({ user: userData, isAuthenticated: true });
+        logger.debug('User data fetched successfully');
       } else {
-        console.warn('Invalid user data received from API:', userData);
+        logger.warn('Invalid user data received from API', userData);
         set({ isAuthenticated: false, user: null });
       }
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      logger.error('Failed to fetch user data', error);
       
       // If we get 401 Unauthorized, clear the token and redirect to login
       if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthenticated'))) {
-        console.log('Token appears to be invalid, clearing and redirecting to login');
+        logger.security('Token appears to be invalid, clearing and redirecting to login');
         authService.clearToken();
         set({ isAuthenticated: false, user: null });
         window.location.href = '/login';
@@ -89,8 +91,9 @@ export const createAuthSlice: StateCreator<
     try {
       await apiService.updateUser(data);
       await get().fetchUserData();
+      logger.info('User data updated successfully');
     } catch (error) {
-      console.error('Failed to update user:', error);
+      logger.error('Failed to update user', error);
       throw error;
     }
   },
@@ -98,8 +101,9 @@ export const createAuthSlice: StateCreator<
   updatePassword: async (data) => {
     try {
       await apiService.updatePassword(data);
+      logger.info('Password updated successfully');
     } catch (error) {
-      console.error('Failed to update password:', error);
+      logger.error('Failed to update password', error);
       throw error;
     }
   },
@@ -107,18 +111,21 @@ export const createAuthSlice: StateCreator<
   deleteUser: async (password) => {
     try {
       await apiService.deleteUser(password);
+      logger.info('User account deleted successfully');
       get().logout();
     } catch (error) {
-      console.error('Failed to delete user:', error);
+      logger.error('Failed to delete user', error);
       throw error;
     }
   },
   
   validateInvite: async (token: string) => {
     try {
-      return await apiService.validateInvite(token);
+      const result = await apiService.validateInvite(token);
+      logger.debug('Invite validation completed');
+      return result;
     } catch (error) {
-      console.error('Failed to validate invite:', error);
+      logger.error('Failed to validate invite', error);
       throw error;
     }
   }

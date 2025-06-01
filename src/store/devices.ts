@@ -1,11 +1,13 @@
+
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
 import { Device } from '../types';
 import { apiService } from '../services/api';
+import { logger } from '../utils/logger';
 
 // Helper function to transform API device response to Device type
 const transformApiDevice = (apiDevice: any): Device => {
-  console.log('Transforming API device:', apiDevice);
+  logger.debug('Transforming API device:', apiDevice);
   
   // Transform location data, converting string coordinates to numbers
   let location = undefined;
@@ -22,14 +24,14 @@ const transformApiDevice = (apiDevice: any): Device => {
                       apiDevice.battery_level || 
                       85; // only as last resort
   
-  console.log('Using battery level:', batteryLevel, 'from API status:', apiDevice.status);
+  logger.debug('Using battery level from API status', { batteryLevel, status: apiDevice.status });
   
   // Only use real data from API for firmware
   const firmwareVersion = apiDevice.firmwareVersion || 
                          apiDevice.firmware_version || 
                          null;
   
-  console.log('Device data - Firmware:', firmwareVersion);
+  logger.debug('Device firmware version extracted', { firmwareVersion });
   
   return {
     id: apiDevice.id || 0,
@@ -89,19 +91,19 @@ export const createDeviceSlice: StateCreator<
   
   fetchDevices: async () => {
     try {
-      console.log('=== FETCH DEVICES START ===');
-      console.log('Using endpoint: /my-devices/own');
-      console.log('Checking localStorage token:', localStorage.getItem('access_token') ? 'Token exists' : 'No token found');
+      logger.info('Starting device fetch process');
+      logger.debug('Using endpoint: /my-devices/own');
       
       // Fetch own devices using the correct endpoint
       const ownDevicesResponse = await apiService.getMyDevices();
-      console.log('Own devices API Response received:', ownDevicesResponse);
-      console.log('Response type:', typeof ownDevicesResponse);
-      console.log('Response keys:', Object.keys(ownDevicesResponse || {}));
+      logger.debug('Own devices API response received', { 
+        type: typeof ownDevicesResponse,
+        keys: Object.keys(ownDevicesResponse || {})
+      });
       
       // Check if response is an array (expected format for /my-devices/own)
       if (!ownDevicesResponse) {
-        console.warn('No response received from API');
+        logger.warn('No response received from devices API');
         set({ devices: [], ownDevices: [], caregivingDevices: [] });
         return;
       }
@@ -110,12 +112,12 @@ export const createDeviceSlice: StateCreator<
       let ownDevices: Device[] = [];
       if (Array.isArray(ownDevicesResponse)) {
         ownDevices = ownDevicesResponse.map(transformApiDevice);
-        console.log('Response is array format - processing devices:', ownDevices.length);
+        logger.debug('Response is array format - processing devices', { count: ownDevices.length });
       } else if (ownDevicesResponse && typeof ownDevicesResponse === 'object' && 'data' in ownDevicesResponse && Array.isArray((ownDevicesResponse as any).data)) {
         ownDevices = ((ownDevicesResponse as any).data).map(transformApiDevice);
-        console.log('Response has data property - processing devices:', ownDevices.length);
+        logger.debug('Response has data property - processing devices', { count: ownDevices.length });
       } else {
-        console.warn('Unexpected response format:', ownDevicesResponse);
+        logger.warn('Unexpected response format from devices API', ownDevicesResponse);
         ownDevices = [];
       }
       
@@ -123,21 +125,23 @@ export const createDeviceSlice: StateCreator<
       let caregivingDevices: Device[] = [];
       try {
         const caregivingResponse = await apiService.getCaregivingDevices();
-        console.log('Caregiving devices response:', caregivingResponse);
+        logger.debug('Caregiving devices response received', caregivingResponse);
         if (Array.isArray(caregivingResponse)) {
           caregivingDevices = caregivingResponse.map(transformApiDevice);
         } else if (caregivingResponse && typeof caregivingResponse === 'object' && 'data' in caregivingResponse && Array.isArray((caregivingResponse as any).data)) {
           caregivingDevices = ((caregivingResponse as any).data).map(transformApiDevice);
         }
       } catch (caregivingError) {
-        console.log('Could not fetch caregiving devices (this is optional):', caregivingError);
+        logger.debug('Could not fetch caregiving devices (optional)', caregivingError);
       }
       
       const allDevices = [...ownDevices, ...caregivingDevices];
       
-      console.log('Processed own devices:', ownDevices);
-      console.log('Processed caregiving devices:', caregivingDevices);
-      console.log('Total devices processed:', allDevices.length);
+      logger.debug('Device fetch results', {
+        ownDevices: ownDevices.length,
+        caregivingDevices: caregivingDevices.length,
+        total: allDevices.length
+      });
       
       set({ 
         devices: allDevices,
@@ -148,98 +152,94 @@ export const createDeviceSlice: StateCreator<
       if (allDevices.length > 0) {
         const { selectedDevice, setSelectedDevice } = get();
         if (!selectedDevice) {
-          console.log('Setting first device as selected:', allDevices[0]);
+          logger.debug('Setting first device as selected', { deviceId: allDevices[0].id });
           setSelectedDevice(allDevices[0]);
         }
         get().updateDeviceInfo();
       } else {
-        console.log('No devices found in response');
+        logger.info('No devices found in response');
       }
       
-      console.log('=== FETCH DEVICES END ===');
+      logger.info('Device fetch completed successfully');
     } catch (error) {
-      console.error('=== FETCH DEVICES ERROR ===');
-      console.error('Error type:', typeof error);
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
-      console.error('Full error object:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+      logger.error('Failed to fetch devices', error);
       set({ devices: [], ownDevices: [], caregivingDevices: [] });
     }
   },
   
   fetchOwnDevices: async () => {
     try {
-      console.log('Fetching own devices...');
+      logger.debug('Fetching own devices...');
       const devices = await apiService.getOwnDevices();
-      console.log('Own devices response:', devices);
+      logger.debug('Own devices response received', devices);
       const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
       set({ ownDevices: transformedDevices });
     } catch (error) {
-      console.error('Failed to fetch own devices:', error);
+      logger.error('Failed to fetch own devices', error);
       set({ ownDevices: [] });
     }
   },
   
   fetchCaregivingDevices: async () => {
     try {
-      console.log('Fetching caregiving devices...');
+      logger.debug('Fetching caregiving devices...');
       const devices = await apiService.getCaregivingDevices();
-      console.log('Caregiving devices response:', devices);
+      logger.debug('Caregiving devices response received', devices);
       const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
       set({ caregivingDevices: transformedDevices });
     } catch (error) {
-      console.error('Failed to fetch caregiving devices:', error);
+      logger.error('Failed to fetch caregiving devices', error);
       set({ caregivingDevices: [] });
     }
   },
   
   assignDevice: async (phone_number: string, nickname?: string) => {
     try {
-      console.log('=== ASSIGN DEVICE START ===');
-      console.log('Assigning device with phone:', phone_number, 'nickname:', nickname);
+      logger.info('Starting device assignment', { phone_number, nickname });
       
       const response = await apiService.assignDevice(phone_number, nickname);
-      console.log('Assign device response:', response);
+      logger.debug('Device assignment response received', response);
       
-      console.log('Refreshing devices after assignment...');
+      logger.debug('Refreshing devices after assignment...');
       await get().fetchDevices();
-      console.log('=== ASSIGN DEVICE END ===');
+      logger.info('Device assignment completed successfully');
     } catch (error) {
-      console.error('=== ASSIGN DEVICE ERROR ===');
-      console.error('Failed to assign device:', error);
+      logger.error('Failed to assign device', error);
       throw error;
     }
   },
   
   unassignDevice: async (id: number) => {
     try {
-      console.log('Unassigning device:', id);
+      logger.info('Unassigning device', { deviceId: id });
       await apiService.unassignDevice(id);
       await get().fetchDevices();
+      logger.info('Device unassignment completed');
     } catch (error) {
-      console.error('Failed to unassign device:', error);
+      logger.error('Failed to unassign device', error);
       throw error;
     }
   },
   
   getDevice: async (id: number): Promise<Device> => {
     try {
-      console.log('Getting device:', id);
+      logger.debug('Getting device details', { deviceId: id });
       const apiDevice = await apiService.getDevice(id);
-      console.log('Get device response:', apiDevice);
+      logger.debug('Device details response received', apiDevice);
       return transformApiDevice(apiDevice);
     } catch (error) {
-      console.error('Failed to get device:', error);
+      logger.error('Failed to get device details', error);
       throw error;
     }
   },
   
   requestDeviceAccess: async (phone_number: string, message?: string) => {
     try {
-      console.log('Requesting device access for:', phone_number);
+      logger.info('Requesting device access', { phone_number });
       await apiService.requestDeviceAccess(phone_number, message);
+      logger.info('Device access request sent successfully');
     } catch (error) {
-      console.error('Failed to request device access:', error);
+      logger.error('Failed to request device access', error);
       throw error;
     }
   }

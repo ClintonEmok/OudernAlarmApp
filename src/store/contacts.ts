@@ -3,6 +3,7 @@ import { StateCreator } from 'zustand';
 import { ContactState } from './types';
 import { Contact } from '../types';
 import { apiService } from '../services/api';
+import { logger } from '../utils/logger';
 
 export interface ContactActions {
   setCaregivers: (caregivers: Contact[]) => void;
@@ -36,8 +37,9 @@ export const createContactSlice: StateCreator<
     try {
       const caregivers = await apiService.getCaregivers();
       set({ caregivers: Array.isArray(caregivers) ? caregivers : [] });
+      logger.debug('Caregivers fetched successfully', { count: Array.isArray(caregivers) ? caregivers.length : 0 });
     } catch (error) {
-      console.error('Failed to fetch caregivers:', error);
+      logger.error('Failed to fetch caregivers', error);
       set({ caregivers: [] });
     }
   },
@@ -46,8 +48,9 @@ export const createContactSlice: StateCreator<
     try {
       const patients = await apiService.getPatients();
       set({ patients: Array.isArray(patients) ? patients : [] });
+      logger.debug('Patients fetched successfully', { count: Array.isArray(patients) ? patients.length : 0 });
     } catch (error) {
-      console.error('Failed to fetch patients:', error);
+      logger.error('Failed to fetch patients', error);
       set({ patients: [] });
     }
   },
@@ -56,8 +59,9 @@ export const createContactSlice: StateCreator<
     try {
       const invites = await apiService.getPendingInvites();
       set({ pendingInvites: Array.isArray(invites) ? invites : [] });
+      logger.debug('Pending invites fetched successfully', { count: Array.isArray(invites) ? invites.length : 0 });
     } catch (error) {
-      console.error('Failed to fetch pending invites:', error);
+      logger.error('Failed to fetch pending invites', error);
       set({ pendingInvites: [] });
     }
   },
@@ -67,8 +71,9 @@ export const createContactSlice: StateCreator<
       await apiService.inviteCaregiver(email);
       await get().fetchCaregivers();
       await get().fetchPendingInvites();
+      logger.info('Caregiver invitation sent successfully', { email });
     } catch (error) {
-      console.error('Failed to invite caregiver:', error);
+      logger.error('Failed to invite caregiver', error);
       throw error;
     }
   },
@@ -77,8 +82,9 @@ export const createContactSlice: StateCreator<
     try {
       await apiService.removeCaregiver(userId);
       await get().fetchCaregivers();
+      logger.info('Caregiver removed successfully', { userId });
     } catch (error) {
-      console.error('Failed to remove caregiver:', error);
+      logger.error('Failed to remove caregiver', error);
       throw error;
     }
   },
@@ -86,8 +92,9 @@ export const createContactSlice: StateCreator<
   acceptCaregiverInvite: async (data) => {
     try {
       await apiService.acceptCaregiverInvite(data);
+      logger.info('Caregiver invite accepted successfully');
     } catch (error) {
-      console.error('Failed to accept caregiver invite:', error);
+      logger.error('Failed to accept caregiver invite', error);
       throw error;
     }
   },
@@ -96,8 +103,9 @@ export const createContactSlice: StateCreator<
     try {
       await apiService.updateCaregiverPriorities(caregivers);
       await get().fetchCaregivers();
+      logger.info('Caregiver priorities updated successfully');
     } catch (error) {
-      console.error('Failed to update caregiver priorities:', error);
+      logger.error('Failed to update caregiver priorities', error);
       throw error;
     }
   },
@@ -106,8 +114,9 @@ export const createContactSlice: StateCreator<
     try {
       await apiService.reorderCaregivers(caregiver_ids);
       await get().fetchCaregivers();
+      logger.info('Caregivers reordered successfully');
     } catch (error) {
-      console.error('Failed to reorder caregivers:', error);
+      logger.error('Failed to reorder caregivers', error);
       throw error;
     }
   }

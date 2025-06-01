@@ -7,6 +7,7 @@ import { createAlertSlice, AlertSlice } from './alerts';
 import { createSettingsSlice, SettingsSlice } from './settings';
 import { LocationState, LoadingState, DeviceInfo } from './types';
 import { authService } from '../services/auth-service';
+import { logger } from '../utils/logger';
 
 interface AppState extends 
   AuthSlice, 
@@ -49,7 +50,7 @@ export const useStore = create<AppState>((set, get, api) => ({
   
   // Central refresh function that updates both devices and alerts
   refreshAll: async () => {
-    console.log('🔄 Starting central refresh for devices and alerts...');
+    logger.info('Starting central refresh for devices and alerts...');
     set({ isLoading: true });
     
     try {
@@ -58,9 +59,9 @@ export const useStore = create<AppState>((set, get, api) => ({
         get().fetchDevices(),
         get().fetchAlerts()
       ]);
-      console.log('✅ Central refresh completed successfully');
+      logger.info('Central refresh completed successfully');
     } catch (error) {
-      console.error('❌ Central refresh failed:', error);
+      logger.error('Central refresh failed', error);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -70,6 +71,7 @@ export const useStore = create<AppState>((set, get, api) => ({
   // Initialize app - load settings from storage
   initializeApp: () => {
     get().loadSettingsFromStorage();
+    logger.debug('App initialization completed');
   },
   
   // Auth slice
@@ -104,6 +106,8 @@ export const useStore = create<AppState>((set, get, api) => ({
       selectedDevice: null,
       pendingInvites: []
     });
+    
+    logger.info('User logged out and state cleared');
     
     // Redirect to login
     window.location.href = '/login';
