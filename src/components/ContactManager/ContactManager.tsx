@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -100,8 +101,8 @@ const ContactManager: React.FC = () => {
   );
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-shrink-0 space-y-4 p-4">
+    <ScrollArea className="h-full">
+      <div className="p-4 space-y-4 pb-20">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -157,82 +158,77 @@ const ContactManager: React.FC = () => {
             </form>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Scrollable content area */}
-      <ScrollArea className="flex-1">
-        <div className="space-y-6 p-4 pt-0">
-          {/* Caregivers List */}
-          {filteredCaregivers.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SwipeableCaregiverList
-                  caregivers={filteredCaregivers}
-                  onUpdatePriorities={updateCaregiverPriorities}
-                  onReorderCaregivers={reorderCaregivers}
-                  onRemoveCaregiver={handleRemoveCaregiver}
-                  onEditCaregiver={handleEditCaregiver}
-                />
-              </CardContent>
-            </Card>
-          )}
+        {/* Caregivers List */}
+        {filteredCaregivers.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SwipeableCaregiverList
+                caregivers={filteredCaregivers}
+                onUpdatePriorities={updateCaregiverPriorities}
+                onReorderCaregivers={reorderCaregivers}
+                onRemoveCaregiver={handleRemoveCaregiver}
+                onEditCaregiver={handleEditCaregiver}
+              />
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Patients List */}
-          {filteredPatients.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Mijn Patiënten ({filteredPatients.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {filteredPatients.map((patient) => (
-                    <Card key={patient.id} className="border-green-100">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{patient.name}</h4>
-                            <p className="text-sm text-gray-600">{patient.email}</p>
-                            {patient.phone_number && (
-                              <p className="text-sm text-gray-500">{patient.phone_number}</p>
-                            )}
-                          </div>
+        {/* Patients List */}
+        {filteredPatients.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Mijn Patiënten ({filteredPatients.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {filteredPatients.map((patient) => (
+                  <Card key={patient.id} className="border-green-100">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{patient.name}</h4>
+                          <p className="text-sm text-gray-600">{patient.email}</p>
+                          {patient.phone_number && (
+                            <p className="text-sm text-gray-500">{patient.phone_number}</p>
+                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Empty State */}
-          {filteredCaregivers.length === 0 && filteredPatients.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  <Search size={48} className="mx-auto" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen contacten gevonden</h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm 
-                    ? `Geen contacten gevonden voor "${searchTerm}"`
-                    : "U heeft nog geen zorgverleners of patiënten."
-                  }
+        {/* Empty State */}
+        {filteredCaregivers.length === 0 && filteredPatients.length === 0 && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-gray-400 mb-4">
+                <Search size={48} className="mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen contacten gevonden</h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm 
+                  ? `Geen contacten gevonden voor "${searchTerm}"`
+                  : "U heeft nog geen zorgverleners of patiënten."
+                }
+              </p>
+              {!searchTerm && (
+                <p className="text-sm text-gray-500">
+                  Nodig een zorgverlener uit met het formulier hierboven.
                 </p>
-                {!searchTerm && (
-                  <p className="text-sm text-gray-500">
-                    Nodig een zorgverlener uit met het formulier hierboven.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </ScrollArea>
-    </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </ScrollArea>
   );
 };
 

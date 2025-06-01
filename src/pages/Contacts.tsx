@@ -8,9 +8,9 @@ const Contacts = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-20">
-      <div className="p-4 pb-0">
-        <div className="flex items-center justify-between mb-4">
+    <div className="h-full flex flex-col bg-blue-50">
+      <div className="flex-shrink-0 p-4 pb-2">
+        <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -22,7 +22,9 @@ const Contacts = () => {
           </Button>
         </div>
       </div>
-      <ContactManager />
+      <div className="flex-1 overflow-hidden">
+        <ContactManager />
+      </div>
     </div>
   );
 };
