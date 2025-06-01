@@ -20,14 +20,14 @@ import { Card, CardContent } from '../components/ui/card';
 
 const DeviceUnpairingSettings = () => {
   const navigate = useNavigate();
-  const { devices, ownDevices, unpairDevice } = useStore();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const { devices, ownDevices, unassignDevice } = useStore();
+  const [isLoading, setIsLoading] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const handleUnpairDevice = async (deviceId: string, deviceName: string) => {
+  const handleUnpairDevice = async (deviceId: number, deviceName: string) => {
     setIsLoading(deviceId);
     try {
-      await unpairDevice(deviceId);
+      await unassignDevice(deviceId);
       toast({
         title: "Apparaat ontkoppeld",
         description: `${deviceName} is succesvol ontkoppeld`,
@@ -95,16 +95,14 @@ const DeviceUnpairingSettings = () => {
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-900">
-                            {device.name || `Apparaat ${device.id.slice(-4)}`}
+                            {device.nickname || `Apparaat ${device.id.toString().slice(-4)}`}
                           </h4>
                           <p className="text-sm text-gray-600">
                             {device.phone_number || 'Geen telefoonnummer'}
                           </p>
                           <div className="flex items-center space-x-2 text-xs text-gray-500">
-                            <span className={`w-2 h-2 rounded-full ${
-                              device.is_online ? 'bg-green-500' : 'bg-gray-400'
-                            }`} />
-                            <span>{device.is_online ? 'Online' : 'Offline'}</span>
+                            <span className="w-2 h-2 rounded-full bg-gray-400" />
+                            <span>Status onbekend</span>
                           </div>
                         </div>
                       </div>
@@ -129,7 +127,7 @@ const DeviceUnpairingSettings = () => {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Annuleren</AlertDialogCancel>
                             <AlertDialogAction 
-                              onClick={() => handleUnpairDevice(device.id, device.name || `Apparaat ${device.id.slice(-4)}`)}
+                              onClick={() => handleUnpairDevice(device.id, device.nickname || `Apparaat ${device.id.toString().slice(-4)}`)}
                               className="bg-red-600 hover:bg-red-700"
                             >
                               Ja, ontkoppelen
