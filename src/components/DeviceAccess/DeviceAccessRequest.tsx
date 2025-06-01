@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -8,6 +7,7 @@ import { Textarea } from '../ui/textarea';
 import { Smartphone, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiService } from '../../services/api';
+import { logger } from '../../utils/logger';
 
 const DeviceAccessRequest: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -40,7 +40,7 @@ const DeviceAccessRequest: React.FC = () => {
       setPhoneNumber('');
       setMessage('');
     } catch (error) {
-      console.error('Failed to request device access:', error);
+      logger.error('Failed to request device access', error);
       toast({
         title: "Verzoek Mislukt",
         description: error instanceof Error ? error.message : "Er is een fout opgetreden.",

@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useStore } from '../../store/useStore';
 import { Smartphone, Plus, TestTube } from 'lucide-react';
 import DeviceConflictDialog from '../DeviceConflict/DeviceConflictDialog';
+import { logger } from '../../utils/logger';
+
 const DeviceAssignment = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [nickname, setNickname] = useState('');
@@ -67,7 +69,7 @@ const DeviceAssignment = () => {
       setPhoneNumber('');
       setNickname('');
     } catch (error) {
-      console.error('Failed to assign device:', error);
+      logger.error('Failed to assign device', error);
       handleDeviceConflictError(error, phoneNumber.trim());
     } finally {
       setIsAssigning(false);
@@ -82,13 +84,14 @@ const DeviceAssignment = () => {
         description: "Het test apparaat is succesvol gekoppeld."
       });
     } catch (error) {
-      console.error('Failed to assign test device:', error);
+      logger.error('Failed to assign test device', error);
       handleDeviceConflictError(error, '+3197052655266');
     } finally {
       setIsAssigning(false);
     }
   };
-  return <>
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -103,7 +106,14 @@ const DeviceAssignment = () => {
           <form onSubmit={handleAssignDevice} className="space-y-4">
             <div>
               <Label htmlFor="phoneNumber">Telefoonnummer Apparaat *</Label>
-              <Input id="phoneNumber" type="tel" placeholder="+31612345678" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} className="mt-1" />
+              <Input 
+                id="phoneNumber" 
+                type="tel" 
+                placeholder="+31612345678" 
+                value={phoneNumber} 
+                onChange={(e) => setPhoneNumber(e.target.value)} 
+                className="mt-1" 
+              />
               <p className="text-xs text-gray-500 mt-1">
                 Voer het telefoonnummer in zoals vermeld op het apparaat
               </p>
@@ -111,27 +121,45 @@ const DeviceAssignment = () => {
             
             <div>
               <Label htmlFor="nickname">Bijnaam (optioneel)</Label>
-              <Input id="nickname" type="text" placeholder="Bijvoorbeeld: Oma's Alarm" value={nickname} onChange={e => setNickname(e.target.value)} className="mt-1" />
+              <Input 
+                id="nickname" 
+                type="text" 
+                placeholder="Bijvoorbeeld: Oma's Alarm" 
+                value={nickname} 
+                onChange={(e) => setNickname(e.target.value)} 
+                className="mt-1" 
+              />
             </div>
             
             <Button type="submit" className="w-full" disabled={isAssigning}>
-              {isAssigning ? <>
+              {isAssigning ? (
+                <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                   Koppelen...
-                </> : <>
+                </>
+              ) : (
+                <>
                   <Smartphone size={16} className="mr-2" />
                   Apparaat Koppelen
-                </>}
+                </>
+              )}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <DeviceConflictDialog isOpen={conflictDialog.isOpen} onClose={() => setConflictDialog({
-      isOpen: false,
-      phoneNumber: '',
-      errorDetails: undefined
-    })} phoneNumber={conflictDialog.phoneNumber} errorDetails={conflictDialog.errorDetails} />
-    </>;
+      <DeviceConflictDialog 
+        isOpen={conflictDialog.isOpen} 
+        onClose={() => setConflictDialog({
+          isOpen: false,
+          phoneNumber: '',
+          errorDetails: undefined
+        })} 
+        phoneNumber={conflictDialog.phoneNumber} 
+        errorDetails={conflictDialog.errorDetails} 
+      />
+    </>
+  );
 };
+
 export default DeviceAssignment;

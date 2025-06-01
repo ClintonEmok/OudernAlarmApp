@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { apiService } from '../services/api';
@@ -9,6 +8,7 @@ import LogoutCard from '../components/Settings/LogoutCard';
 import AppInfoCard from '../components/Settings/AppInfoCard';
 import { useSettingsNavigation } from '../hooks/useSettingsNavigation';
 import { useToast } from '../components/ui/use-toast';
+import { logger } from '../utils/logger';
 
 const Settings = () => {
   const { 
@@ -33,7 +33,7 @@ const Settings = () => {
     try {
       await apiService.logout();
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      logger.error('Logout API call failed', error);
     } finally {
       logout();
       navigate('/login');

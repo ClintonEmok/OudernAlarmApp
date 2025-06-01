@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useToast } from '@/hooks/use-toast';
 import { authService } from '../services/auth-service';
 import { Eye, EyeOff } from 'lucide-react';
+import { logger } from '../utils/logger';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Naam moet minimaal 2 karakters bevatten'),
@@ -57,7 +58,7 @@ const Register = () => {
       
       navigate('/login');
     } catch (error) {
-      console.error('Registration failed:', error);
+      logger.error('Registration failed', error);
       toast({
         title: "Registratie mislukt",
         description: error instanceof Error ? error.message : "Er is een fout opgetreden tijdens de registratie.",
