@@ -37,7 +37,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const lat = device?.location?.latitude || defaultLat;
     const lng = device?.location?.longitude || defaultLng;
 
-    logger.debug('Map initialized with location:', { lat, lng, device: device?.nickname });
+    logger.debug('Map initialized with location', { lat, lng, device: device?.nickname });
 
     // Initialize map
     map.current = new mapboxgl.Map({
@@ -126,7 +126,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   useEffect(() => {
     if (map.current && deviceMarker.current && device?.location) {
       const { latitude, longitude } = device.location;
-      logger.debug('Updating device location to:', { latitude, longitude });
+      logger.debug('Updating device location', { latitude, longitude });
       
       // Fly to new location
       map.current.flyTo({
@@ -201,7 +201,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       .setLngLat([userLocation.longitude, userLocation.latitude])
       .addTo(map.current);
 
-    logger.debug('User location marker updated:', { 
+    logger.debug('User location marker updated', { 
       latitude: userLocation.latitude, 
       longitude: userLocation.longitude 
     });

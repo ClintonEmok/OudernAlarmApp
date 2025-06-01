@@ -11,6 +11,7 @@ import DeviceAssignment from '../DeviceAssignment/DeviceAssignment';
 import DeviceOverview from './DeviceOverview';
 import DeviceMetrics from './DeviceMetrics';
 import DeviceStatusIndicators from './DeviceStatusIndicators';
+import { logger } from '../../utils/logger';
 
 interface DeviceStatusProps {
   onRefresh?: () => void;
@@ -59,7 +60,7 @@ const DeviceStatus = ({ onRefresh }: DeviceStatusProps) => {
         setSelectedDevice(null);
       }
     } catch (error) {
-      console.error('Failed to disconnect device:', error);
+      logger.error('Failed to disconnect device', error);
       toast({
         title: "Ontkoppelen Mislukt",
         description: error instanceof Error ? error.message : "Er is een fout opgetreden.",

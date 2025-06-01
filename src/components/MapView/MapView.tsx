@@ -7,6 +7,7 @@ import { useLocationService } from '../../hooks/useLocationService';
 import { useDevicePolling } from '../../hooks/useDevicePolling';
 import InteractiveMap from './InteractiveMap';
 import { Button } from '../ui/button';
+import { logger } from '../../utils/logger';
 
 // Default Mapbox token
 const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ';
@@ -52,13 +53,13 @@ const MapView = () => {
           if (!locationPermission) {
             const granted = await requestLocationPermissions();
             if (!granted) {
-              console.log('Location permission denied');
+              logger.warn('Location permission denied by user');
               return;
             }
           }
           await getCurrentLocation();
         } catch (error) {
-          console.error('Failed to auto-enable user location:', error);
+          logger.error('Failed to auto-enable user location', error);
         }
       };
       

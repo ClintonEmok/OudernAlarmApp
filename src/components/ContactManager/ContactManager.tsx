@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { useToast } from '../../hooks/use-toast';
@@ -60,7 +61,7 @@ const ContactManager: React.FC = () => {
   };
 
   const handleEditCaregiver = (caregiverId: number, priority: number) => {
-    logger.debug('Edit caregiver', { caregiverId, priority });
+    logger.debug('Edit caregiver requested', { caregiverId, priority });
     // Implement edit functionality
   };
 

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { userService } from '../services/user-service';
 import { useToast } from '../components/ui/use-toast';
+import { logger } from '../utils/logger';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +47,7 @@ const DeleteAccountSettings = () => {
       logout();
       navigate('/login');
     } catch (error) {
-      console.error('Failed to delete account:', error);
+      logger.error('Failed to delete account', error);
       toast({
         title: "Fout bij verwijderen",
         description: "Er is een fout opgetreden. Controleer uw wachtwoord.",

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { useToast } from '../components/ui/use-toast';
+import { logger } from '../utils/logger';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +34,7 @@ const DeviceUnpairingSettings = () => {
         description: `${deviceName} is succesvol ontkoppeld`,
       });
     } catch (error) {
-      console.error('Failed to unpair device:', error);
+      logger.error('Failed to unpair device', error);
       toast({
         title: "Fout bij ontkoppelen",
         description: "Er is een fout opgetreden bij het ontkoppelen",
