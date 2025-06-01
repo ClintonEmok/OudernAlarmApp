@@ -77,7 +77,7 @@ const MapView = () => {
 
         {/* Floating Location Card */}
         {selectedDevice && selectedDevice.location && (
-          <div className="absolute interface-top-margin left-4 right-4 z-10">
+          <div className="absolute top-12 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">

@@ -9,7 +9,7 @@ const Contacts = () => {
 
   return (
     <div className="h-full flex flex-col bg-blue-50">
-      <div className="flex-shrink-0 p-4 pb-2 interface-top-margin">
+      <div className="flex-shrink-0 p-4 pb-2">
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 

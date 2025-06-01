@@ -13,7 +13,7 @@
   @media screen and (max-height: 667px) and (orientation: portrait) {
     .iphone-navbar {
       height: 50px;
-      padding-bottom: max(env(safe-area-inset-bottom), 2px);
+      padding-bottom: max(env(safe-area-inset-bottom), 4px);
     }
     
     .iphone-page-container {
@@ -25,15 +25,15 @@
   @media screen and (min-height: 812px) and (orientation: portrait) {
     .iphone-navbar {
       height: 58px;
-      padding-bottom: max(env(safe-area-inset-bottom), 8px);
+      padding-bottom: max(env(safe-area-inset-bottom), 20px);
     }
   }
 
   /* iPhone Pro Max and newer */
   @media screen and (min-height: 844px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 68px;
-      padding-bottom: max(env(safe-area-inset-bottom), 12px);
+      height: 80px;
+      padding-bottom: max(env(safe-area-inset-bottom), 24px);
     }
   }
 }
