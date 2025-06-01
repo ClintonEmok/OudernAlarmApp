@@ -25,7 +25,7 @@ const Contacts = () => {
         </div>
         
         <ScrollArea className="h-[calc(100vh-140px)]">
-          <div className="p-4 pt-2 pb-safe">
+          <div className="p-4 pt-2 pb-24">
             <ContactManager />
           </div>
         </ScrollArea>

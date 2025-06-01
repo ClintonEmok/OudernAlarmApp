@@ -100,7 +100,7 @@ const ContactManager: React.FC = () => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-8">
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -129,7 +129,26 @@ const ContactManager: React.FC = () => {
         </Card>
       )}
 
-      {/* Add New Caregiver */}
+      {/* Caregivers List - Now before invite form */}
+      {filteredCaregivers.length > 0 && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Houd een zorgverlener lang ingedrukt om te verslepen</p>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <SwipeableCaregiverList
+              caregivers={filteredCaregivers}
+              onUpdatePriorities={updateCaregiverPriorities}
+              onReorderCaregivers={reorderCaregivers}
+              onRemoveCaregiver={handleRemoveCaregiver}
+              onEditCaregiver={handleEditCaregiver}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add New Caregiver - Now after caregivers list */}
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center space-x-2">
@@ -156,25 +175,6 @@ const ContactManager: React.FC = () => {
           </form>
         </CardContent>
       </Card>
-
-      {/* Caregivers List */}
-      {filteredCaregivers.length > 0 && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle>Mijn Zorgverleners ({filteredCaregivers.length})</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">Houd een zorgverlener lang ingedrukt om te verslepen</p>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <SwipeableCaregiverList
-              caregivers={filteredCaregivers}
-              onUpdatePriorities={updateCaregiverPriorities}
-              onReorderCaregivers={reorderCaregivers}
-              onRemoveCaregiver={handleRemoveCaregiver}
-              onEditCaregiver={handleEditCaregiver}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       {/* Patients List */}
       {filteredPatients.length > 0 && (

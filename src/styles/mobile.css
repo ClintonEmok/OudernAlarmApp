@@ -9,31 +9,21 @@
     padding-top: max(env(safe-area-inset-top), 16px);
   }
 
-  /* iPhone SE and smaller devices */
+  /* Standardized navbar padding for all iPhone models */
+  .iphone-navbar {
+    height: 60px;
+    padding-bottom: max(env(safe-area-inset-bottom), 4px);
+  }
+
+  /* iPhone SE and smaller devices - minimal adjustments */
   @media screen and (max-height: 667px) and (orientation: portrait) {
     .iphone-navbar {
-      height: 50px;
+      height: 56px;
       padding-bottom: max(env(safe-area-inset-bottom), 2px);
     }
     
     .iphone-page-container {
       padding-top: max(env(safe-area-inset-top), 8px);
-    }
-  }
-
-  /* iPhone X series and newer */
-  @media screen and (min-height: 812px) and (orientation: portrait) {
-    .iphone-navbar {
-      height: 56px;
-      padding-bottom: max(env(safe-area-inset-bottom), 4px);
-    }
-  }
-
-  /* iPhone Pro Max and newer */
-  @media screen and (min-height: 844px) and (orientation: portrait) {
-    .iphone-navbar {
-      height: 64px;
-      padding-bottom: max(env(safe-area-inset-bottom), 6px);
     }
   }
 }
