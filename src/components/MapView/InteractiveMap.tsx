@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -48,16 +47,16 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       attributionControl: false,
     });
 
-    // Add navigation controls with better positioning for iPhone safe areas
+    // Add navigation controls to bottom-right
     map.current.addControl(
       new mapboxgl.NavigationControl({
         visualizePitch: true,
       }),
-      'top-right'
+      'bottom-right'
     );
 
-    // Add fullscreen control
-    map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    // Add fullscreen control to bottom-right
+    map.current.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
     // Create device marker if device exists
     if (device?.location) {
@@ -219,13 +218,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
       
-      {/* Map style selector positioned with iPhone safe areas in mind */}
-      <div className="absolute bottom-0 left-0 z-10 pb-safe pl-layout-margin">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-2 mb-4 ml-4">
+      {/* Clean map style selector - moved to bottom left */}
+      <div className="absolute bottom-4 left-4 z-10">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200/50 p-2">
           <select 
             value={mapStyle} 
             onChange={(e) => setMapStyle(e.target.value)}
-            className="text-sm border-none outline-none bg-transparent font-medium touch-target"
+            className="text-sm border-none outline-none bg-transparent font-medium"
           >
             {mapStyles.map((style) => (
               <option key={style.value} value={style.value}>
