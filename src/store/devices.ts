@@ -1,4 +1,3 @@
-
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
 import { Device } from '../types';
@@ -18,13 +17,28 @@ const transformApiDevice = (apiDevice: any): Device => {
     };
   }
   
-  // Use real battery level from API status, with fallback to old format
-  const batteryLevel = apiDevice.status?.battery_level || 
-                      apiDevice.batteryLevel || 
-                      apiDevice.battery_level || 
-                      85; // only as last resort
+  // Determine last update time
+  const lastUpdate = apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(apiDevice.updated_at);
   
-  logger.debug('Using battery level from API status', { batteryLevel, status: apiDevice.status });
+  // Check if device is online (less than 1 hour since last update)
+  const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
+  const isOnline = hoursSinceUpdate < 1;
+  
+  // Get battery level from API status, but show 0% if offline
+  let batteryLevel = 0; // Default to 0% if no data
+  if (isOnline) {
+    batteryLevel = apiDevice.status?.battery_level || 
+                   apiDevice.batteryLevel || 
+                   apiDevice.battery_level || 
+                   0; // No fallback to 85% anymore
+  }
+  
+  logger.debug('Device status calculated', { 
+    batteryLevel, 
+    isOnline, 
+    hoursSinceUpdate,
+    status: apiDevice.status 
+  });
   
   // Only use real data from API for firmware
   const firmwareVersion = apiDevice.firmwareVersion || 
@@ -38,12 +52,13 @@ const transformApiDevice = (apiDevice: any): Device => {
     phone_number: apiDevice.phone_number || '',
     nickname: apiDevice.nickname,
     batteryLevel: batteryLevel,
-    lastUpdate: apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(),
+    lastUpdate: lastUpdate,
     firmwareVersion: firmwareVersion,
     status: apiDevice.status,
     location: location,
     created_at: apiDevice.created_at,
-    updated_at: apiDevice.updated_at
+    updated_at: apiDevice.updated_at,
+    isOnline: isOnline
   };
 };
 

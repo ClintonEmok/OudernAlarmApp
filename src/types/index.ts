@@ -42,6 +42,7 @@ export interface Device {
   };
   created_at: string;
   updated_at: string;
+  isOnline?: boolean; // Added to track online status
 }
 
 export interface User {
