@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
 import { Device } from '../../types';
+import { formatInAmsterdamTime } from '../../utils/timezone';
 
 interface BatteryStatusCardProps {
   device: Device;
@@ -61,7 +62,7 @@ const BatteryStatusCard: React.FC<BatteryStatusCardProps> = ({ device }) => {
           />
           {!device.isOnline && (
             <p className="text-xs text-gray-500 mt-1">
-              Laatste contact: {device.lastUpdate.toLocaleString('nl-NL')}
+              Laatste contact: {formatInAmsterdamTime(device.lastUpdate, 'dd-MM-yyyy HH:mm')}
             </p>
           )}
         </div>

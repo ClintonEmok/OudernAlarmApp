@@ -4,8 +4,7 @@ import { Activity, Clock, MapPin, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Device } from '../../types';
-import { formatDistanceToNow } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { getRelativeTimeInAmsterdam } from '../../utils/timezone';
 
 interface DeviceActivityCardProps {
   device: Device;
@@ -19,7 +18,7 @@ const DeviceActivityCard: React.FC<DeviceActivityCardProps> = ({
       return <Badge variant="destructive" className="bg-gray-500">Offline</Badge>;
     }
     
-    const lastUpdate = device.lastUpdate || new Date(device.updated_at);
+    const lastUpdate = device.lastUpdate;
     const hoursSinceUpdate = (Date.now() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60);
     
     if (hoursSinceUpdate < 1) {
@@ -54,13 +53,7 @@ const DeviceActivityCard: React.FC<DeviceActivityCardProps> = ({
             <span className="text-sm text-gray-600">Laatste Update:</span>
             <div className="flex items-center space-x-1 text-sm text-right">
               <span className={!device.isOnline ? 'text-gray-500' : ''}>
-                {device.lastUpdate ? formatDistanceToNow(device.lastUpdate, {
-                addSuffix: true,
-                locale: nl
-              }) : formatDistanceToNow(new Date(device.updated_at), {
-                addSuffix: true,
-                locale: nl
-              })}
+                {getRelativeTimeInAmsterdam(device.lastUpdate)}
               </span>
             </div>
           </div>

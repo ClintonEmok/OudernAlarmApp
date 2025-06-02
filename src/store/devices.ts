@@ -4,6 +4,41 @@ import { Device } from '../types';
 import { apiService } from '../services/api';
 import { logger } from '../utils/logger';
 
+// Helper function to find the most recent timestamp
+const getMostRecentTimestamp = (apiDevice: any): Date => {
+  const timestamps: Date[] = [];
+  
+  // Check status timestamp
+  if (apiDevice.status?.timestamp) {
+    timestamps.push(new Date(apiDevice.status.timestamp));
+  }
+  
+  // Check location timestamp
+  if (apiDevice.location?.timestamp) {
+    timestamps.push(new Date(apiDevice.location.timestamp));
+  }
+  
+  // Fallback to updated_at
+  if (apiDevice.updated_at) {
+    timestamps.push(new Date(apiDevice.updated_at));
+  }
+  
+  // Return the most recent timestamp, or current time if none found
+  const mostRecent = timestamps.length > 0 ? 
+    new Date(Math.max(...timestamps.map(t => t.getTime()))) : 
+    new Date(apiDevice.updated_at || Date.now());
+    
+  logger.debug('Most recent timestamp calculated', {
+    deviceId: apiDevice.id,
+    statusTimestamp: apiDevice.status?.timestamp,
+    locationTimestamp: apiDevice.location?.timestamp,
+    updatedAt: apiDevice.updated_at,
+    mostRecent: mostRecent.toISOString()
+  });
+  
+  return mostRecent;
+};
+
 // Helper function to transform API device response to Device type
 const transformApiDevice = (apiDevice: any): Device => {
   logger.debug('Transforming API device:', apiDevice);
@@ -17,8 +52,8 @@ const transformApiDevice = (apiDevice: any): Device => {
     };
   }
   
-  // Determine last update time
-  const lastUpdate = apiDevice.lastUpdate ? new Date(apiDevice.lastUpdate) : new Date(apiDevice.updated_at);
+  // Get the most recent timestamp from status, location, or updated_at
+  const lastUpdate = getMostRecentTimestamp(apiDevice);
   
   // Check if device is online (less than 1 hour since last update)
   const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
@@ -37,6 +72,7 @@ const transformApiDevice = (apiDevice: any): Device => {
     batteryLevel, 
     isOnline, 
     hoursSinceUpdate,
+    lastUpdate: lastUpdate.toISOString(),
     status: apiDevice.status 
   });
   
