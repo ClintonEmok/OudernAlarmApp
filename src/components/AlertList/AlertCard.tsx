@@ -5,6 +5,8 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert } from '../../types';
 import { getFormattedAmsterdamTime } from '../../utils/timezone';
+import { useAddressLookup } from '../../hooks/useAddressLookup';
+import { env } from '../../utils/env';
 
 interface AlertCardProps {
   alert: Alert;
@@ -20,6 +22,25 @@ const AlertCard = ({
   onMarkAsResolved
 }: AlertCardProps) => {
   const navigate = useNavigate();
+  
+  // Create a mock device for address lookup if alert has location
+  const mockDevice = alert?.location ? {
+    id: 1,
+    phone_number: alert.device_phone || '',
+    nickname: alert.device_nickname || 'Onbekend apparaat',
+    batteryLevel: 75,
+    lastUpdate: new Date(),
+    firmwareVersion: null,
+    location: alert.location,
+    created_at: '',
+    updated_at: ''
+  } : null;
+
+  const { address, isLoading: addressLoading } = useAddressLookup({
+    device: mockDevice,
+    mapboxToken: env.MAPBOX_PUBLIC_TOKEN
+  });
+
   const handleCardClick = () => {
     navigate(`/alerts/${alert.id}`);
   };
@@ -82,7 +103,6 @@ const AlertCard = ({
       exactTime: 'Onbekend'
     };
   };
-  const timeInfo = getTimeInfo();
   const getResponderInfo = () => {
     const caregivers = alert.caregivers_en_route?.trim();
     if (!caregivers || caregivers === 'Geen') {
@@ -114,6 +134,7 @@ const AlertCard = ({
       };
     }
   };
+  const timeInfo = getTimeInfo();
   const responderInfo = getResponderInfo();
   return (
     <Card className={`${getAlertColor(alert)} border-l-4 cursor-pointer hover:shadow-md transition-shadow`} onClick={handleCardClick}>
@@ -177,7 +198,11 @@ const AlertCard = ({
             {alert.location && (
               <div className="flex items-center space-x-1">
                 <MapPin size={14} />
-                <span>Locatie beschikbaar</span>
+                <span>
+                  {addressLoading ? 'Adres ophalen...' : 
+                   address ? address.shortAddress || address.address : 
+                   'Locatie beschikbaar'}
+                </span>
               </div>
             )}
           </div>
