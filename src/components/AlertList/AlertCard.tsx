@@ -5,12 +5,14 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert } from '../../types';
 import { getFormattedAmsterdamTime } from '../../utils/timezone';
+
 interface AlertCardProps {
   alert: Alert;
   onCall: (phoneNumber: string) => void;
   onViewLocation: (alert: Alert) => void;
   onMarkAsResolved: (alertId: string) => void;
 }
+
 const AlertCard = ({
   alert,
   onCall,
@@ -113,7 +115,8 @@ const AlertCard = ({
     }
   };
   const responderInfo = getResponderInfo();
-  return <Card className={`${getAlertColor(alert)} border-l-4 cursor-pointer hover:shadow-md transition-shadow`} onClick={handleCardClick}>
+  return (
+    <Card className={`${getAlertColor(alert)} border-l-4 cursor-pointer hover:shadow-md transition-shadow`} onClick={handleCardClick}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -145,17 +148,21 @@ const AlertCard = ({
           </p>
           
           {/* Responder Information - only show for active alarms */}
-          {!alert.isFalseAlarm && responderInfo.count > 0 && <div className="flex items-center space-x-2 p-2 bg-green-100 rounded-lg">
+          {!alert.isFalseAlarm && responderInfo.count > 0 && (
+            <div className="flex items-center space-x-2 p-2 bg-green-100 rounded-lg">
               <Car className="h-4 w-4 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-green-800">
                   {responderInfo.display}
                 </p>
-                {responderInfo.count > 1 && <p className="text-xs text-green-600">
+                {responderInfo.count > 1 && (
+                  <p className="text-xs text-green-600">
                     {responderInfo.names.join(', ')}
-                  </p>}
+                  </p>
+                )}
               </div>
-            </div>}
+            </div>
+          )}
           
           <div className="flex flex-col space-y-2 text-sm text-gray-500">
             <div className="flex items-center space-x-1">
@@ -167,15 +174,17 @@ const AlertCard = ({
               Exacte tijd: {timeInfo.exactTime}
             </div>
             
-            {alert.location && <div className="flex items-center space-x-1">
+            {alert.location && (
+              <div className="flex items-center space-x-1">
                 <MapPin size={14} />
                 <span>Locatie beschikbaar</span>
-              </div>}
+              </div>
+            )}
           </div>
-          
-          {alert.location}
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
+
 export default AlertCard;
