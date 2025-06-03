@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, ChevronDown, ChevronUp, Clock, Phone, User } from 'lucide-react';
@@ -8,7 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/ui/collapsible';
 import { useStore } from '../store/useStore';
-import { getFormattedAmsterdamTime } from '../utils/timezone';
+import { formatInAmsterdamTime, getRelativeTimeInAmsterdam } from '../utils/timezone';
 import InteractiveMap from '../components/MapView/InteractiveMap';
 import { useAddressLookup } from '../hooks/useAddressLookup';
 import { env } from '../utils/env';
@@ -86,8 +85,29 @@ const AlertDetail = () => {
     }
   };
 
-  const timeInfo = alert.created_at ? getFormattedAmsterdamTime(alert.created_at) : 
-    { relativeTime: 'Onbekend tijdstip', exactTime: 'Onbekend' };
+  // Fix timezone handling - use alert.timestamp (already converted) instead of created_at
+  const getTimeInfo = () => {
+    // Use alert.timestamp (already converted to Amsterdam time) instead of created_at
+    if (alert.timestamp) {
+      return {
+        relativeTime: getRelativeTimeInAmsterdam(alert.timestamp),
+        exactTime: formatInAmsterdamTime(alert.timestamp)
+      };
+    }
+    // Fallback to created_at only if timestamp is not available
+    if (alert.created_at) {
+      return {
+        relativeTime: getRelativeTimeInAmsterdam(alert.created_at),
+        exactTime: formatInAmsterdamTime(alert.created_at)
+      };
+    }
+    return {
+      relativeTime: 'Onbekend tijdstip',
+      exactTime: 'Onbekend'
+    };
+  };
+
+  const timeInfo = getTimeInfo();
 
   const getResponderInfo = () => {
     const caregivers = alert.caregivers_en_route?.trim();

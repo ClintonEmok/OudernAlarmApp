@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Alert } from '../../types';
-import { getFormattedAmsterdamTime } from '../../utils/timezone';
+import { formatInAmsterdamTime, getRelativeTimeInAmsterdam } from '../../utils/timezone';
 import { useAddressLookup } from '../../hooks/useAddressLookup';
 import { env } from '../../utils/env';
 
@@ -95,8 +95,19 @@ const AlertCard = ({
     }
   };
   const getTimeInfo = () => {
+    // Use alert.timestamp (already converted to Amsterdam time) instead of created_at
+    if (alert.timestamp) {
+      return {
+        relativeTime: getRelativeTimeInAmsterdam(alert.timestamp),
+        exactTime: formatInAmsterdamTime(alert.timestamp)
+      };
+    }
+    // Fallback to created_at only if timestamp is not available
     if (alert.created_at) {
-      return getFormattedAmsterdamTime(alert.created_at);
+      return {
+        relativeTime: getRelativeTimeInAmsterdam(alert.created_at),
+        exactTime: formatInAmsterdamTime(alert.created_at)
+      };
     }
     return {
       relativeTime: 'Onbekend tijdstip',

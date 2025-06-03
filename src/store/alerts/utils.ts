@@ -21,8 +21,15 @@ export const transformApiAlert = (apiAlert: any): Alert => {
   const primaryType = alertTypes[0] || 'emergency';
   const mappedType = typeMapping[primaryType] || 'emergency';
   
-  // Convert UTC timestamp to Amsterdam timezone
+  // Convert UTC timestamp to Amsterdam timezone - this is the CORRECT time to use
   const amsterdamTime = toAmsterdamTime(apiAlert.created_at);
+  
+  logger.debug('Timezone conversion for alert:', {
+    alertId: apiAlert.id,
+    originalUTC: apiAlert.created_at,
+    convertedAmsterdam: amsterdamTime.toISOString(),
+    amsterdamTimeLocal: amsterdamTime.toString()
+  });
   
   // Extract location data if available
   let location = undefined;
@@ -46,7 +53,7 @@ export const transformApiAlert = (apiAlert: any): Alert => {
   return {
     id: apiAlert.id.toString(),
     type: mappedType,
-    timestamp: amsterdamTime,
+    timestamp: amsterdamTime, // This is the correctly converted Amsterdam time
     isFalseAlarm: apiAlert.false_alarm || false,
     status: apiAlert.false_alarm ? 'Resolved' : 'Active',
     location: location,
@@ -56,7 +63,7 @@ export const transformApiAlert = (apiAlert: any): Alert => {
     title: `${primaryType} Alarm`,
     description: alertDescription,
     message: `${apiAlert.triggered_alerts} - ${deviceIdentifier}`,
-    created_at: apiAlert.created_at,
+    created_at: apiAlert.created_at, // Keep original UTC for reference
     caregivers_en_route: apiAlert.caregivers_en_route || ''
   };
 };
