@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX, AlertTriangle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
@@ -12,7 +11,6 @@ import { logger } from '../../utils/logger';
 
 // Default Mapbox token
 const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ';
-
 const MapView = () => {
   const {
     selectedDevice,
@@ -22,10 +20,12 @@ const MapView = () => {
     showUserLocationOnMap,
     alerts
   } = useStore();
-  
+
   // Use the new device polling hook for refresh functionality
-  const { isRefreshing, handleRefresh } = useDevicePolling();
-  
+  const {
+    isRefreshing,
+    handleRefresh
+  } = useDevicePolling();
   const {
     address,
     isLoading: addressLoading,
@@ -35,7 +35,6 @@ const MapView = () => {
     device: selectedDevice,
     mapboxToken: DEFAULT_MAPBOX_TOKEN
   });
-  
   const {
     currentLocation,
     locationPermission,
@@ -44,12 +43,7 @@ const MapView = () => {
   } = useLocationService();
 
   // Get recent alarms for the selected device
-  const deviceAlarms = selectedDevice ? 
-    alerts.filter(alert => 
-      alert.device_phone === selectedDevice.phone_number && 
-      !alert.isFalseAlarm &&
-      alert.status === 'Active'
-    ).slice(0, 3) : []; // Show max 3 recent alarms
+  const deviceAlarms = selectedDevice ? alerts.filter(alert => alert.device_phone === selectedDevice.phone_number && !alert.isFalseAlarm && alert.status === 'Active').slice(0, 3) : []; // Show max 3 recent alarms
 
   // Auto-select first device if none is selected but devices are available
   useEffect(() => {
@@ -76,51 +70,27 @@ const MapView = () => {
           logger.error('Failed to auto-enable user location', error);
         }
       };
-      
       enableLocation();
     }
   }, [showUserLocationOnMap, locationPermission, currentLocation, requestLocationPermissions, getCurrentLocation]);
-
-  return (
-    <div className="h-full flex flex-col relative">
+  return <div className="h-full flex flex-col relative">
       {/* Full Screen Map */}
       <div className="flex-1 relative">
-        <InteractiveMap 
-          device={selectedDevice} 
-          mapboxToken={DEFAULT_MAPBOX_TOKEN} 
-          userLocation={currentLocation} 
-          showUserLocation={showUserLocationOnMap && !!currentLocation} 
-        />
+        <InteractiveMap device={selectedDevice} mapboxToken={DEFAULT_MAPBOX_TOKEN} userLocation={currentLocation} showUserLocation={showUserLocationOnMap && !!currentLocation} />
 
         {/* Floating Location Card */}
-        {selectedDevice && selectedDevice.location && (
-          <div className="absolute top-12 left-4 right-4 z-10">
+        {selectedDevice && selectedDevice.location && <div className="absolute top-12 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="text-sm text-gray-500 font-medium mb-1">Huidige locatie</h3>
                   <div className="flex items-center space-x-2">
-                    {addressLoading ? (
-                      <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span>
-                    ) : address ? (
-                      <span className="text-lg font-semibold text-gray-900">
+                    {addressLoading ? <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span> : address ? <span className="text-lg font-semibold text-gray-900">
                         {address.components.city || address.shortAddress || 'Thuis'}
-                      </span>
-                    ) : addressError ? (
-                      <span className="text-lg font-semibold text-red-600">Locatie onbekend</span>
-                    ) : (
-                      <span className="text-lg font-semibold text-gray-900">Thuis</span>
-                    )}
-                    {addressError && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={refetch} 
-                        className="p-1 h-6 w-6"
-                      >
+                      </span> : addressError ? <span className="text-lg font-semibold text-red-600">Locatie onbekend</span> : <span className="text-lg font-semibold text-gray-900">Thuis</span>}
+                    {addressError && <Button variant="ghost" size="sm" onClick={refetch} className="p-1 h-6 w-6">
                         <RotateCcw size={12} />
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                   <div className="text-sm text-gray-500 mt-1">
                     {selectedDevice.location.latitude.toFixed(4)}, {selectedDevice.location.longitude.toFixed(4)}
@@ -131,9 +101,9 @@ const MapView = () => {
                   <span className="text-sm text-gray-500">Laatste update</span>
                   <div className="text-lg font-semibold text-gray-900">
                     {new Date(selectedDevice.lastUpdate).toLocaleTimeString('nl-NL', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
                   </div>
                 </div>
               </div>
@@ -144,54 +114,28 @@ const MapView = () => {
                   <Battery size={16} className="text-green-600" />
                   <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
                 </div>
-                {deviceAlarms.length === 0 ? (
-                  <div className="flex items-center space-x-1 text-green-600">
+                {deviceAlarms.length === 0 ? <div className="flex items-center space-x-1 text-green-600">
                     <Shield size={16} />
                     <span className="text-sm font-medium">Veilig</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-1 text-red-600">
+                  </div> : <div className="flex items-center space-x-1 text-red-600">
                     <AlertTriangle size={16} />
                     <span className="text-sm font-medium">{deviceAlarms.length} Actieve Alarm(en)</span>
-                  </div>
-                )}
+                  </div>}
               </div>
 
               {/* Active alarms display */}
-              {deviceAlarms.length > 0 && (
-                <div className="border-t border-gray-100 pt-3 mt-3">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Recente Alarmen:</h4>
-                  <div className="space-y-2">
-                    {deviceAlarms.map((alarm) => (
-                      <div key={alarm.id} className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
-                        <div className="flex items-center space-x-2">
-                          <AlertTriangle size={14} className="text-red-500" />
-                          <span className="text-sm font-medium text-red-700">{alarm.title}</span>
-                        </div>
-                        <Badge variant="destructive" className="text-xs">
-                          {alarm.type?.toUpperCase()}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {deviceAlarms.length > 0}
 
               {/* User location status */}
-              {showUserLocationOnMap && currentLocation && (
-                <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100 mt-2">
+              {showUserLocationOnMap && currentLocation && <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100 mt-2">
                   <User size={12} />
                   <span className="text-xs">
                     Jouw locatie: {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}
                   </span>
-                </div>
-              )}
+                </div>}
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default MapView;
