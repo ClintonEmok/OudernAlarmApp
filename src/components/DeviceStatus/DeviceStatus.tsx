@@ -19,7 +19,7 @@ interface DeviceStatusProps {
 
 const DeviceStatus = ({ onRefresh }: DeviceStatusProps) => {
   useAuth();
-  const { devices, selectedDevice, fetchDevices, setSelectedDevice, unassignDevice } = useStore();
+  const { devices, selectedDevice, refreshAll, setSelectedDevice, unassignDevice } = useStore();
   const { toast } = useToast();
   const [disconnectDialog, setDisconnectDialog] = useState<{
     isOpen: boolean;
@@ -27,20 +27,20 @@ const DeviceStatus = ({ onRefresh }: DeviceStatusProps) => {
   }>({ isOpen: false, device: null });
 
   useEffect(() => {
-    fetchDevices();
-  }, [fetchDevices]);
-
-  useEffect(() => {
     if (devices.length > 0 && !selectedDevice) {
       setSelectedDevice(devices[0]);
     }
   }, [devices, selectedDevice, setSelectedDevice]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (onRefresh) {
       onRefresh();
     } else {
-      fetchDevices();
+      try {
+        await refreshAll();
+      } catch (error) {
+        logger.error('Failed to refresh data', error);
+      }
     }
   };
 

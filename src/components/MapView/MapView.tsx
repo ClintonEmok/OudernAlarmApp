@@ -17,12 +17,13 @@ const MapView = () => {
   const {
     selectedDevice,
     deviceInfo,
-    fetchDevices,
+    devices,
+    setSelectedDevice,
     showUserLocationOnMap,
     alerts
   } = useStore();
   
-  // Use the new device polling hook
+  // Use the new device polling hook for refresh functionality
   const { isRefreshing, handleRefresh } = useDevicePolling();
   
   const {
@@ -50,10 +51,13 @@ const MapView = () => {
       alert.status === 'Active'
     ).slice(0, 3) : []; // Show max 3 recent alarms
 
-  // Automatically fetch devices when component mounts
+  // Auto-select first device if none is selected but devices are available
   useEffect(() => {
-    fetchDevices();
-  }, [fetchDevices]);
+    if (devices.length > 0 && !selectedDevice) {
+      setSelectedDevice(devices[0]);
+      logger.debug('Auto-selected first device for map view');
+    }
+  }, [devices, selectedDevice, setSelectedDevice]);
 
   // Auto-enable user location if setting is on and we have permission
   useEffect(() => {

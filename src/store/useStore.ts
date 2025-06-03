@@ -23,8 +23,10 @@ interface AppState extends
   setDeviceInfo: (info: DeviceInfo) => void;
   // Central refresh function
   refreshAll: () => Promise<void>;
+  // Initial data load function
+  initialDataLoad: () => Promise<void>;
   // Initialize app
-  initializeApp: () => void;
+  initializeApp: () => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get, api) => ({
@@ -68,9 +70,41 @@ export const useStore = create<AppState>((set, get, api) => ({
     }
   },
 
-  // Initialize app - load settings from storage
-  initializeApp: () => {
+  // Initial data load function for app startup
+  initialDataLoad: async () => {
+    logger.info('Starting initial data load...');
+    
+    // Only load if user is authenticated
+    if (!get().isAuthenticated) {
+      logger.debug('User not authenticated, skipping initial data load');
+      return;
+    }
+
+    try {
+      // Load fresh data from API
+      await get().refreshAll();
+      logger.info('Initial data load completed successfully');
+    } catch (error) {
+      logger.error('Initial data load failed', error);
+      // Don't throw error here to prevent app from breaking
+      // Just log it and continue
+    }
+  },
+
+  // Initialize app - load settings and initial data
+  initializeApp: async () => {
+    logger.info('Initializing app...');
+    
+    // Load settings from storage first (synchronous)
     get().loadSettingsFromStorage();
+    
+    // Then load fresh data if authenticated (asynchronous)
+    try {
+      await get().initialDataLoad();
+    } catch (error) {
+      logger.error('Failed to load initial data during app initialization', error);
+    }
+    
     logger.debug('App initialization completed');
   },
   

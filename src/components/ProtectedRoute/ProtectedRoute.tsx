@@ -10,8 +10,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback = null }) => {
-  const { isAuthenticated, user, fetchUserData } = useStore();
+  const { isAuthenticated, user, fetchUserData, initialDataLoad } = useStore();
   const [isChecking, setIsChecking] = useState(true);
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -31,6 +32,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback = nu
     checkAuth();
   }, [isAuthenticated, fetchUserData]);
 
+  // Load initial data when user becomes authenticated
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (isAuthenticated && user && !hasLoadedInitialData && !isChecking) {
+        console.log('Loading initial app data...');
+        try {
+          await initialDataLoad();
+          setHasLoadedInitialData(true);
+        } catch (error) {
+          console.error('Failed to load initial data:', error);
+          // Still mark as loaded to prevent infinite retries
+          setHasLoadedInitialData(true);
+        }
+      }
+    };
+
+    loadInitialData();
+  }, [isAuthenticated, user, hasLoadedInitialData, isChecking, initialDataLoad]);
+
   // Still checking authentication
   if (isChecking) {
     return (
@@ -48,7 +68,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, fallback = nu
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Authenticated - render protected content
+  // Show loading while initial data is being loaded
+  if (!hasLoadedInitialData) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">App gegevens laden...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Authenticated and data loaded - render protected content
   return <>{children}</>;
 };
 
