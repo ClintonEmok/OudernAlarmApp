@@ -118,8 +118,8 @@ const MapView = () => {
                     <Shield size={16} />
                     <span className="text-sm font-medium">Veilig</span>
                   </div> : <div className="flex items-center space-x-1 text-red-600">
-                    <AlertTriangle size={16} />
-                    <span className="text-sm font-medium">{deviceAlarms.length} Actieve Alarm(en)</span>
+                    
+                    
                   </div>}
               </div>
 
