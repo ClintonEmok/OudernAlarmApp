@@ -1,3 +1,4 @@
+
 import { StateCreator } from 'zustand';
 import { DeviceState } from './types';
 import { Device } from '../types';
@@ -80,29 +81,47 @@ const transformApiDevice = (apiDevice: any, recentAlarms: any[] = []): Device =>
   // Get the most recent timestamp from status, location, updated_at AND recent alarms
   const lastUpdate = getMostRecentTimestamp(apiDevice, recentAlarms);
   
-  // Check if device is online - increased from 1 hour to 6 hours for more realistic detection
-  const ONLINE_THRESHOLD_HOURS = 6;
-  const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
-  const isOnline = hoursSinceUpdate < ONLINE_THRESHOLD_HOURS;
-  
-  // Always get the last known battery level from API status
+  // Get battery level from API status
   let batteryLevel = apiDevice.status?.battery_level || 
                     apiDevice.batteryLevel || 
                     apiDevice.battery_level || 
                     0;
   
-  // Don't set battery to 0% just because device is offline - keep last known value
-  // Only set to 0 if we truly have no battery data
+  // IMPROVED ONLINE DETECTION LOGIC:
+  // 1. If device has valid battery data (> 0), it's considered online
+  // 2. Only use timestamp logic if no battery data is available
+  let isOnline = false;
   
-  logger.debug('Device status calculated', { 
+  if (batteryLevel > 0) {
+    // Device is sending battery data, so it must be online
+    isOnline = true;
+    logger.debug('Device marked as ONLINE due to battery data', {
+      deviceId: apiDevice.id,
+      phone: apiDevice.phone_number,
+      batteryLevel
+    });
+  } else {
+    // No battery data, fall back to timestamp-based detection
+    const ONLINE_THRESHOLD_HOURS = 6;
+    const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
+    isOnline = hoursSinceUpdate < ONLINE_THRESHOLD_HOURS;
+    
+    logger.debug('Device online status based on timestamp (no battery data)', {
+      deviceId: apiDevice.id,
+      phone: apiDevice.phone_number,
+      isOnline,
+      hoursSinceUpdate: hoursSinceUpdate.toFixed(2),
+      threshold: `${ONLINE_THRESHOLD_HOURS} hours`
+    });
+  }
+  
+  logger.debug('Final device status calculated', { 
     deviceId: apiDevice.id,
     phone: apiDevice.phone_number,
     batteryLevel, 
     isOnline, 
-    hoursSinceUpdate: hoursSinceUpdate.toFixed(2),
     lastUpdate: lastUpdate.toISOString(),
-    onlineThreshold: `${ONLINE_THRESHOLD_HOURS} hours`,
-    status: apiDevice.status 
+    detectionMethod: batteryLevel > 0 ? 'battery-data' : 'timestamp-based'
   });
   
   // Only use real data from API for firmware
@@ -175,7 +194,7 @@ export const createDeviceSlice: StateCreator<
   
   fetchDevices: async () => {
     try {
-      logger.info('Starting device fetch process with alarm context');
+      logger.info('Starting device fetch process with improved online detection');
       logger.debug('Using endpoint: /my-devices/own');
       
       // Get recent alarms for context (last 24 hours)
@@ -243,11 +262,12 @@ export const createDeviceSlice: StateCreator<
       
       const allDevices = [...ownDevices, ...caregivingDevices];
       
-      logger.debug('Device fetch results with alarm context', {
+      logger.debug('Device fetch results with improved battery-based online detection', {
         ownDevices: ownDevices.length,
         caregivingDevices: caregivingDevices.length,
         total: allDevices.length,
         onlineDevices: allDevices.filter(d => d.isOnline).length,
+        devicesWithBattery: allDevices.filter(d => d.batteryLevel > 0).length,
         recentAlarmsConsidered: recentAlarms.length
       });
       
@@ -268,7 +288,7 @@ export const createDeviceSlice: StateCreator<
         logger.info('No devices found in response');
       }
       
-      logger.info('Device fetch completed successfully with improved online detection');
+      logger.info('Device fetch completed successfully with battery-based online detection');
     } catch (error) {
       logger.error('Failed to fetch devices', error);
       set({ devices: [], ownDevices: [], caregivingDevices: [] });
