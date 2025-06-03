@@ -4,8 +4,8 @@ import { Device } from '../types';
 import { apiService } from '../services/api';
 import { logger } from '../utils/logger';
 
-// Helper function to find the most recent timestamp
-const getMostRecentTimestamp = (apiDevice: any): Date => {
+// Helper function to find the most recent timestamp from device data AND recent alarms
+const getMostRecentTimestamp = (apiDevice: any, recentAlarms: any[] = []): Date => {
   const timestamps: Date[] = [];
   
   // Check status timestamp
@@ -23,6 +23,25 @@ const getMostRecentTimestamp = (apiDevice: any): Date => {
     timestamps.push(new Date(apiDevice.updated_at));
   }
   
+  // Check recent alarms from this device (last 24 hours)
+  const devicePhone = apiDevice.phone_number;
+  if (devicePhone && recentAlarms.length > 0) {
+    const deviceAlarms = recentAlarms.filter(alarm => 
+      alarm.device?.phone_number === devicePhone &&
+      alarm.created_at
+    );
+    
+    deviceAlarms.forEach(alarm => {
+      timestamps.push(new Date(alarm.created_at));
+    });
+    
+    logger.debug('Recent alarms found for device:', {
+      devicePhone,
+      alarmCount: deviceAlarms.length,
+      alarmTimestamps: deviceAlarms.map(a => a.created_at)
+    });
+  }
+  
   // Return the most recent timestamp, or current time if none found
   const mostRecent = timestamps.length > 0 ? 
     new Date(Math.max(...timestamps.map(t => t.getTime()))) : 
@@ -30,9 +49,11 @@ const getMostRecentTimestamp = (apiDevice: any): Date => {
     
   logger.debug('Most recent timestamp calculated', {
     deviceId: apiDevice.id,
+    devicePhone: apiDevice.phone_number,
     statusTimestamp: apiDevice.status?.timestamp,
     locationTimestamp: apiDevice.location?.timestamp,
     updatedAt: apiDevice.updated_at,
+    totalTimestamps: timestamps.length,
     mostRecent: mostRecent.toISOString()
   });
   
@@ -40,8 +61,12 @@ const getMostRecentTimestamp = (apiDevice: any): Date => {
 };
 
 // Helper function to transform API device response to Device type
-const transformApiDevice = (apiDevice: any): Device => {
-  logger.debug('Transforming API device:', apiDevice);
+const transformApiDevice = (apiDevice: any, recentAlarms: any[] = []): Device => {
+  logger.debug('Transforming API device with alarm context:', {
+    deviceId: apiDevice.id,
+    phone: apiDevice.phone_number,
+    recentAlarmsCount: recentAlarms.length
+  });
   
   // Transform location data, converting string coordinates to numbers
   let location = undefined;
@@ -52,27 +77,31 @@ const transformApiDevice = (apiDevice: any): Device => {
     };
   }
   
-  // Get the most recent timestamp from status, location, or updated_at
-  const lastUpdate = getMostRecentTimestamp(apiDevice);
+  // Get the most recent timestamp from status, location, updated_at AND recent alarms
+  const lastUpdate = getMostRecentTimestamp(apiDevice, recentAlarms);
   
-  // Check if device is online (less than 1 hour since last update)
+  // Check if device is online - increased from 1 hour to 6 hours for more realistic detection
+  const ONLINE_THRESHOLD_HOURS = 6;
   const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60);
-  const isOnline = hoursSinceUpdate < 1;
+  const isOnline = hoursSinceUpdate < ONLINE_THRESHOLD_HOURS;
   
-  // Get battery level from API status, but show 0% if offline
-  let batteryLevel = 0; // Default to 0% if no data
-  if (isOnline) {
-    batteryLevel = apiDevice.status?.battery_level || 
-                   apiDevice.batteryLevel || 
-                   apiDevice.battery_level || 
-                   0; // No fallback to 85% anymore
-  }
+  // Always get the last known battery level from API status
+  let batteryLevel = apiDevice.status?.battery_level || 
+                    apiDevice.batteryLevel || 
+                    apiDevice.battery_level || 
+                    0;
+  
+  // Don't set battery to 0% just because device is offline - keep last known value
+  // Only set to 0 if we truly have no battery data
   
   logger.debug('Device status calculated', { 
+    deviceId: apiDevice.id,
+    phone: apiDevice.phone_number,
     batteryLevel, 
     isOnline, 
-    hoursSinceUpdate,
+    hoursSinceUpdate: hoursSinceUpdate.toFixed(2),
     lastUpdate: lastUpdate.toISOString(),
+    onlineThreshold: `${ONLINE_THRESHOLD_HOURS} hours`,
     status: apiDevice.status 
   });
   
@@ -81,7 +110,10 @@ const transformApiDevice = (apiDevice: any): Device => {
                          apiDevice.firmware_version || 
                          null;
   
-  logger.debug('Device firmware version extracted', { firmwareVersion });
+  logger.debug('Device firmware version extracted', { 
+    deviceId: apiDevice.id,
+    firmwareVersion 
+  });
   
   return {
     id: apiDevice.id || 0,
@@ -117,6 +149,7 @@ export const createDeviceSlice: StateCreator<
   DeviceSlice & { 
     deviceInfo: { batteryLevel: number; lastUpdate: Date };
     setDeviceInfo: (info: any) => void;
+    alerts: any[];
   },
   [],
   [],
@@ -142,8 +175,30 @@ export const createDeviceSlice: StateCreator<
   
   fetchDevices: async () => {
     try {
-      logger.info('Starting device fetch process');
+      logger.info('Starting device fetch process with alarm context');
       logger.debug('Using endpoint: /my-devices/own');
+      
+      // Get recent alarms for context (last 24 hours)
+      let recentAlarms: any[] = [];
+      try {
+        logger.debug('Fetching recent alarms for device activity context...');
+        const alarmsResponse = await apiService.getDeviceAlarms();
+        const alarmsData = alarmsResponse?.data || (Array.isArray(alarmsResponse) ? alarmsResponse : []);
+        
+        // Filter to last 24 hours
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        recentAlarms = alarmsData.filter((alarm: any) => 
+          alarm.created_at && new Date(alarm.created_at) > twentyFourHoursAgo
+        );
+        
+        logger.debug('Recent alarms fetched for device context:', {
+          totalAlarms: alarmsData.length,
+          recentAlarms: recentAlarms.length,
+          devicePhones: recentAlarms.map(a => a.device?.phone_number).filter(Boolean)
+        });
+      } catch (alarmError) {
+        logger.warn('Could not fetch recent alarms for device context (non-critical):', alarmError);
+      }
       
       // Fetch own devices using the correct endpoint
       const ownDevicesResponse = await apiService.getMyDevices();
@@ -162,10 +217,10 @@ export const createDeviceSlice: StateCreator<
       // Handle response - should be an array directly
       let ownDevices: Device[] = [];
       if (Array.isArray(ownDevicesResponse)) {
-        ownDevices = ownDevicesResponse.map(transformApiDevice);
+        ownDevices = ownDevicesResponse.map(device => transformApiDevice(device, recentAlarms));
         logger.debug('Response is array format - processing devices', { count: ownDevices.length });
       } else if (ownDevicesResponse && typeof ownDevicesResponse === 'object' && 'data' in ownDevicesResponse && Array.isArray((ownDevicesResponse as any).data)) {
-        ownDevices = ((ownDevicesResponse as any).data).map(transformApiDevice);
+        ownDevices = ((ownDevicesResponse as any).data).map((device: any) => transformApiDevice(device, recentAlarms));
         logger.debug('Response has data property - processing devices', { count: ownDevices.length });
       } else {
         logger.warn('Unexpected response format from devices API', ownDevicesResponse);
@@ -178,9 +233,9 @@ export const createDeviceSlice: StateCreator<
         const caregivingResponse = await apiService.getCaregivingDevices();
         logger.debug('Caregiving devices response received', caregivingResponse);
         if (Array.isArray(caregivingResponse)) {
-          caregivingDevices = caregivingResponse.map(transformApiDevice);
+          caregivingDevices = caregivingResponse.map(device => transformApiDevice(device, recentAlarms));
         } else if (caregivingResponse && typeof caregivingResponse === 'object' && 'data' in caregivingResponse && Array.isArray((caregivingResponse as any).data)) {
-          caregivingDevices = ((caregivingResponse as any).data).map(transformApiDevice);
+          caregivingDevices = ((caregivingResponse as any).data).map((device: any) => transformApiDevice(device, recentAlarms));
         }
       } catch (caregivingError) {
         logger.debug('Could not fetch caregiving devices (optional)', caregivingError);
@@ -188,10 +243,12 @@ export const createDeviceSlice: StateCreator<
       
       const allDevices = [...ownDevices, ...caregivingDevices];
       
-      logger.debug('Device fetch results', {
+      logger.debug('Device fetch results with alarm context', {
         ownDevices: ownDevices.length,
         caregivingDevices: caregivingDevices.length,
-        total: allDevices.length
+        total: allDevices.length,
+        onlineDevices: allDevices.filter(d => d.isOnline).length,
+        recentAlarmsConsidered: recentAlarms.length
       });
       
       set({ 
@@ -211,7 +268,7 @@ export const createDeviceSlice: StateCreator<
         logger.info('No devices found in response');
       }
       
-      logger.info('Device fetch completed successfully');
+      logger.info('Device fetch completed successfully with improved online detection');
     } catch (error) {
       logger.error('Failed to fetch devices', error);
       set({ devices: [], ownDevices: [], caregivingDevices: [] });
@@ -223,7 +280,7 @@ export const createDeviceSlice: StateCreator<
       logger.debug('Fetching own devices...');
       const devices = await apiService.getOwnDevices();
       logger.debug('Own devices response received', devices);
-      const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
+      const transformedDevices = Array.isArray(devices) ? devices.map(device => transformApiDevice(device)) : [];
       set({ ownDevices: transformedDevices });
     } catch (error) {
       logger.error('Failed to fetch own devices', error);
@@ -236,7 +293,7 @@ export const createDeviceSlice: StateCreator<
       logger.debug('Fetching caregiving devices...');
       const devices = await apiService.getCaregivingDevices();
       logger.debug('Caregiving devices response received', devices);
-      const transformedDevices = Array.isArray(devices) ? devices.map(transformApiDevice) : [];
+      const transformedDevices = Array.isArray(devices) ? devices.map(device => transformApiDevice(device)) : [];
       set({ caregivingDevices: transformedDevices });
     } catch (error) {
       logger.error('Failed to fetch caregiving devices', error);
