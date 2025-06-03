@@ -11,6 +11,7 @@ import { useStore } from '../store/useStore';
 import { getFormattedAmsterdamTime } from '../utils/timezone';
 import InteractiveMap from '../components/MapView/InteractiveMap';
 import { useAddressLookup } from '../hooks/useAddressLookup';
+import { env } from '../utils/env';
 
 const AlertDetail = () => {
   const { alertId } = useParams();
@@ -21,8 +22,8 @@ const AlertDetail = () => {
   // Find the alert by ID
   const alert = alerts.find(a => a.id === alertId);
 
-  // Mock mapbox token - in real app this would come from env/config
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+  // Use the environment token as default
+  const mapboxToken = env.MAPBOX_PUBLIC_TOKEN;
 
   // Create a mock device for the map component
   const mockDevice = alert?.location ? {
@@ -221,24 +222,13 @@ const AlertDetail = () => {
                           )}
                         </div>
                         
-                        {/* Map */}
-                        {mapboxToken && (
-                          <div className="h-64 rounded-lg overflow-hidden border">
-                            <InteractiveMap
-                              device={mockDevice}
-                              mapboxToken={mapboxToken}
-                            />
-                          </div>
-                        )}
-                        
-                        {!mapboxToken && (
-                          <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <div className="text-center text-gray-500">
-                              <MapPin size={32} className="mx-auto mb-2" />
-                              <p>Mapbox token vereist voor kaart weergave</p>
-                            </div>
-                          </div>
-                        )}
+                        {/* Map - always show if we have a location and token */}
+                        <div className="h-64 rounded-lg overflow-hidden border">
+                          <InteractiveMap
+                            device={mockDevice}
+                            mapboxToken={mapboxToken}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </CollapsibleContent>
