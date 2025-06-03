@@ -1,68 +1,48 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../../store/useStore';
 import { Alert } from '../../../types';
 import { logger } from '../../../utils/logger';
 
 export const useAlertHandlers = () => {
-  const { toast } = useToast();
-  const { fetchAlerts, authorizedDevicePhones } = useStore();
+  const navigate = useNavigate();
+  const { setSelectedDevice, devices } = useStore();
 
   const handleCallUser = (phoneNumber: string) => {
-    // Additional security check before allowing call
-    if (!authorizedDevicePhones.has(phoneNumber)) {
-      logger.security(`Blocked call attempt to unauthorized device: ${phoneNumber}`);
-      toast({
-        title: "🔒 Toegang Geweigerd",
-        description: "U heeft geen toestemming om dit apparaat te bellen.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     if (phoneNumber) {
+      logger.info('Initiating call to:', phoneNumber);
       window.location.href = `tel:${phoneNumber}`;
     } else {
-      toast({
-        title: "Geen Telefoonnummer",
-        description: "Geen telefoonnummer beschikbaar voor dit apparaat.",
-        variant: "destructive"
-      });
+      logger.warn('No phone number available for call');
     }
   };
 
   const handleViewLocation = (alert: Alert) => {
-    if (alert.location?.latitude && alert.location?.longitude) {
-      const url = `https://maps.google.com/maps?q=${alert.location.latitude},${alert.location.longitude}`;
-      window.open(url, '_blank');
-    } else {
-      toast({
-        title: "Geen Locatie",
-        description: "Locatie informatie niet beschikbaar voor dit alarm.",
-        variant: "destructive"
-      });
+    logger.info('Viewing location for alert:', alert.id);
+    
+    // Find the device associated with this alert
+    const device = devices.find(d => d.phone_number === alert.device_phone);
+    
+    if (device) {
+      // Set the device as selected so the map shows its location
+      setSelectedDevice(device);
+      logger.debug('Device set for map view:', device.id);
     }
+    
+    // If the alert has location data, we could potentially override the device location
+    if (alert.location) {
+      logger.debug('Alert has location data:', alert.location);
+      // Could store this in a separate state for showing alarm-specific location
+    }
+    
+    // Navigate to map view
+    navigate('/device'); // Map view is on the device page
   };
 
-  const handleMarkAsResolved = async (alertId: string) => {
-    try {
-      // This would call an API to mark the alert as resolved
-      // For now, we'll just show a success message
-      toast({
-        title: "✓ Alarm Opgelost",
-        description: "Het alarm is gemarkeerd als opgelost.",
-      });
-      
-      // Refresh alerts
-      await fetchAlerts();
-    } catch (error) {
-      logger.error('Failed to resolve alert', error);
-      toast({
-        title: "Actie Mislukt",
-        description: "Kon het alarm niet markeren als opgelost.",
-        variant: "destructive"
-      });
-    }
+  const handleMarkAsResolved = (alertId: string) => {
+    // This would require a new API endpoint to mark alarms as resolved
+    logger.info('Marking alert as resolved:', alertId);
+    // TODO: Implement when API endpoint is available
   };
 
   return {

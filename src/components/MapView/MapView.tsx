@@ -1,12 +1,13 @@
 
 import { useEffect, useState } from 'react';
-import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX } from 'lucide-react';
+import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX, AlertTriangle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useAddressLookup } from '../../hooks/useAddressLookup';
 import { useLocationService } from '../../hooks/useLocationService';
 import { useDevicePolling } from '../../hooks/useDevicePolling';
 import InteractiveMap from './InteractiveMap';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { logger } from '../../utils/logger';
 
 // Default Mapbox token
@@ -17,7 +18,8 @@ const MapView = () => {
     selectedDevice,
     deviceInfo,
     fetchDevices,
-    showUserLocationOnMap
+    showUserLocationOnMap,
+    alerts
   } = useStore();
   
   // Use the new device polling hook
@@ -39,6 +41,14 @@ const MapView = () => {
     getCurrentLocation,
     requestLocationPermissions
   } = useLocationService();
+
+  // Get recent alarms for the selected device
+  const deviceAlarms = selectedDevice ? 
+    alerts.filter(alert => 
+      alert.device_phone === selectedDevice.phone_number && 
+      !alert.isFalseAlarm &&
+      alert.status === 'Active'
+    ).slice(0, 3) : []; // Show max 3 recent alarms
 
   // Automatically fetch devices when component mounts
   useEffect(() => {
@@ -130,11 +140,38 @@ const MapView = () => {
                   <Battery size={16} className="text-green-600" />
                   <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
                 </div>
-                <div className="flex items-center space-x-1 text-green-600">
-                  <Shield size={16} />
-                  <span className="text-sm font-medium">Veilig</span>
-                </div>
+                {deviceAlarms.length === 0 ? (
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <Shield size={16} />
+                    <span className="text-sm font-medium">Veilig</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1 text-red-600">
+                    <AlertTriangle size={16} />
+                    <span className="text-sm font-medium">{deviceAlarms.length} Actieve Alarm(en)</span>
+                  </div>
+                )}
               </div>
+
+              {/* Active alarms display */}
+              {deviceAlarms.length > 0 && (
+                <div className="border-t border-gray-100 pt-3 mt-3">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Recente Alarmen:</h4>
+                  <div className="space-y-2">
+                    {deviceAlarms.map((alarm) => (
+                      <div key={alarm.id} className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
+                        <div className="flex items-center space-x-2">
+                          <AlertTriangle size={14} className="text-red-500" />
+                          <span className="text-sm font-medium text-red-700">{alarm.title}</span>
+                        </div>
+                        <Badge variant="destructive" className="text-xs">
+                          {alarm.type?.toUpperCase()}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* User location status */}
               {showUserLocationOnMap && currentLocation && (
