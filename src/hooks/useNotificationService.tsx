@@ -1,13 +1,13 @@
 
 import { useCallback } from 'react';
-import { pushNotificationService } from '../services/push-notifications';
+import { localNotificationService } from '../services/local-notifications';
 import { logger } from '../utils/logger';
 
 export const useNotificationService = () => {
   // Send test notification
   const sendTestNotification = useCallback(async () => {
     try {
-      await pushNotificationService.sendLocalNotification({
+      await localNotificationService.sendLocalNotification({
         title: 'Test Notificatie',
         body: 'Dit is een test notificatie van de Ouderen Alarm app',
         data: { test: true }
@@ -21,7 +21,7 @@ export const useNotificationService = () => {
   // Send alarm notification
   const sendAlarmNotification = useCallback(async (deviceName: string, alarmType: string) => {
     try {
-      await pushNotificationService.sendAlarmNotification(deviceName, alarmType);
+      await localNotificationService.sendAlarmNotification(deviceName, alarmType);
     } catch (error) {
       logger.error('Failed to send alarm notification', error);
       throw error;
@@ -31,7 +31,7 @@ export const useNotificationService = () => {
   // Send low battery notification
   const sendLowBatteryNotification = useCallback(async (deviceName: string, batteryLevel: number) => {
     try {
-      await pushNotificationService.sendLowBatteryNotification(deviceName, batteryLevel);
+      await localNotificationService.sendLowBatteryNotification(deviceName, batteryLevel);
     } catch (error) {
       logger.error('Failed to send low battery notification', error);
       throw error;

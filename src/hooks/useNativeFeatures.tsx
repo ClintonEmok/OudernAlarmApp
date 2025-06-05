@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { pushNotificationService } from '../services/push-notifications';
+import { localNotificationService } from '../services/local-notifications';
 import { capacitorService } from '../services/capacitor-service';
 import { useLocationService } from './useLocationService';
 import { useNotificationService } from './useNotificationService';
@@ -41,16 +41,16 @@ export const useNativeFeatures = () => {
         logger.debug('Initializing native features...');
         capacitorService.logPlatformInfo();
         
-        // Initialize push notifications
+        // Initialize local notifications
         try {
-          await pushNotificationService.initialize();
-          const notificationPermissions = await pushNotificationService.checkPermissions();
+          await localNotificationService.initialize();
+          const notificationPermissions = await localNotificationService.checkPermissions();
           
           setStatus(prev => ({
             ...prev,
             permissions: {
               ...prev.permissions,
-              notifications: notificationPermissions.receive === 'granted'
+              notifications: notificationPermissions.display === 'granted'
             }
           }));
         } catch (error) {
@@ -101,7 +101,7 @@ export const useNativeFeatures = () => {
       logger.debug('Requesting all permissions...');
       
       // Request notification permissions
-      const notificationPermissions = await pushNotificationService.requestPermissions();
+      const notificationPermissions = await localNotificationService.requestPermissions();
       
       // Request location permissions
       const hasLocationPermission = await locationService.requestLocationPermissions();
@@ -110,13 +110,13 @@ export const useNativeFeatures = () => {
         ...prev,
         permissions: {
           location: hasLocationPermission,
-          notifications: notificationPermissions.receive === 'granted'
+          notifications: notificationPermissions.display === 'granted'
         }
       }));
       
       logger.debug('Permissions updated', {
         location: hasLocationPermission,
-        notifications: notificationPermissions.receive === 'granted'
+        notifications: notificationPermissions.display === 'granted'
       });
     } catch (error) {
       logger.error('Failed to request permissions', error);
@@ -137,7 +137,7 @@ export const useNativeFeatures = () => {
     // Permission management
     requestAllPermissions,
     
-    // Push notification service
-    pushNotificationService
+    // Local notification service
+    localNotificationService
   };
 };

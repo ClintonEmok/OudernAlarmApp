@@ -65,12 +65,12 @@ const NotificationControls: React.FC<NotificationControlsProps> = ({
     if (!hasPermission) {
       return 'Permissie vereist';
     }
-    return isNative ? 'Native push ready' : 'Web notificaties';
+    return isNative ? 'Lokale notificaties actief' : 'Web notificaties actief';
   };
 
   const getIconColor = () => {
     if (!hasPermission) return 'text-red-600';
-    return 'text-orange-600';
+    return 'text-green-600';
   };
 
   const getStatusIcon = () => {
@@ -108,7 +108,7 @@ const NotificationControls: React.FC<NotificationControlsProps> = ({
     <NativeFeatureCard
       icon={Bell}
       iconColor={getIconColor()}
-      title="Push Notificaties"
+      title="Lokale Notificaties"
       description={getDescription()}
       actions={actions}
       statusIndicator={getStatusIcon()}

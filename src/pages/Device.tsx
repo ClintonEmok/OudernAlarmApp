@@ -1,4 +1,3 @@
-
 import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
 import DebugInfo from '../components/DebugInfo/DebugInfo';
 import { capacitorService } from '../services/capacitor-service';
@@ -11,7 +10,7 @@ import NotificationControls from '../components/NativeFeatures/NotificationContr
 import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
 import { useStore } from '../store/useStore';
 import { useToast } from '@/hooks/use-toast';
-import { pushNotificationService } from '../services/push-notifications';
+import { localNotificationService } from '../services/local-notifications';
 import { logger } from '../utils/logger';
 
 const Device = () => {
@@ -46,8 +45,8 @@ const Device = () => {
     // Check notification permissions
     const checkNotificationPermissions = async () => {
       try {
-        const permissions = await pushNotificationService.checkPermissions();
-        setNotificationPermission(permissions.receive === 'granted');
+        const permissions = await localNotificationService.checkPermissions();
+        setNotificationPermission(permissions.display === 'granted');
       } catch (error) {
         logger.error('Failed to check notification permissions', error);
       }
@@ -83,8 +82,8 @@ const Device = () => {
 
   const handleRequestNotificationPermission = async () => {
     try {
-      const permissions = await pushNotificationService.requestPermissions();
-      setNotificationPermission(permissions.receive === 'granted');
+      const permissions = await localNotificationService.requestPermissions();
+      setNotificationPermission(permissions.display === 'granted');
     } catch (error) {
       logger.error('Failed to request notification permissions', error);
       throw error;

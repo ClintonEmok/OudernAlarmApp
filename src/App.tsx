@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { capacitorService } from "./services/capacitor-service";
-import { pushNotificationService } from "./services/push-notifications";
+import { localNotificationService } from "./services/local-notifications";
 import { pwaNavigationService } from "./services/pwa-navigation-service";
 import { logger } from "./utils/logger";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
@@ -55,10 +55,10 @@ const App = () => {
     // Initialize native features on app start
     const initializeNativeFeatures = async () => {
       try {
-        await pushNotificationService.initialize();
-        logger.info('Native features initialized in App.tsx');
+        await localNotificationService.initialize();
+        logger.info('Local notifications initialized in App.tsx');
       } catch (error) {
-        logger.error('Failed to initialize native features in App.tsx', error);
+        logger.error('Failed to initialize local notifications in App.tsx', error);
       }
     };
 
