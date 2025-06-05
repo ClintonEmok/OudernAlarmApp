@@ -15,6 +15,7 @@
     "@capacitor/cli": "^7.2.0",
     "@capacitor/core": "^7.2.0",
     "@capacitor/geolocation": "^7.1.2",
+    "@capacitor/ios": "^7.2.0",
     "@capacitor/local-notifications": "^7.0.1",
     "@capacitor/push-notifications": "^7.0.1",
     "@hookform/resolvers": "^3.9.0",
@@ -71,6 +72,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",

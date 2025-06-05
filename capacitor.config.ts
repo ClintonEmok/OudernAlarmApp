@@ -1,43 +1,42 @@
-
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.20e6451330784d2184e7e778b8320a52',
-  appName: 'Ouderen Alarm',
-  webDir: 'dist',
+  appId: "com.clintonemok.ouderenalarm",
+  appName: "Ouderen Alarm",
+  webDir: "dist",
   // Remove server configuration for production builds
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#3B82F6',
+      backgroundColor: "#3B82F6",
       showSpinner: false,
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
       splashFullScreen: true,
-      splashImmersive: true
+      splashImmersive: true,
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
-      iconColor: "#3B82F6"
+      iconColor: "#3B82F6",
     },
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
       iconColor: "#3B82F6",
-      sound: "beep.wav"
+      sound: "beep.wav",
     },
     Geolocation: {
-      permissions: ["location"]
+      permissions: ["location"],
     },
     StatusBar: {
       style: "LIGHT",
-      backgroundColor: "#3B82F6"
+      backgroundColor: "#3B82F6",
     },
     App: {
-      launchAutoHide: false
-    }
+      launchAutoHide: false,
+    },
   },
   ios: {
-    scheme: 'OuderenAlarm'
+    scheme: "OuderenAlarm",
   },
   android: {
     buildOptions: {
@@ -45,9 +44,9 @@ const config: CapacitorConfig = {
       keystorePassword: undefined,
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
-      releaseType: 'AAB'
-    }
-  }
+      releaseType: "AAB",
+    },
+  },
 };
 
 export default config;
