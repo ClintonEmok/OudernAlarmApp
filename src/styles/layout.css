@@ -9,15 +9,20 @@
     padding-top: max(env(safe-area-inset-top), 16px);
   }
 
-  /* iPhone-optimized navbar */
+  /* iPhone-optimized navbar with proper safe area handling */
   .iphone-navbar {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid rgba(59, 130, 246, 0.1);
-    height: 64px;
-    padding-bottom: max(env(safe-area-inset-bottom), 2px);
     flex-shrink: 0;
+    /* Dynamic height calculation: base height + safe area bottom */
+    min-height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    padding-top: 8px;
+    /* Ensure proper positioning on native iOS */
+    position: relative;
+    z-index: 50;
   }
 
   /* PWA page container */
