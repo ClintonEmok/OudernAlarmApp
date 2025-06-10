@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Deze app heeft continu toegang tot uw locatie nodig om de afstand tussen uw telefoon en het ouderenalarm altijd te kunnen tonen, zelfs wanneer de app op de achtergrond actief is. Dit is essentieel voor uw veiligheid en om altijd de relatieve positie te monitoren.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Deze app heeft toegang tot uw locatie nodig om de afstand tussen uw telefoon en het ouderenalarm te tonen.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleDevelopmentRegion</key>
