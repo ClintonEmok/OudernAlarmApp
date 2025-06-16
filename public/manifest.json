@@ -1,4 +1,3 @@
-
 {
   "name": "Ouderen Alarm - Veiligheid en Monitoring",
   "short_name": "Ouderen Alarm",
@@ -6,25 +5,60 @@
   "version": "1.0.0",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#DBEAFE",
+  "background_color": "#3fa4f6",
   "theme_color": "#3B82F6",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
     {
-      "src": "/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png",
-      "sizes": "192x192",
+      "src": "../icons/icon-48.webp",
       "type": "image/png",
+      "sizes": "48x48",
       "purpose": "any maskable"
     },
     {
-      "src": "/lovable-uploads/d598e881-3925-4b75-bcd7-96ee8359c4e9.png",
-      "sizes": "512x512",
+      "src": "../icons/icon-72.webp",
       "type": "image/png",
+      "sizes": "72x72",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-96.webp",
+      "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-128.webp",
+      "type": "image/png",
+      "sizes": "128x128",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-192.webp",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-256.webp",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-512.webp",
+      "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "medical", "lifestyle", "utilities"],
+  "categories": [
+    "health",
+    "medical",
+    "lifestyle",
+    "utilities"
+  ],
   "lang": "nl-NL",
   "dir": "ltr",
   "prefer_related_applications": false,

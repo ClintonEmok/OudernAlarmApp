@@ -1,23 +1,28 @@
-import DeviceStatus from '../components/DeviceStatus/DeviceStatus';
-import DebugInfo from '../components/DebugInfo/DebugInfo';
-import { capacitorService } from '../services/capacitor-service';
-import { useNativeFeatures } from '../hooks/useNativeFeatures';
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Smartphone } from 'lucide-react';
-import LocationControls from '../components/NativeFeatures/LocationControls';
-import NotificationControls from '../components/NativeFeatures/NotificationControls';
-import SecurityStatus from '../components/NativeFeatures/SecurityStatus';
-import { useStore } from '../store/useStore';
-import { useToast } from '@/hooks/use-toast';
-import { localNotificationService } from '../services/local-notifications';
-import { logger } from '../utils/logger';
+import DeviceStatus from "../components/DeviceStatus/DeviceStatus";
+import DebugInfo from "../components/DebugInfo/DebugInfo";
+import { capacitorService } from "../services/capacitor-service";
+import { useNativeFeatures } from "../hooks/useNativeFeatures";
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Smartphone } from "lucide-react";
+import LocationControls from "../components/NativeFeatures/LocationControls";
+import NotificationControls from "../components/NativeFeatures/NotificationControls";
+import SecurityStatus from "../components/NativeFeatures/SecurityStatus";
+import { useStore } from "../store/useStore";
+import { useToast } from "@/hooks/use-toast";
+import { localNotificationService } from "../services/local-notifications";
+import { logger } from "../utils/logger";
 
 const Device = () => {
   const [platformInfo, setPlatformInfo] = useState({
-    platform: '',
+    platform: "",
     isNative: false,
-    isMobile: false
+    isMobile: false,
   });
   const [notificationPermission, setNotificationPermission] = useState(false);
   const { fetchDevices } = useStore();
@@ -32,23 +37,23 @@ const Device = () => {
     startLocationTracking,
     stopLocationTracking,
     requestLocationPermissions,
-    sendTestNotification
+    sendTestNotification,
   } = useNativeFeatures();
 
   useEffect(() => {
     setPlatformInfo({
       platform: capacitorService.getPlatform(),
       isNative: capacitorService.isNative(),
-      isMobile: capacitorService.isMobile()
+      isMobile: capacitorService.isMobile(),
     });
 
     // Check notification permissions
     const checkNotificationPermissions = async () => {
       try {
         const permissions = await localNotificationService.checkPermissions();
-        setNotificationPermission(permissions.display === 'granted');
+        setNotificationPermission(permissions.display === "granted");
       } catch (error) {
-        logger.error('Failed to check notification permissions', error);
+        logger.error("Failed to check notification permissions", error);
       }
     };
     checkNotificationPermissions();
@@ -61,7 +66,7 @@ const Device = () => {
       }
       await getCurrentLocation();
     } catch (error) {
-      logger.error('Failed to get location', error);
+      logger.error("Failed to get location", error);
     }
   };
 
@@ -76,38 +81,38 @@ const Device = () => {
         await startLocationTracking();
       }
     } catch (error) {
-      logger.error('Failed to toggle tracking', error);
+      logger.error("Failed to toggle tracking", error);
     }
   };
 
   const handleRequestNotificationPermission = async () => {
     try {
       const permissions = await localNotificationService.requestPermissions();
-      setNotificationPermission(permissions.display === 'granted');
+      setNotificationPermission(permissions.display === "granted");
     } catch (error) {
-      logger.error('Failed to request notification permissions', error);
+      logger.error("Failed to request notification permissions", error);
       throw error;
     }
   };
 
   const handleRefresh = async () => {
     try {
-      logger.debug('Refreshing device data');
+      logger.debug("Refreshing device data");
       toast({
         title: "Vernieuwen...",
-        description: "Apparaatgegevens worden bijgewerkt."
+        description: "Apparaatgegevens worden bijgewerkt.",
       });
       await fetchDevices();
       toast({
         title: "✓ Bijgewerkt",
-        description: "Apparaatgegevens zijn succesvol vernieuwd."
+        description: "Apparaatgegevens zijn succesvol vernieuwd.",
       });
     } catch (error) {
-      logger.error('Failed to refresh devices', error);
+      logger.error("Failed to refresh devices", error);
       toast({
         title: "Fout bij vernieuwen",
         description: "Kon apparaatgegevens niet bijwerken.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -116,12 +121,12 @@ const Device = () => {
     <div className="h-full bg-blue-50 flex flex-col">
       <div className="flex-1 overflow-y-auto pt-safe">
         {/* Platform info for debugging */}
-        {process.env.NODE_ENV === 'development'}
-        
+        {process.env.NODE_ENV === "development"}
+
         <DeviceStatus onRefresh={handleRefresh} />
 
         {/* Native Features Section */}
-        {isNative && (
+        {/* {isNative && (
           <div className="p-4 space-y-4">
             <Card>
               <CardHeader>
@@ -150,7 +155,7 @@ const Device = () => {
               </CardContent>
             </Card>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
