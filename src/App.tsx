@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
+import { pushNotificationService } from "./services/push-notifications";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,18 +47,23 @@ const App = () => {
   useEffect(() => {
     // Initialize platform detection and log info
     capacitorService.logPlatformInfo();
-    
+
     // Log PWA status
     const pwaInfo = pwaNavigationService.getPlatformInfo();
-    logger.debug('PWA Navigation Service initialized', pwaInfo);
-    
+    logger.debug("PWA Navigation Service initialized", pwaInfo);
+
     // Initialize native features on app start
     const initializeNativeFeatures = async () => {
       try {
         await localNotificationService.initialize();
-        logger.info('Local notifications initialized in App.tsx');
+        logger.info("Local notifications initialized in App.tsx");
+        await pushNotificationService.initialize();
+        logger.info("Push notifications initialized in App.tsx");
       } catch (error) {
-        logger.error('Failed to initialize local notifications in App.tsx', error);
+        logger.error(
+          "Failed to initialize local notifications in App.tsx",
+          error
+        );
       }
     };
 
@@ -76,74 +81,113 @@ const App = () => {
               <main className="flex-1 min-h-0 overflow-hidden">
                 <Routes>
                   {/* Public routes */}
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route
+                    path="/"
+                    element={<Navigate to="/dashboard" replace />}
+                  />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
-                  
+
                   {/* Protected routes */}
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Home />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/alerts" element={
-                    <ProtectedRoute>
-                      <Alerts />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/alerts/:alertId" element={
-                    <ProtectedRoute>
-                      <AlertDetail />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/contacts" element={
-                    <ProtectedRoute>
-                      <Contacts />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/device" element={
-                    <ProtectedRoute>
-                      <Device />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Home />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/alerts"
+                    element={
+                      <ProtectedRoute>
+                        <Alerts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/alerts/:alertId"
+                    element={
+                      <ProtectedRoute>
+                        <AlertDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/contacts"
+                    element={
+                      <ProtectedRoute>
+                        <Contacts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/device"
+                    element={
+                      <ProtectedRoute>
+                        <Device />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Protected settings sub-pages */}
-                  <Route path="/settings/profile" element={
-                    <ProtectedRoute>
-                      <ProfileSettings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings/password" element={
-                    <ProtectedRoute>
-                      <PasswordSettings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings/device-pairing" element={
-                    <ProtectedRoute>
-                      <DevicePairing />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings/invitations" element={
-                    <ProtectedRoute>
-                      <Invitations />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings/support" element={
-                    <ProtectedRoute>
-                      <SupportTicket />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings/privacy" element={
-                    <ProtectedRoute>
-                      <PrivacyPolicy />
-                    </ProtectedRoute>
-                  } />
-                  
+                  <Route
+                    path="/settings/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfileSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings/password"
+                    element={
+                      <ProtectedRoute>
+                        <PasswordSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings/device-pairing"
+                    element={
+                      <ProtectedRoute>
+                        <DevicePairing />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings/invitations"
+                    element={
+                      <ProtectedRoute>
+                        <Invitations />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings/support"
+                    element={
+                      <ProtectedRoute>
+                        <SupportTicket />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings/privacy"
+                    element={
+                      <ProtectedRoute>
+                        <PrivacyPolicy />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

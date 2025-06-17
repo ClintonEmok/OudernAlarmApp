@@ -1,18 +1,18 @@
-
-import { authService } from './auth-service';
-import { userService } from './user-service';
-import { caregiverService } from './caregiver-service';
-import { deviceService } from './device-service';
+import { authService } from "./auth-service";
+import { userService } from "./user-service";
+import { caregiverService } from "./caregiver-service";
+import { deviceService } from "./device-service";
+import { pushTokenService } from "./push-token-service";
 
 // Re-export all interfaces
-export type { ApiError, DeviceConflictError } from './http-client';
+export type { ApiError, DeviceConflictError } from "./http-client";
 
 class ApiService {
   // Authentication
-  async register(data: { 
-    name: string; 
-    email: string; 
-    password: string; 
+  async register(data: {
+    name: string;
+    email: string;
+    password: string;
     password_confirmation: string;
   }) {
     return authService.register(data);
@@ -35,7 +35,9 @@ class ApiService {
     return userService.getUser();
   }
 
-  async updateUser(data: Partial<{ name: string; email: string; phone_number: string }>) {
+  async updateUser(
+    data: Partial<{ name: string; email: string; phone_number: string }>
+  ) {
     return userService.updateUser(data);
   }
 
@@ -60,7 +62,9 @@ class ApiService {
     return caregiverService.getPatients();
   }
 
-  async updateCaregiverPriorities(caregivers: Array<{ user_id: number; priority: number }>) {
+  async updateCaregiverPriorities(
+    caregivers: Array<{ user_id: number; priority: number }>
+  ) {
     return caregiverService.updateCaregiverPriorities(caregivers);
   }
 
@@ -128,6 +132,15 @@ class ApiService {
 
   async requestDeviceAccess(phone_number: string, message?: string) {
     return deviceService.requestDeviceAccess(phone_number, message);
+  }
+
+  // Push Token Management
+  async registerPushToken(token: string) {
+    return pushTokenService.register(token);
+  }
+
+  async removePushToken(token: string) {
+    return pushTokenService.remove(token);
   }
 }
 
