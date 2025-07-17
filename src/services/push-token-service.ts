@@ -6,7 +6,7 @@ class PushTokenService {
     return httpClient.post("/push-tokens", {
       token,
       platform: Capacitor.getPlatform(),
-      app_version: "1.0.0", // optionally use App.getInfo()
+      app_version: "1.0.4", // optionally use App.getInfo()
     });
   }
 

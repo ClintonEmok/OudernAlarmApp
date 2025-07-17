@@ -1,16 +1,26 @@
-import { useEffect, useState } from 'react';
-import { MapPin, Battery, Signal, Shield, RotateCcw, User, UserX, AlertTriangle } from 'lucide-react';
-import { useStore } from '../../store/useStore';
-import { useAddressLookup } from '../../hooks/useAddressLookup';
-import { useLocationService } from '../../hooks/useLocationService';
-import { useDevicePolling } from '../../hooks/useDevicePolling';
-import InteractiveMap from './InteractiveMap';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { logger } from '../../utils/logger';
+import { useEffect, useState } from "react";
+import {
+  MapPin,
+  Battery,
+  Signal,
+  Shield,
+  RotateCcw,
+  User,
+  UserX,
+  AlertTriangle,
+} from "lucide-react";
+import { useStore } from "../../store/useStore";
+import { useAddressLookup } from "../../hooks/useAddressLookup";
+import { useLocationService } from "../../hooks/useLocationService";
+import { useDevicePolling } from "../../hooks/useDevicePolling";
+import InteractiveMap from "./InteractiveMap";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { logger } from "../../utils/logger";
 
 // Default Mapbox token
-const DEFAULT_MAPBOX_TOKEN = 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ';
+const DEFAULT_MAPBOX_TOKEN =
+  "pk.eyJ1Ijoib3VkZXJlbmFsYXJtIiwiYSI6ImNtZDc5YTM5MTBpYm0ycnF1Y2E5cTY5MG0ifQ.uEPlXjaPTVACkiHyz-mJMQ";
 const MapView = () => {
   const {
     selectedDevice,
@@ -18,38 +28,44 @@ const MapView = () => {
     devices,
     setSelectedDevice,
     showUserLocationOnMap,
-    alerts
+    alerts,
   } = useStore();
 
   // Use the new device polling hook for refresh functionality
-  const {
-    isRefreshing,
-    handleRefresh
-  } = useDevicePolling();
+  const { isRefreshing, handleRefresh } = useDevicePolling();
   const {
     address,
     isLoading: addressLoading,
     error: addressError,
-    refetch
+    refetch,
   } = useAddressLookup({
     device: selectedDevice,
-    mapboxToken: DEFAULT_MAPBOX_TOKEN
+    mapboxToken: DEFAULT_MAPBOX_TOKEN,
   });
   const {
     currentLocation,
     locationPermission,
     getCurrentLocation,
-    requestLocationPermissions
+    requestLocationPermissions,
   } = useLocationService();
 
   // Get recent alarms for the selected device
-  const deviceAlarms = selectedDevice ? alerts.filter(alert => alert.device_phone === selectedDevice.phone_number && !alert.isFalseAlarm && alert.status === 'Active').slice(0, 3) : []; // Show max 3 recent alarms
+  const deviceAlarms = selectedDevice
+    ? alerts
+        .filter(
+          (alert) =>
+            alert.device_phone === selectedDevice.phone_number &&
+            !alert.isFalseAlarm &&
+            alert.status === "Active"
+        )
+        .slice(0, 3)
+    : []; // Show max 3 recent alarms
 
   // Auto-select first device if none is selected but devices are available
   useEffect(() => {
     if (devices.length > 0 && !selectedDevice) {
       setSelectedDevice(devices[0]);
-      logger.debug('Auto-selected first device for map view');
+      logger.debug("Auto-selected first device for map view");
     }
   }, [devices, selectedDevice, setSelectedDevice]);
 
@@ -61,49 +77,91 @@ const MapView = () => {
           if (!locationPermission) {
             const granted = await requestLocationPermissions();
             if (!granted) {
-              logger.warn('Location permission denied by user');
+              logger.warn("Location permission denied by user");
               return;
             }
           }
           await getCurrentLocation();
         } catch (error) {
-          logger.error('Failed to auto-enable user location', error);
+          logger.error("Failed to auto-enable user location", error);
         }
       };
       enableLocation();
     }
-  }, [showUserLocationOnMap, locationPermission, currentLocation, requestLocationPermissions, getCurrentLocation]);
-  return <div className="h-full flex flex-col relative">
+  }, [
+    showUserLocationOnMap,
+    locationPermission,
+    currentLocation,
+    requestLocationPermissions,
+    getCurrentLocation,
+  ]);
+  return (
+    <div className="h-full flex flex-col relative">
       {/* Full Screen Map */}
       <div className="flex-1 relative">
-        <InteractiveMap device={selectedDevice} mapboxToken={DEFAULT_MAPBOX_TOKEN} userLocation={currentLocation} showUserLocation={showUserLocationOnMap && !!currentLocation} />
+        <InteractiveMap
+          device={selectedDevice}
+          mapboxToken={DEFAULT_MAPBOX_TOKEN}
+          userLocation={currentLocation}
+          showUserLocation={showUserLocationOnMap && !!currentLocation}
+        />
 
         {/* Floating Location Card */}
-        {selectedDevice && selectedDevice.location && <div className="absolute top-12 left-4 right-4 z-10">
+        {selectedDevice && selectedDevice.location && (
+          <div className="absolute top-12 left-4 right-4 z-10">
             <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="text-sm text-gray-500 font-medium mb-1">Huidige locatie</h3>
+                  <h3 className="text-sm text-gray-500 font-medium mb-1">
+                    Huidige locatie
+                  </h3>
                   <div className="flex items-center space-x-2">
-                    {addressLoading ? <span className="text-lg font-semibold text-gray-900">Adres ophalen...</span> : address ? <span className="text-lg font-semibold text-gray-900">
-                        {address.components.city || address.shortAddress || 'Thuis'}
-                      </span> : addressError ? <span className="text-lg font-semibold text-red-600">Locatie onbekend</span> : <span className="text-lg font-semibold text-gray-900">Thuis</span>}
-                    {addressError && <Button variant="ghost" size="sm" onClick={refetch} className="p-1 h-6 w-6">
+                    {addressLoading ? (
+                      <span className="text-lg font-semibold text-gray-900">
+                        Adres ophalen...
+                      </span>
+                    ) : address ? (
+                      <span className="text-lg font-semibold text-gray-900">
+                        {address.components.city ||
+                          address.shortAddress ||
+                          "Thuis"}
+                      </span>
+                    ) : addressError ? (
+                      <span className="text-lg font-semibold text-red-600">
+                        Locatie onbekend
+                      </span>
+                    ) : (
+                      <span className="text-lg font-semibold text-gray-900">
+                        Thuis
+                      </span>
+                    )}
+                    {addressError && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={refetch}
+                        className="p-1 h-6 w-6"
+                      >
                         <RotateCcw size={12} />
-                      </Button>}
+                      </Button>
+                    )}
                   </div>
                   <div className="text-sm text-gray-500 mt-1">
-                    {selectedDevice.location.latitude.toFixed(4)}, {selectedDevice.location.longitude.toFixed(4)}
+                    {selectedDevice.location.latitude.toFixed(4)},{" "}
+                    {selectedDevice.location.longitude.toFixed(4)}
                   </div>
                 </div>
-                
+
                 <div className="text-right">
                   <span className="text-sm text-gray-500">Laatste update</span>
                   <div className="text-lg font-semibold text-gray-900">
-                    {new Date(selectedDevice.lastUpdate).toLocaleTimeString('nl-NL', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+                    {new Date(selectedDevice.lastUpdate).toLocaleTimeString(
+                      "nl-NL",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )}
                   </div>
                 </div>
               </div>
@@ -112,30 +170,38 @@ const MapView = () => {
               <div className="flex items-center space-x-4 mb-3">
                 <div className="flex items-center space-x-1">
                   <Battery size={16} className="text-green-600" />
-                  <span className="text-sm font-medium">{selectedDevice.batteryLevel}%</span>
+                  <span className="text-sm font-medium">
+                    {selectedDevice.batteryLevel}%
+                  </span>
                 </div>
-                {deviceAlarms.length === 0 ? <div className="flex items-center space-x-1 text-green-600">
+                {deviceAlarms.length === 0 ? (
+                  <div className="flex items-center space-x-1 text-green-600">
                     <Shield size={16} />
                     <span className="text-sm font-medium">Veilig</span>
-                  </div> : <div className="flex items-center space-x-1 text-red-600">
-                    
-                    
-                  </div>}
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-1 text-red-600"></div>
+                )}
               </div>
 
               {/* Active alarms display */}
               {deviceAlarms.length > 0}
 
               {/* User location status */}
-              {showUserLocationOnMap && currentLocation && <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100 mt-2">
+              {showUserLocationOnMap && currentLocation && (
+                <div className="flex items-center space-x-2 text-green-600 pt-2 border-t border-gray-100 mt-2">
                   <User size={12} />
                   <span className="text-xs">
-                    Jouw locatie: {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}
+                    Jouw locatie: {currentLocation.latitude.toFixed(4)},{" "}
+                    {currentLocation.longitude.toFixed(4)}
                   </span>
-                </div>}
+                </div>
+              )}
             </div>
-          </div>}
+          </div>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
 export default MapView;
