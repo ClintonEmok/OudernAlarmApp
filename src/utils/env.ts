@@ -4,7 +4,7 @@ import { logger } from './logger';
 // Environment configuration utility
 export const env = {
   // Mapbox configuration
-  MAPBOX_PUBLIC_TOKEN: import.meta.env.VITE_MAPBOX_PUBLIC_KEY || 'pk.eyJ1Ijoic2l0ZWpvYiIsImEiOiJjbWI1YjAyenkyNWYyMmtzYm11MzNzbnY4In0.u0WDvJRRU9bQiNV8WLhQtQ',
+  MAPBOX_PUBLIC_TOKEN: import.meta.env.VITE_MAPBOX_PUBLIC_KEY || 'pk.eyJ1Ijoib3VkZXJlbmFsYXJtIiwiYSI6ImNtZDc5YTM5MTBpYm0ycnF1Y2E5cTY5MG0ifQ.uEPlXjaPTVACkiHyz-mJMQ',
   
   // Environment flags
   IS_DEVELOPMENT: import.meta.env.DEV,
